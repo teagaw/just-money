@@ -1,0 +1,48 @@
+{
+  "name": "just-money",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Digital product empire — mass-production pipeline",
+  "scripts": {
+    "dev": "node --import tsx scripts/cli.ts",
+    "list": "node --import tsx scripts/cli.ts list",
+    "generate": "node --import tsx scripts/cli.ts generate",
+    "deploy": "node --import tsx scripts/cli.ts deploy",
+    "stats": "node --import tsx scripts/cli.ts stats",
+    "ship": "node --import tsx scripts/cli.ts ship",
+    "produce": "node --import tsx scripts/cli.ts produce",
+    "admin:dev": "cd admin && npm run dev",
+    "admin:build": "cd admin && npm run build",
+    "admin:deploy": "node --import tsx scripts/deploy-admin.ts",
+    "setup:supabase": "node --import tsx scripts/setup-supabase.ts",
+    "etsy:list": "node --import tsx scripts/list-etsy.ts",
+    "gumroad:list": "node --import tsx scripts/list-gumroad.ts",
+    "stripe:create": "node --import tsx scripts/stripe-create.ts",
+    "images:generate": "node --import tsx scripts/generate-images.ts",
+    "notion:build": "node --import tsx scripts/build-notion.ts",
+    "sheets:build": "node --import tsx scripts/build-sheets.ts",
+    "package": "node --import tsx scripts/package-products.ts",
+    "pin:pinterest": "node --import tsx scripts/pin-pinterest.ts",
+    "post:x": "node --import tsx scripts/post-x.ts",
+    "setup:webhooks": "node --import tsx scripts/setup-webhooks.ts"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "openai": "^4.28.0",
+    "@supabase/supabase-js": "^2.39.7",
+    "stripe": "^14.21.0",
+    "googleapis": "^133.0.0",
+    "archiver": "^7.0.1",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.2",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/archiver": "^6.0.2"
+  }
+}
