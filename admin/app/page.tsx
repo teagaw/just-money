@@ -7,18 +7,22 @@ import { Card, CardBody, CardDescription, CardHeader, CardTitle } from "@/compon
 import { ListingsLineChart, RevenueByLineBarChart } from "@/components/charts";
 import { ActivityFeed } from "@/components/activity-feed";
 import {
-  MOCK_PRODUCTS,
-  MOCK_EVENTS,
   getProductsByDay,
   getRevenueByLine,
 } from "@/lib/mock-data";
-import { getDashboardStatsServer } from "@/lib/supabase-server";
+import {
+  getDashboardStatsServer,
+  getProductsServer,
+  getProductionEventsServer,
+} from "@/lib/supabase-server";
 import { formatCurrency, formatNumber } from "@/lib/format";
-import type { ProductLine } from "@/lib/types";
 
 export default async function DashboardHome() {
-  const stats = await getDashboardStatsServer();
-  const products = MOCK_PRODUCTS;
+  const [stats, products, events] = await Promise.all([
+    getDashboardStatsServer(),
+    getProductsServer(),
+    getProductionEventsServer(),
+  ]);
   const reviews = stats.reviews;
 
   const totalRatingSum = reviews.reduce((s, r) => s + r.rating, 0);
@@ -153,7 +157,7 @@ export default async function DashboardHome() {
           </CardHeader>
           <CardBody className="px-0 pb-0">
             <ActivityFeed
-              events={MOCK_EVENTS}
+              events={events}
               products={products}
               limit={8}
             />
@@ -165,7 +169,7 @@ export default async function DashboardHome() {
         <span className="text-2xs uppercase tracking-widest">Showing</span>
         <span className="chip">{formatNumber(products.length)} products</span>
         <span className="chip">{formatNumber(reviews.length)} reviews</span>
-        <span className="chip">{formatNumber(MOCK_EVENTS.length)} events</span>
+        <span className="chip">{formatNumber(events.length)} events</span>
       </div>
     </>
   );

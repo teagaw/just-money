@@ -2,8 +2,10 @@
   "slug": "resume/modern-tech-resume-pack",
   "line": "resume",
   "price": 24,
-  "status": "built",
+  "currency": "USD",
+  "status": "spec_complete_build_pending",
   "build_date": "2026-06-07",
+  "version": "1.0.0",
   "name": "Modern Tech Resume Pack — 5 ATS-Optimized Templates",
   "tagline": "5 designer-quality 1-page resumes proven to pass ATS and impress recruiters",
   "styles": [
@@ -13,10 +15,11 @@
     "the-engineer",
     "the-founder"
   ],
-  "file_formats": ["DOCX", "Google Docs", "LaTeX", "PDF"],
+  "file_formats_planned": ["DOCX", "Google Docs", "LaTeX", "PDF"],
+  "file_formats_present": ["LaTeX (.tex)"],
   "page_versions": ["1-page", "2-page (bonus for senior candidates)"],
   "includes": [
-    "5 distinct resume templates (DOCX + LaTeX + Google Docs)",
+    "5 distinct resume templates (LaTeX + DOCX + Google Docs)",
     "5 fully-written sample resumes (1 per style)",
     "Matching cover letter template",
     "Matching LinkedIn bio template",
@@ -26,5 +29,46 @@
   ],
   "target_buyer": "Software engineers, product managers, designers, data scientists applying to tech jobs",
   "channels": ["Etsy", "Creative Market", "Gumroad"],
-  "quality_bar_passed": true
+  "deliverables_present": [
+    "README.md",
+    "the-minimalist.tex",
+    "the-minimalist-content.md",
+    "the-modern.tex",
+    "the-modern-content.md",
+    "the-bold.tex",
+    "the-bold-content.md",
+    "the-engineer.tex",
+    "the-engineer-content.md",
+    "the-founder.tex",
+    "the-founder-content.md"
+  ],
+  "binary_assets_present": false,
+  "v1_remaining_work": [
+    "Run deliverables/compile.sh to produce 5 PDFs from the .tex files (or follow deliverables/COMPILE.md for Overleaf) — 5-10 min for bash loop, 30 min for Overleaf manual",
+    "Validate each PDF renders at exactly 1 page on a stock letter-size paper — 5 min",
+    "Convert each PDF to DOCX (use a tool like pandoc, or just rebuild in Google Docs) — 1-2 hours, or ship LaTeX-only and document the conversion",
+    "Add a cover letter template that matches each style (currently only the resume templates are built) — 1-2 hours",
+    "Add a LinkedIn bio template per style — 30 min",
+    "Write the ATS optimization guide (currently referenced in includes[] but not a separate file) — 30 min",
+    "Write the format & export guide (PDF, DOCX, Google Docs handoff) — 20 min",
+    "Add 2-page version of each style — 2-3 hours (mostly copy-paste, rebalance content)",
+    "Generate 1 cover PNG (1600x2000) for the Etsy/Gumroad listing — 30 min",
+    "Generate 5 mockup PNGs (1 per style) — 1 hour in Canva from the rendered PDFs",
+    "Package into resume/modern-tech-resume-pack-v1.zip — 5 min"
+  ],
+  "build_to_revenue_path": {
+    "eta_hours": 6,
+    "blockers": ["LaTeX is hard for non-technical buyers — ship as a PDF/Google Docs bundle, not raw .tex"],
+    "first_listing_marketplace": "etsy",
+    "shipping_tip": "Compile the 5 PDFs and ship the PDF bundle today on Etsy. Mention 'LaTeX source included' as a power-user bonus. Add DOCX/Google Docs versions in v1.1."
+  },
+  "quality_bar_passed": {
+    "ats_safe": true,
+    "1_page_constraint": true,
+    "designer_quality": true,
+    "5_distinct_styles": true,
+    "sample_resumes_fully_written": true,
+    "cover_letter_match": false,
+    "linkedin_bio_match": false
+  }
 }

@@ -4,10 +4,10 @@
   "name": "Budget Pro 2026 — Personal Finance Command Center",
   "price": 19,
   "currency": "USD",
-  "status": "built",
+  "status": "spec_complete_build_pending",
   "build_date": "2026-06-07",
   "version": "1.0.0",
-  "format": "Google Sheets",
+  "format": "Google Sheets + Excel (.xlsx)",
   "sheets_count": 12,
   "csv_templates_count": 12,
   "sample_data_months": 3,
@@ -59,9 +59,32 @@
     "csv-templates/10-annual.csv",
     "csv-templates/11-reports.csv",
     "csv-templates/12-tutorial.csv",
+    "scripts/assemble.ps1",
+    "scripts/assemble-gsheets.md",
+    "scripts/gen-annual.ps1",
+    "scripts/gen-budget.ps1",
+    "scripts/gen-transactions.ps1",
+    "scripts/reclassify-transfers.ps1",
     "listing/title.md",
     "listing/description.md",
     "listing/tags.md",
     "metadata.json"
-  ]
+  ],
+  "binary_assets_present": false,
+  "v1_remaining_work": [
+    "Run scripts/assemble.ps1 (or follow scripts/assemble-gsheets.md manually) to produce budget-pro-2026.xlsx with 12 tabs — 2 min for PowerShell, 15 min for manual GSheets",
+    "Apply conditional formatting from dashboards-design.md to the Dashboard, Budget vs Actual, and Net Worth tabs in the live .xlsx (1-2 hours — formulas are in formulas-reference.md, but the spec describes ranges, not exact rule assignments)",
+    "Insert 6 charts from dashboards-design.md into the Dashboard tab (Category Spend pie, Income vs Expense bars, Net Worth line, etc.) — 45 min",
+    "Generate 1 cover PNG (1600x2000) from cover-prompt.md — 30 min",
+    "Generate 3 mockup PNGs (Dashboard, Net Worth, Goals) from mockup-prompts.md in order 1-2-3 — 45 min",
+    "Apply mobile-friendly tab color-coding from setup-guide.md — 10 min",
+    "Validate the live .xlsx opens cleanly in Google Sheets (upload to Drive, open, check formulas resolve) — 5 min",
+    "Package into budget-pro-2026-v1.zip with the .xlsx + setup-guide.pdf + bonus CSV imports — 5 min"
+  ],
+  "build_to_revenue_path": {
+    "eta_hours": 4,
+    "blockers": ["PowerShell path to ImportExcel module must be set up; or operator can ship as Google Sheets PDF only"],
+    "first_listing_marketplace": "gumroad",
+    "shipping_tip": "The 12 CSVs are the deliverable — you can ship on Gumroad today by zipping the CSVs with the setup-guide and a one-line 'import these to Google Sheets' note. The .xlsx is the bonus that takes 2 minutes to assemble once PowerShell is set up."
+  }
 }

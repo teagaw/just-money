@@ -2,8 +2,10 @@
   "slug": "canva/instagram-small-biz-bundle",
   "line": "canva",
   "price": 29,
-  "status": "built",
+  "currency": "USD",
+  "status": "spec_complete_build_pending",
   "build_date": "2026-06-07",
+  "version": "0.5.0",
   "title": "Instagram Small Biz Bundle — 50+ Scroll-Stopping Templates",
   "category": "instagram-templates",
   "platforms": ["etsy", "gumroad", "creativemarket"],
@@ -38,5 +40,22 @@
     "listing/title.md",
     "listing/description.md",
     "listing/tags.md"
-  ]
+  ],
+  "binary_assets_present": false,
+  "v1_remaining_work": [
+    "Build the 50 square post templates in Canva using design-system.md (6-8 hours, save as Canva share links + export PNGs at 1080x1080)",
+    "Build the 10 vertical story templates in Canva at 1080x1920 (1-2 hours, export PNGs)",
+    "Recreate 30 caption templates in design-system.md as a styled .docx + .pdf (45 min)",
+    "Export brand-guidelines one-pager from design-system.md to PDF (15 min)",
+    "Export post-ideas-calendar.md to a styled .pdf (15 min)",
+    "Export instructions.md to a polished .pdf with screenshots (20 min)",
+    "Generate 1 cover PNG (1080x1350) from cover-prompt.md (30 min)",
+    "Generate 5 mockup PNGs from mockup-prompts.md in order 1-3-2-5-4 (60 min)",
+    "Zip all PNGs + PDFs + Canva share-link list into deliverables/instagram-small-biz-bundle-v1.zip (5 min)"
+  ],
+  "build_to_revenue_path": {
+    "eta_hours": 12,
+    "blockers": ["requires Canva Pro for export at exact dimensions", "requires design reviewer to sign off on consistency across 50 templates"],
+    "first_listing_marketplace": "etsy"
+  }
 }
