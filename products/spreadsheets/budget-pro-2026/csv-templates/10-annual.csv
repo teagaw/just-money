@@ -1,0 +1,30 @@
+﻿Category,Group,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec,Annual Total,Notes
+Housing,Core,,,1450,1450,1450,,,,,,,,4350,Rent - fixed
+Utilities,Core,,,255,245,245,,,,,,,,745,Electric, gas, water - seasonal
+Phone,Core,,,55,55,55,,,,,,,,165,Verizon
+Internet,Core,,,89,89,89,,,,,,,,267,Comcast
+Groceries,Food,,,417.53,495.25,444.6,,,,,,,,1357.38,Cook at home baseline
+Dining,Food,,,106.1,68.3,101.95,,,,,,,,276.35,Restaurants + takeout
+Transport,Transport,,,60.6,52.5,80.5,,,,,,,,193.6,Gas + rideshare
+Insurance,Core,,,136.5,136.5,136.5,,,,,,,,409.5,Auto + renters
+Healthcare,Health,,,183.5,67.4,100.8,,,,,,,,351.7,Copays + pharmacy
+Entertainment,Lifestyle,,,28,74,115,,,,,,,,217,Movies + events
+Subscriptions,Lifestyle,,,121.96,121.96,121.96,,,,,,,,365.88,Streaming + software
+Personal Care,Lifestyle,,,52.3,46.4,50.8,,,,,,,,149.5,Haircuts + toiletries
+Clothing,Lifestyle,,,89,149,78.5,,,,,,,,316.5,Replace as needed
+Education,Growth,,,32.4,24.99,28.5,,,,,,,,85.89,Books + courses
+Kids,Family,,,,65,48,,,,,,,,113,Niece/nephew gifts + activities
+Pets,Family,,,149.3,64.3,64.3,,,,,,,,277.9,Food + vet
+Gifts,Giving,,,42,35,28,,,,,,,,105,Birthdays + holidays
+Charity,Giving,,,50,50,50,,,,,,,,150,Monthly recurring
+Travel,Lifestyle,,,425,,198,,,,,,,,623,Bump in Jul for vacation
+Fitness,Health,,,24.99,24.99,24.99,,,,,,,,74.97,Gym membership
+Hobbies,Lifestyle,,,85,42,85,,,,,,,,212,Climbing + gear
+Home,Core,,,42,38,133.3,,,,,,,,213.3,Repairs + cleaning
+Business,Work,,,250,250,250,,,,,,,,750,Coworking day passes
+Taxes,Tax,,,,425,,,,,,,,,425,Quarterly estimated
+Other,Misc,,,100,92,100,,,,,,,,292,Cash, fees, misc
+TOTAL EXPENSES,Computed,0,0,4245.18,4161.59,4079.7,0,0,0,0,0,0,0,12486.47,
+TOTAL INCOME,Computed,,,11450,11244,16815,,,,,,,,39509,
+NET (Income - Expense),Computed,27022.53,
+SAVINGS RATE,Computed,68.4%,

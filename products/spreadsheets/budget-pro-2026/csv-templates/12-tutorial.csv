@@ -1,0 +1,13 @@
+Step,Sheet,Action,What to Do,Tip,Time
+1,Dashboard,Open this first,Read the 4 KPIs at the top (Net Worth, Income, Expense, Savings Rate),Each KPI is a live formula - hover for source,2 min
+2,Categories,Review 25 categories,Confirm the 25 categories match your life - add custom if needed,Add subcategories in Subcategory column,5 min
+3,Accounts,Verify 8 accounts,Confirm account types + opening balances,Update monthly as you reconcile,5 min
+4,Transactions,Log first 10,Add 10 recent transactions - try the auto-categorize formula,The formula does substring match on Payee,10 min
+5,Budget vs Actual,Set monthly limits,Adjust the Default monthly budget column for each category,Use the 50/30/20 rule as a starting point,15 min
+6,Goals,Define 6 goals,One per type: Emergency, Vacation, Down Payment, Debt, Big Purchase, Retirement,Make goals specific + measurable,10 min
+7,Debt Payoff,Choose strategy,Pick Snowball (smallest first) or Avalanche (highest APR),The comparison row shows the trade-off,5 min
+8,Net Worth,Track monthly,Update each account balance on the 1st of the month,Use the closing balances table as a check,5 min/mo
+9,Subscriptions,Audit 10 subs,Cancel anything you forgot about - average person wastes $200+/yr,Sort by Annual Cost to find big ones,10 min
+10,Annual,See year at a glance,Use this for the 5-minute monthly review,Compare month-over-month variance,5 min
+11,Reports,Generate period report,Pick a month from the dropdown, get Top 5 + narrative,Use this for month-end close,10 min/mo
+12,Tutorial,Come back anytime,This sheet is your quick reference,Click any step name to jump to that sheet,1 min

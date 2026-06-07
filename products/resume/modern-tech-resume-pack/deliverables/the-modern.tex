@@ -1,0 +1,164 @@
+% =====================================================================
+% The Modern — Modern Tech Resume Pack
+% Compile with: XeLaTeX (REQUIRED for fontspec + Inter)
+%   Overleaf: click compiler dropdown, pick "XeLaTeX"
+%   Local:    xelatex the-modern.tex
+% Style: Two-column with colored sidebar; PM/analyst/hybrid-friendly
+% Bug fix: original used `height fixed for=full` (invalid). Replaced with
+%          `height fill` so the sidebar fills the column.
+% Author: Alex Chen (sample) — see the-modern-content.md for swappable content
+% =====================================================================
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[margin=0.5in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{ragged2e}
+
+% Inter font — Overleaf has it pre-installed; locally install via fonts.google.com
+\setmainfont{Inter}[Scale=0.95]
+\setsansfont{Inter}[Scale=0.95]
+
+\definecolor{modAccent}{HTML}{2C5F7F}    % muted blue accent
+\definecolor{modBg}{HTML}{EAF1F4}        % pale blue-gray sidebar
+\definecolor{modBody}{HTML}{1A1A1A}
+\definecolor{modSec}{HTML}{555555}
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+\setlist[itemize]{label=\textemdash, leftmargin=1.4em, itemsep=2pt, topsep=2pt}
+
+% --- Sidebar tcolorbox (FIXED: replaced `height fixed for=full` with `height fill`) ---
+\newtcolorbox{sidebar}[1][]{
+  colback=modBg,
+  colframe=modBg,
+  arc=4pt,
+  boxrule=0pt,
+  left=8pt, right=8pt, top=8pt, bottom=8pt,
+  width=1.85in,
+  height fill
+}
+
+\newcommand{\sidehead}[1]{%
+  \vspace{6pt}
+  {\bfseries\fontsize{10}{12}\selectfont\textcolor{modBody}{\MakeUppercase{#1}}}
+  \vspace{2pt}
+}
+
+\newcommand{\sidebody}[1]{%
+  {\fontsize{9.5}{12}\selectfont\textcolor{modBody}{#1}}
+}
+
+\newcommand{\sideacc}[1]{%
+  {\fontsize{9}{12}\selectfont\textcolor{modAccent}{#1}}
+}
+
+\newcommand{\mainhead}[1]{%
+  \vspace{12pt}
+  {\bfseries\fontsize{11}{14}\selectfont\textcolor{modAccent}{\MakeUppercase{#1}}}
+  \vspace{4pt}
+}
+
+\hypersetup{colorlinks=true, urlcolor=modAccent, linkcolor=modAccent}
+
+\begin{document}
+
+% --- Header band ---
+\noindent\begin{tcolorbox}[colback=modAccent, colframe=modAccent, boxrule=0pt,
+  left=14pt, right=14pt, top=12pt, bottom=12pt, arc=0pt]
+  {\color{white}\bfseries\fontsize{22}{26}\selectfont Alex Chen} \\[4pt]
+  {\color{white}\fontsize{10.5}{14}\selectfont Staff Software Engineer --- Data Platform \& Cross-Functional Lead}
+\end{tcolorbox}
+
+\vspace{6pt}
+
+% --- Two-column layout ---
+\noindent\begin{minipage}[t]{1.85in}
+\begin{sidebar}
+\sidehead{Contact}
+\sidebody{alex@chen.dev} \\
+\sidebody{+1 415 555 0142} \\
+\sidebody{San Francisco, CA}
+
+\sidehead{Links}
+\sideacc{linkedin.com/in/alexchen} \\
+\sideacc{github.com/alexchen} \\
+\sideacc{alexchen.dev}
+
+\sidehead{Core Skills}
+\sideacc{Distributed Systems \textperiodcentered{} Architecture \textperiodcentered{} Cross-Functional Leadership \textperiodcentered{} Mentorship \textperiodcentered{} SLO Design \textperiodcentered{} Tech Strategy}
+
+\sidehead{Tools \& Platforms}
+\sidebody{Kafka, gRPC, Kubernetes, Terraform, Linear, Notion, JIRA, Datadog, Looker, Snowflake}
+
+\sidehead{Languages}
+\sidebody{English (native) \\ Mandarin (professional)}
+
+\sidehead{Interests}
+\sidebody{Systems reading. Bouldering. Building mechanical keyboards.}
+\end{sidebar}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{5.4in}
+
+\mainhead{Summary}
+Staff engineer with 9 years building distributed systems at scale. Operating the canonical event ingestion path at Stripe (40B events/day, 3 regions, 11 downstream systems). Currently partnering with PM, Design, and Data Science to ship infra decisions as product. Looking for principal-level scope at a company where the data plane is the product.
+
+\mainhead{Experience}
+
+\noindent\textbf{Stripe} \hfill \textcolor{modSec}{Mar 2022 --- Present} \\
+\textit{Staff Software Engineer, Data Platform} \hfill \textcolor{modSec}{San Francisco}
+\begin{itemize}
+  \item Owned the SMB-facing data activation roadmap alongside 3 PMs and 2 design leads; shipped 9 platform experiments in 2024 that lifted trial-to-paid visibility from 11.2\% to 14.8\%
+  \item Re-architected the write-side commit log in Rust + Tokio; reduced p99 latency from 850ms to 120ms with zero data loss over 14 months
+  \item Led the multi-region active-active migration of the storage layer; cut cross-region failover time from 47s to 4s
+  \item Coached 4 senior engineers and 2 PM partners; 2 engineers promoted to staff in 18 months
+\end{itemize}
+
+\vspace{4pt}
+\noindent\textbf{Cloudflare} \hfill \textcolor{modSec}{Aug 2018 --- Feb 2022} \\
+\textit{Senior Software Engineer, Edge Network} \hfill \textcolor{modSec}{San Francisco}
+\begin{itemize}
+  \item Shipped the anycast routing rewrite in Go + eBPF; improved global cache hit rate from 89\% to 96.4\%
+  \item Designed the worker isolation model adopted across 8 internal teams and 3 external products
+\end{itemize}
+
+\vspace{4pt}
+\noindent\textbf{Dropbox} \hfill \textcolor{modSec}{Jul 2016 --- Jul 2018} \\
+\textit{Software Engineer, Storage Infrastructure} \hfill \textcolor{modSec}{San Francisco}
+\begin{itemize}
+  \item Built the metadata sharding layer in C++ handling 600M objects; reduced rebalance time from 9 hours to 22 minutes
+\end{itemize}
+
+\vspace{4pt}
+\noindent\textbf{Google} \hfill \textcolor{modSec}{May 2015 --- Aug 2015} \\
+\textit{Software Engineering Intern, Cloud Spanner} \hfill \textcolor{modSec}{Mountain View}
+\begin{itemize}
+  \item Implemented the read-coalescing optimization; reduced p99 read latency by 18\% on a 50-shard test cluster
+\end{itemize}
+
+\vspace{4pt}
+\noindent\textbf{Microsoft} \hfill \textcolor{modSec}{May 2014 --- Aug 2014} \\
+\textit{Software Engineering Intern, Azure Storage} \hfill \textcolor{modSec}{Redmond}
+\begin{itemize}
+  \item Built the blob-tagging feature shipped in the GA release
+\end{itemize}
+
+\mainhead{Education}
+\textbf{Carnegie Mellon University} --- M.S. Computer Science, 2016 \\
+\textbf{University of California, Berkeley} --- B.S. Computer Science, 2014
+
+\mainhead{Speaking \& Recognition}
+Strange Loop 2024 --- ``Operating Kafka at 40B Events/Day'' \\
+QCon San Francisco 2023 --- ``SLO Design for Event Pipelines'' \\
+USENIX OSDI 2022 (co-author) --- ``Tunable Consistency for Multi-Region Logs''
+
+\end{minipage}
+
+\end{document}

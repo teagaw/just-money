@@ -1,0 +1,42 @@
+{
+  "slug": "canva/instagram-small-biz-bundle",
+  "line": "canva",
+  "price": 29,
+  "status": "built",
+  "build_date": "2026-06-07",
+  "title": "Instagram Small Biz Bundle — 50+ Scroll-Stopping Templates",
+  "category": "instagram-templates",
+  "platforms": ["etsy", "gumroad", "creativemarket"],
+  "deliverables": {
+    "post_templates_square": 50,
+    "story_templates_vertical": 10,
+    "caption_templates": 30,
+    "hashtag_sets": 20,
+    "content_calendar": "30-day",
+    "brand_guidelines": "1-pager-pdf",
+    "setup_guide": "pdf"
+  },
+  "design_system": {
+    "color_count": 5,
+    "font_count": 2,
+    "primary_grid_px": "1080x1080",
+    "secondary_grid_px": "1080x1920"
+  },
+  "self_promotion_score": 5,
+  "tags_count": 13,
+  "build_files": [
+    "README.md",
+    "metadata.json",
+    "design-system.md",
+    "post-categories.md",
+    "caption-templates.md",
+    "hashtag-sets.md",
+    "post-ideas-calendar.md",
+    "instructions.md",
+    "cover-prompt.md",
+    "mockup-prompts.md",
+    "listing/title.md",
+    "listing/description.md",
+    "listing/tags.md"
+  ]
+}

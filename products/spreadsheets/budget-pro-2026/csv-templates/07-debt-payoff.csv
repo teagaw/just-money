@@ -1,0 +1,33 @@
+Debt Name,Type,Current Balance,APR,Min Payment,Extra Payment,Strategy,Target Payoff Date
+Chase Visa,Credit Card,2800.00,24.99,85.00,400.00,Snowball,2026-12-31
+Car Loan,Loan,8400.00,6.75,225.00,0.00,Avalanche,2027-08-31
+Nelnet Student,Loan,15800.00,5.50,180.00,0.00,Avalanche,2029-06-30
+Medical Bill,Loan,450.00,0.00,50.00,0.00,Snowball,2026-07-31
+,,,,,,,
+SUMMARY,,,,,,,
+Total Debt,Formula,=SUM(C2:C5),,,,,,
+Total Minimum,Formula,=SUM(F2:F5),,,,,,
+Extra Available,Formula,400.00,,,,,,
+Method,User Pick,Snowball,,,,,,
+,,,,,,,
+SNOWBALL STRATEGY (smallest balance first),,,,,,,
+Order,Debt Name,Balance,APR,Min Payoff Months,Total Interest,Payoff Month,
+1,Medical Bill,450.00,0.00,9,0.00,2026-08-31,
+2,Chase Visa,2800.00,24.99,7,381.00,2027-03-31,
+3,Car Loan,8400.00,6.75,32,2050.00,2027-12-31,
+4,Nelnet Student,15800.00,5.50,72,8580.00,2030-12-31,
+,,,,,,,
+AVALANCHE STRATEGY (highest APR first),,,,,,,
+Order,Debt Name,Balance,APR,Min Payoff Months,Total Interest,Payoff Month,
+1,Chase Visa,2800.00,24.99,7,381.00,2027-03-31,
+2,Car Loan,8400.00,6.75,32,2050.00,2027-12-31,
+3,Nelnet Student,15800.00,5.50,72,8580.00,2030-12-31,
+4,Medical Bill,450.00,0.00,9,0.00,2026-08-31,
+,,,,,,,
+COMPARISON,,,,,,,
+Snowball total months,Formula,=MAX(snowball months),,,,,,
+Avalanche total months,Formula,=MAX(avalanche months),,,,,,
+Δ months (avalanche faster by),Formula,=snowball - avalanche,,,,,,
+Snowball total interest,Formula,=SUM(snowball interest),,,,,,
+Avalanche total interest,Formula,=SUM(avalanche interest),,,,,,
+Δ interest (avalanche saves),Formula,=snowball - avalanche,,,,,,

@@ -1,0 +1,125 @@
+% =====================================================================
+% The Bold — Modern Tech Resume Pack
+% Compile with: XeLaTeX (REQUIRED for fontspec + Inter)
+%   Overleaf: click compiler dropdown, pick "XeLaTeX"
+%   Local:    xelatex the-bold.tex
+% Style: Full-bleed hero band; refined for senior SWE with strong OSS / design-engineering presence
+% Author: Alex Chen (sample) — see the-bold-content.md for swappable content
+% =====================================================================
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[margin=0.5in, left=1in, right=0.5in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{pifont}                 % accent marks (\ding{169}=diamond, \ding{113}=square)
+
+\setmainfont{Inter}[Scale=0.95]
+\setsansfont{Inter}[Scale=0.95]
+
+\definecolor{boldAccent}{HTML}{C84B1F}  % burnt orange default
+\definecolor{boldBody}{HTML}{1A1A1A}
+\definecolor{boldSec}{HTML}{555555}
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+\setlist[itemize]{label=\textcolor{boldAccent}{\ding{113}}, leftmargin=1.5em, itemsep=2pt, topsep=2pt}
+
+\newcommand{\mainhead}[1]{%
+  \vspace{16pt}
+  {\bfseries\fontsize{14}{18}\selectfont\textcolor{boldAccent}{#1}}
+  \vspace{4pt}
+  \noindent\textcolor{boldAccent}{\rule{\linewidth}{0.5pt}}
+  \vspace{4pt}
+}
+
+\newcommand{\role}[4]{%
+  \vspace{4pt}
+  {\bfseries\fontsize{11}{14}\selectfont\textcolor{boldBody}{#1}} \hfill \textcolor{boldSec}{#4} \\
+  \textit{#2} \hfill \textcolor{boldSec}{#3}
+  \vspace{2pt}
+}
+
+% Hero band drawn as a full-width tikz overlay
+\newcommand{\heroband}[3]{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[boldAccent] (current page.north west) ++(0in,-0.5in) rectangle ++(8.5in,-1.2in);
+  \end{tikzpicture}
+  \vspace{-1.2in}
+  \begin{minipage}{\linewidth}
+    \vspace{0.1in}
+    {\color{white}\bfseries\fontsize{32}{36}\selectfont #1} \\[4pt]
+    {\color{white}\fontsize{11}{14}\selectfont #2} \\
+    {\color{white!80}\fontsize{10}{14}\selectfont #3}
+  \end{minipage}
+}
+
+\hypersetup{colorlinks=true, urlcolor=boldAccent, linkcolor=boldAccent}
+
+\begin{document}
+
+\heroband{Alex Chen}{Staff Software Engineer --- Data Platform \& Open Source Maintainer}{alex@chen.dev \textperiodcentered{} linkedin.com/in/alexchen \textperiodcentered{} github.com/alexchen \textperiodcentered{} San Francisco}
+
+\vspace{18pt}
+
+\mainhead{Summary}
+Staff engineer with 9 years shipping infrastructure that other teams build on. Operating the canonical event ingestion path at Stripe (40B events/day, 3 regions, 11 downstream systems). Side projects: 1.2k-star Rust library used in production at 4 companies. Looking for principal-level scope with design-engineering autonomy.
+
+\mainhead{Experience}
+
+\role{Stripe}{Staff Software Engineer, Data Platform}{Mar 2022 --- Present}{SF}
+\begin{itemize}
+  \item Owned the canonical event ingestion path serving 40B events/day across 11 downstream systems and 3 regions
+  \item Re-architected the write-side commit log in Rust + Tokio; reduced p99 latency from 850ms to 120ms with zero data loss over 14 months
+  \item Led the multi-region active-active migration of the storage layer; cut cross-region failover time from 47s to 4s
+\end{itemize}
+
+\role{Cloudflare}{Senior Software Engineer, Edge Network}{Aug 2018 --- Feb 2022}{SF}
+\begin{itemize}
+  \item Shipped the anycast routing rewrite in Go + eBPF; improved global cache hit rate from 89\% to 96.4\%
+  \item Designed the worker isolation model adopted across 8 internal teams and 3 external products
+\end{itemize}
+
+\role{Dropbox}{Software Engineer, Storage Infrastructure}{Jul 2016 --- Jul 2018}{SF}
+\begin{itemize}
+  \item Built the metadata sharding layer in C++ handling 600M objects; reduced rebalance time from 9 hours to 22 minutes
+\end{itemize}
+
+\mainhead{Selected Work}
+
+\noindent\textbf{libchangelog-rs} --- Maintainer, 2023 --- Present \\
+\textcolor{boldSec}{High-performance changelog generator in Rust \textperiodcentered{} 1.2k stars \textperiodcentered{} 4 production users} \\
+\textit{github.com/alexchen/libchangelog-rs}
+
+\vspace{6pt}
+\noindent\textbf{SLO Design Toolkit} --- Author, 2023 --- Present \\
+\textcolor{boldSec}{Open methodology for SLO design \textperiodcentered{} cited by 3 SRE teams \textperiodcentered{} 800+ downloads of the workbook} \\
+\textit{github.com/alexchen/slo-toolkit}
+
+\vspace{6pt}
+\noindent\textbf{Cloudflare Edge Blog} --- Co-author, 2020 \\
+\textcolor{boldSec}{``The Anycast Routing Rewrite'' \textperiodcentered{} 18k Medium reads \textperiodcentered{} referenced in 2 conference talks}
+
+\mainhead{Recognition}
+
+\noindent\textbf{Speaker, Strange Loop 2024} --- ``Operating Kafka at 40B Events/Day'' \\
+\noindent\textbf{Speaker, QCon San Francisco 2023} --- ``SLO Design for Event Pipelines'' \\
+\noindent\textbf{Co-author, USENIX OSDI 2022} --- ``Tunable Consistency for Multi-Region Logs'' \\
+\noindent\textbf{Fast Company Innovation by Design finalist (2023)} --- \textit{Open SRE Toolkit} (community contribution)
+
+\mainhead{Skills \& Tools}
+
+\noindent\textbf{Languages:} Rust, Go, Python, TypeScript, C++ \\
+\textbf{Systems:} Kafka, PostgreSQL, FoundationDB, Cassandra, Flink, eBPF \\
+\textbf{Craft:} Technical writing, design-engineering, OSS stewardship, conference speaking, RFC authorship
+
+\mainhead{Education}
+
+\noindent\textbf{Carnegie Mellon University} --- M.S. Computer Science, 2016 \\
+\textbf{University of California, Berkeley} --- B.S. Computer Science, 2014
+
+\end{document}

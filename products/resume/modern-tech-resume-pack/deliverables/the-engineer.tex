@@ -1,0 +1,150 @@
+% =====================================================================
+% The Engineer — Modern Tech Resume Pack
+% Compile with: XeLaTeX (REQUIRED for fontspec + Inter + JetBrains Mono)
+%   Overleaf: click compiler dropdown, pick "XeLaTeX"
+%   Local:    xelatex the-engineer.tex
+% Style: Terminal-clean mono accents; for backend, infra, ML, systems
+% Author: Alex Chen (sample) — see the-engineer-content.md for swappable content
+% =====================================================================
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage[margin=0.6in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{microtype}
+
+% Inter for sans (body) and JetBrains Mono for monospace (tech names, dividers)
+% Overleaf has both pre-installed; locally install from fonts.google.com
+\setmainfont{Inter}[Scale=0.95]
+\setsansfont{Inter}[Scale=0.95]
+\setmonofont{JetBrains Mono}[Scale=0.85]
+
+\definecolor{engBody}{HTML}{0A0A0A}
+\definecolor{engSec}{HTML}{555555}
+\definecolor{engDiv}{HTML}{888888}
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+% Bullet with mono triangle
+\setlist[itemize]{label=\textcolor{engBody}{\texttt{\char"25B8}}, leftmargin=1.5em, itemsep=2pt, topsep=2pt}
+
+% Section heading in mono UPPERCASE with thin divider
+\newcommand{\enghead}[1]{%
+  \vspace{12pt}
+  {\ttfamily\bfseries\fontsize{9.5}{12}\selectfont\textcolor{engBody}{\MakeUppercase{#1}}}
+  \vspace{4pt}
+  \noindent\textcolor{engDiv}{\rule{\linewidth}{0.5pt}}
+  \vspace{4pt}
+}
+
+% Role with company left, dates right
+\newcommand{\role}[3]{%
+  \vspace{4pt}
+  \begin{tabularx}{\linewidth}{@{}Xr@{}}
+    \textbf{#1} & \ttfamily\textcolor{engSec}{#3} \\
+    \textit{#2} & \\
+  \end{tabularx}
+  \vspace{2pt}
+}
+
+% Inline mono helper
+\newcommand{\m}[1]{\texttt{\small #1}}
+
+\hypersetup{colorlinks=true, urlcolor=engBody, linkcolor=engBody}
+
+\begin{document}
+
+% --- Name + title ---
+{\fontfamily{Inter}\bfseries\fontsize{22}{26}\selectfont\textcolor{engBody}{Alex Chen}}
+
+\vspace{2pt}
+{\ttfamily\fontsize{10.5}{14}\selectfont\textcolor{engBody}{// Staff Software Engineer, Distributed Systems \& Data Platform}}
+
+\vspace{8pt}
+{\fontsize{10}{14}\selectfont\textcolor{engBody}{alex@chen.dev \textperiodcentered{} \texttt{+1 415 555 0142} \textperiodcentered{} San Francisco \textperiodcentered{} \texttt{linkedin.com/in/alexchen} \textperiodcentered{} \texttt{github.com/alexchen} \textperiodcentered{} \texttt{alexchen.dev}}}
+
+\vspace{8pt}
+
+% --- Summary ---
+\enghead{Summary}
+Engineer with 9 years building distributed systems where correctness and latency both matter. Currently operating the canonical event ingestion path at \m{Stripe} (\m{40B events/day}, \m{3} regions, \m{11} downstream systems). Looking for principal-level scope at a company where the data plane is the product.
+
+% --- Experience ---
+\enghead{Experience}
+
+\role{Stripe}{Staff Software Engineer, Data Platform}{Mar 2022 --- Present}
+\begin{itemize}
+  \item Own the \m{Kafka}-backed canonical event ingestion path serving \m{40B events/day} across \m{11} downstream systems and \m{3} regions
+  \item Re-architected the write-side commit log in \m{Rust} + \m{Tokio}; reduced p99 latency from \m{850ms} to \m{120ms} with zero data loss over \m{14} months
+  \item Led the multi-region active-active migration of the storage layer; cut cross-region failover time from \m{47s} to \m{4s}
+  \item Operate the on-call rotation (\m{L1}/\m{L2}); reduced pages-per-week from \m{18} to \m{3} via SLO tightening and consumer back-pressure fixes
+  \item Mentor 4 senior engineers through staff promo packets; 2 promoted to staff in \m{18} months
+\end{itemize}
+
+\role{Cloudflare}{Senior Software Engineer, Edge Network}{Aug 2018 --- Feb 2022}
+\begin{itemize}
+  \item Shipped the anycast routing rewrite in \m{Go} + \m{eBPF}; improved global cache hit rate from \m{89\%} to \m{96.4\%}
+  \item Designed the worker isolation model adopted across \m{8} internal teams and \m{3} external products
+\end{itemize}
+
+\role{Dropbox}{Software Engineer, Storage Infrastructure}{Jul 2016 --- Jul 2018}
+\begin{itemize}
+  \item Built the metadata sharding layer in \m{C++} handling \m{600M objects}; reduced rebalance time from \m{9} hours to \m{22} minutes
+\end{itemize}
+
+\role{Google}{Software Engineering Intern, Cloud Spanner}{May 2015 --- Aug 2015}
+\begin{itemize}
+  \item Implemented the read-coalescing optimization; reduced p99 read latency by \m{18\%} on a \m{50}-shard test cluster
+\end{itemize}
+
+\role{Microsoft}{Software Engineering Intern, Azure Storage}{May 2014 --- Aug 2014}
+\begin{itemize}
+  \item Built the blob-tagging feature shipped in the \m{GA} release
+\end{itemize}
+
+% --- OSS ---
+\enghead{Selected Open Source}
+
+\role{libchangelog-rs}{Maintainer, 2023 --- Present}
+{\fontsize{10}{14}\selectfont High-performance changelog generator in \m{Rust}. \m{1.2k} stars, used in production at \m{4} companies. \texttt{github.com/alexchen/libchangelog-rs}}
+
+\vspace{4pt}
+\role{postgresql-partition-manager}{Contributor, 2021 --- 2023}
+{\fontsize{10}{14}\selectfont Time-based partition management for \m{PostgreSQL}. Merged \m{14} PRs; in production at \m{3} companies. \texttt{github.com/pgpartman/pg\_partman}}
+
+\vspace{4pt}
+\role{fluent-bit-kafka-output}{Contributor, 2022 --- 2023}
+{\fontsize{10}{14}\selectfont High-throughput \m{Kafka} output plugin. Shipped a \m{4\texttimes{}} throughput improvement (\m{2M} msg/s to \m{8.5M} msg/s on a single producer). \texttt{github.com/fluent/fluent-bit}}
+
+% --- Skills ---
+\enghead{Technical Skills}
+
+\noindent\textbf{Languages:} \m{Rust}, \m{Go}, \m{Python}, \m{TypeScript}, \m{C++} \\
+\textbf{Systems:} \m{Kafka}, \m{PostgreSQL}, \m{FoundationDB}, \m{Cassandra}, \m{Flink}, \m{Redis} \\
+\textbf{Infra:} \m{Kubernetes}, \m{Terraform}, \m{Envoy}, \m{gRPC}, \m{Linux}, \m{eBPF}, \m{Bazel} \\
+\textbf{Data:} \m{Apache Spark}, \m{Apache Beam}, \m{dbt}, \m{Snowflake} \\
+\textbf{Discipline:} Distributed systems, consensus protocols, observability, SLO design, on-call leadership, postmortem facilitation
+
+% --- Education ---
+\enghead{Education}
+
+\noindent\textbf{Carnegie Mellon University} --- M.S. Computer Science, 2016 \\
+\textit{Thesis: ``Verifiable Reconfiguration for Replicated State Machines'' (Adviser: Prof. Liskov)}
+
+\vspace{4pt}
+\noindent\textbf{University of California, Berkeley} --- B.S. Computer Science, 2014 \\
+\textit{Phi Beta Kappa; TA for CS 61B}
+
+% --- Talks ---
+\enghead{Talks \& Publications}
+
+\noindent\textbf{Strange Loop 2024} --- ``Operating \m{Kafka} at \m{40B} Events/Day'' \\
+\textbf{QCon San Francisco 2023} --- ``SLO Design for Event Pipelines'' \\
+\textbf{USENIX OSDI 2022} (co-author) --- ``Tunable Consistency for Multi-Region Logs''
+
+\end{document}

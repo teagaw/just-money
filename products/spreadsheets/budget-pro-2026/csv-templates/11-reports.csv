@@ -1,0 +1,68 @@
+Section,Row Label,Value 1,Value 2,Value 3,Value 4,Formula Reference,Notes
+=== PERIOD SELECTOR ===,,,,,,,
+Period Dropdown,"Jan 2026 ... Jun 2025",,,,,,'Data validation list from transactions column A',
+Default Period,May 2026,,,,,,
+=== KEY METRICS - THIS PERIOD vs PRIOR PERIOD ===,,,,,,,
+Metric,This Period,Prior Period,Variance $,Variance %,Formula,
+Total Income,16815,11244,5571,49.6,"=SUMIFS(transactions!E:E,transactions!A:A,"">=""&period_start,transactions!A:A,""<=""&period_end,transactions!D:D,""Income"")",3 paychecks + freelance
+Total Expense,4079.70,4161.59,-81.89,-2.0,"=SUMIFS(transactions!E:E,transactions!A:A,"">=""&period_start,transactions!A:A,""<=""&period_end,transactions!D:D,""Expense"")",Lower transport offset by travel
+Net Cash Flow,12735.30,7082.41,5652.89,79.8,=B6-B7,Strong income month
+Savings Rate %,75.7%,63.0%,12.7 pts,,=B8/B6,Well above 20% target
+=== TOP 5 CATEGORIES (DESCENDING) ===,,,,,,,
+Rank,Category,Spent,% of Total,,,Sort: descending by Spent,
+1,Housing,1450.00,35.5,,,=LARGE(category_totals,1) or sorted pivot,
+2,Groceries,444.60,10.9,,,=LARGE(category_totals,2),
+3,Insurance,136.50,3.3,,,=LARGE(category_totals,3),
+4,Subscriptions,121.96,3.0,,,=LARGE(category_totals,4),
+5,Travel,198.00,4.9,,,=LARGE(category_totals,5),
+=== TOP 5 - PRIOR PERIOD (DESCENDING) ===,,,,,,,
+Rank,Category,Spent,% of Total,,,For comparison,
+1,Housing,1450.00,34.8,,,
+2,Groceries,495.25,11.9,,,
+3,Clothing,149.00,3.6,,,
+4,Insurance,136.50,3.3,,,
+5,Healthcare,100.80,2.4,,,
+=== MONTH-OVER-MONTH VARIANCE (BIGGEST SWINGS) ===,,,,,,,
+Category,This Period,Prior Period,Variance $,Variance %,Insight,
+Travel,198.00,0.00,198.00,NEW,Weekend trip to Boston
+Hobbies,85.00,42.00,43.00,102.4,New climbing gear
+Dining,101.95,68.30,33.65,49.3,Date nights vs cooking
+Healthcare,100.80,67.40,33.40,49.6,Higher - dermatologist visit
+Clothing,78.50,149.00,-70.50,-47.3,Lower spend - new winter wardrobe last month
+=== INCOME BREAKDOWN ===,,,,,,,
+Source,Amount,Payee Pattern,,,,
+Salary,16200,Acme Corp payroll x3,,,,Biweekly: 5,400 gross
+Freelance,550,Acme Corp consulting,,,,May side project
+Interest,24,Ally Savings,,,,Monthly interest
+Refund,35,Amazon refund,,,,Card rewards cashback
+=== ACCOUNT FLOWS (THIS PERIOD) ===,,,,,,,
+Account,Opening,Closing,Net Change,,,Should match net cash flow + transfers,
+Chase Checking,3725,4400,675,,,,Payroll deposits, bill pays
+Chase Visa,895,750,-145,,,,Paid in full
+Cash Wallet,235,250,15,,,,Petty use
+Ally Savings,13800,14800,1000,,,,Goal contribution
+Vanguard Brokerage,18200,20400,2200,,,,Market + $300 contribution
+Fidelity 401k,21500,24100,2600,,,,Market + $400 contribution
+Nelnet Student,14500,14500,0,,,,Reclassified to May
+Car Loan,6800,6800,0,,,,Final payment posted next month
+=== NET WORTH MOVEMENT ===,,,,,,,
+Component,Start of Period,End of Period,Change,,,Ties to 08-net-worth,
+Assets,62800,63950,1150,,,,Driven by savings + market
+Liabilities,24000,22700,-1300,,,,Debt paydown
+Net Worth,38800,41250,2450,,,,+6.3% for the month
+=== PERIOD NARRATIVE ===,,,,,,,
+Section,Text,,,,,,
+Headline,"Strong income month with disciplined spending",,,,,,
+Income,"3 paychecks (Acme) plus a freelance project pushed income to $16,815, up 50% from April.  Year-to-date income now $39,509.",,,,,,
+Spending,"Spending was essentially flat at $4,080 (down $82).  Travel jumped with a Boston weekend ($198).  Clothing and Hobbies pulled back after a big April.",,,,,,
+Cash flow,"Net cash flow of $12,735.  Savings rate hit 75.7% - well above the 20% target.  This was driven by income, not by spending restraint.",,,,,,
+Watch list,"Subscriptions stayed at $122/mo even though you paused nothing.  Healthcare bounced back after a quiet April.  Worth a quarterly review.",,,,,,
+Goal progress,"Emergency Fund now at $14,800 (100% of target).  House Down Payment at $8,500 (10% of $85K target).  Chase Visa balance dropped $145 to $750 - 95% paid off.",,,,,,
+Action,"Consider redirecting extra income to House Down Payment - you're 18 months ahead on Emergency Fund goal.",,,,,,
+=== FORMULA LIBRARY (REFERENCES) ===,,,,,,,
+Purpose,Formula,,,,,,
+YTD Income,=SUMIFS(transactions!E:E,transactions!A:A,">="&DATE(YEAR(TODAY()),1,1),transactions!A:A,"<="&TODAY(),transactions!D:D,"Income"),,,,,,
+YTD Expense,=SUMIFS(transactions!E:E,transactions!A:A,">="&DATE(YEAR(TODAY()),1,1),transactions!A:A,"<="&TODAY(),transactions!D:D,"Expense"),,,,,,
+Top 5 Descending,=LARGE(category_totals_array,1)  then index match for category name,,,,,,
+Auto Categorize,=IFERROR(INDEX(categories!$B$2:$B$26,MATCH(TRUE,ISNUMBER(SEARCH(categories!$D$2:$D$26,LOWER(D2))),0)),"Other"),,,,,,Substring match via SEARCH/ISNUMBER array
+Account Balance,=SUMIFS(transactions!E:E,transactions!C:C,account_name) + opening_balance,,,,,,

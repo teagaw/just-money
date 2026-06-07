@@ -1,0 +1,165 @@
+% =====================================================================
+% The Founder — Modern Tech Resume Pack
+% Compile with: XeLaTeX (REQUIRED for fontspec + Inter + JetBrains Mono)
+%   Overleaf: click compiler dropdown, pick "XeLaTeX"
+%   Local:    xelatex the-founder.tex
+% Style: Dense single-column; for staff+ SWE with a side venture, advisory, or
+%        operator-mode trajectory. Treats the canonical 5-company career as
+%        "Operating Experience" and the OSS project as the "side venture."
+% Author: Alex Chen (sample) — see the-founder-content.md for swappable content
+% =====================================================================
+
+\documentclass[letterpaper,9.5pt]{article}
+
+\usepackage[margin=0.5in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{ragged2e}
+
+\setmainfont{Inter}[Scale=0.95]
+\setsansfont{Inter}[Scale=0.95]
+\setmonofont{JetBrains Mono}[Scale=0.85]
+
+\definecolor{fndrBody}{HTML}{0A0A0A}
+\definecolor{fndrSec}{HTML}{555555}
+\definecolor{fndrBrand}{HTML}{FF4F00}    % default brand accent (override per buyer)
+
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+\setlist[itemize]{label=\textcolor{fndrBrand}{\textemdash}, leftmargin=1.3em, itemsep=1pt, topsep=1pt}
+
+\newcommand{\fhead}[1]{%
+  \vspace{10pt}
+  {\bfseries\fontsize{10}{12}\selectfont\textcolor{fndrBody}{\MakeUppercase{#1}}}
+  \vspace{4pt}
+}
+
+\newcommand{\fventure}[4]{%
+  \vspace{2pt}
+  \begin{tabularx}{\linewidth}{@{}Xr@{}}
+    \textbf{#1} \textemdash{} \textit{#2} & \ttfamily\textcolor{fndrSec}{#3} \\
+  \end{tabularx}
+  \vspace{1pt}
+  {\fontsize{10}{12}\selectfont\textit{#4}}
+  \vspace{2pt}
+}
+
+\newcommand{\frole}[3]{%
+  \vspace{2pt}
+  \begin{tabularx}{\linewidth}{@{}Xr@{}}
+    \textbf{#1}, \textit{#2} & \ttfamily\textcolor{fndrSec}{#3} \\
+  \end{tabularx}
+  \vspace{1pt}
+}
+
+\newcommand{\m}[1]{\texttt{\small #1}}
+
+\hypersetup{colorlinks=true, urlcolor=fndrBody, linkcolor=fndrBody}
+
+\begin{document}
+
+% --- Name + headline ---
+{\fontfamily{Inter}\bfseries\fontsize{24}{28}\selectfont\textcolor{fndrBody}{Alex Chen}}
+
+\vspace{2pt}
+{\fontsize{11}{14}\selectfont\textcolor{fndrBody}{Staff Software Engineer \& OSS Maintainer \textbullet{} \m{libchangelog-rs} (1.2k stars) \textbullet{} ex-Stripe, Cloudflare, Dropbox, Google, Microsoft}}
+
+\vspace{8pt}
+{\fontsize{10}{14}\selectfont\textcolor{fndrBody}{alex@chen.dev \textbullet{} \texttt{+1 415 555 0142} \textbullet{} San Francisco \textbullet{} \texttt{linkedin.com/in/alexchen} \textbullet{} \texttt{github.com/alexchen} \textbullet{} \texttt{alexchen.dev}}
+
+\vspace{6pt}
+
+% --- Summary (optional; included for staff+ who want a thesis on the page) ---
+\fhead{Summary}
+Staff engineer with 9 years operating the canonical data plane at \m{Stripe} (\m{40B} events/day, \m{3} regions). Maintainer of \m{libchangelog-rs} (\m{1.2k} stars, \m{4} production users) on the side. Considering principal roles and select advisory engagements where infrastructure decisions are product decisions.
+
+% --- Ventures ---
+\fhead{Ventures}
+
+\fventure{libchangelog-rs}{Maintainer \& Sole Author}{2023 --- Present}
+{High-performance changelog generator in \m{Rust}. \m{1.2k} stars on GitHub; in production at \m{4} companies. Self-funded, no external capital.}
+
+\begin{itemize}
+  \item Designed and shipped the v1 in \m{6} weekends; adopted by \m{2} companies within the first \m{3} months
+  \item Maintain the release pipeline, security advisories, and \m{3} company-specific forks
+  \item Sustained \m{1.2k} stars and \m{180} merged PRs without a team, all while working full-time at \m{Stripe}
+\end{itemize}
+
+\vspace{4pt}
+\fventure{SLO Design Toolkit}{Author}{2023 --- Present}
+{Open methodology + workbook for designing SLOs. \m{800+} downloads, cited by \m{3} SRE teams in public retrospectives. Self-published under CC-BY.}
+
+\begin{itemize}
+  \item Wrote the first draft in \m{4} days during a Stripe on-call break; iterated over \m{6} months with \m{12} design partners
+  \item Picked up coverage in \m{2} SRE newsletters and one \m{ACM SIGOPS} blog post
+\end{itemize}
+
+% --- Operating Experience ---
+\fhead{Operating Experience}
+
+\frole{Stripe}{Staff Software Engineer, Data Platform}{Mar 2022 --- Present}
+\begin{itemize}
+  \item Own the \m{Kafka}-backed canonical event ingestion path serving \m{40B} events/day across \m{11} downstream systems and \m{3} regions
+  \item Re-architected the write-side commit log in \m{Rust} + \m{Tokio}; reduced p99 latency from \m{850ms} to \m{120ms} with zero data loss over \m{14} months
+  \item Led the multi-region active-active migration of the storage layer; cut cross-region failover from \m{47s} to \m{4s}
+  \item Operate the on-call rotation (\m{L1}/\m{L2}); reduced pages-per-week from \m{18} to \m{3} via SLO tightening and consumer back-pressure fixes
+\end{itemize}
+
+\frole{Cloudflare}{Senior Software Engineer, Edge Network}{Aug 2018 --- Feb 2022}
+\begin{itemize}
+  \item Shipped the anycast routing rewrite in \m{Go} + \m{eBPF}; improved global cache hit rate from \m{89\%} to \m{96.4\%}
+  \item Designed the worker isolation model adopted across \m{8} internal teams and \m{3} external products
+\end{itemize}
+
+\frole{Dropbox}{Software Engineer, Storage Infrastructure}{Jul 2016 --- Jul 2018}
+\begin{itemize}
+  \item Built the metadata sharding layer in \m{C++} handling \m{600M} objects; reduced rebalance time from \m{9} hours to \m{22} minutes
+\end{itemize}
+
+\frole{Google}{Software Engineering Intern, Cloud Spanner}{May 2015 --- Aug 2015}
+\begin{itemize}
+  \item Implemented the read-coalescing optimization; reduced p99 read latency by \m{18\%} on a \m{50}-shard test cluster
+\end{itemize}
+
+\frole{Microsoft}{Software Engineering Intern, Azure Storage}{May 2014 --- Aug 2014}
+\begin{itemize}
+  \item Built the blob-tagging feature shipped in the \m{GA} release
+\end{itemize}
+
+% --- Advisory ---
+\fhead{Advisory \& Board}
+
+\noindent \textbf{SLO Design Working Group} --- \textit{Founding contributor} (\m{2023} --- Present) \\
+\textbf{libchangelog-rs governance} --- \textit{Sole maintainer} (\m{2023} --- Present) \\
+\textbf{ACM SIGOPS} --- \textit{Occasional reviewer} (\m{2022} --- Present)
+
+% --- Press & Talks ---
+\fhead{Press \& Talks}
+
+\noindent \textbf{Stripe Press} (\m{2024}) --- ``Operating Kafka at \m{40B} Events/Day'' (Strange Loop) \\
+\textbf{QCon San Francisco} (\m{2023}) --- ``SLO Design for Event Pipelines'' \\
+\textbf{USENIX OSDI} (\m{2022}) --- Co-author, ``Tunable Consistency for Multi-Region Logs'' \\
+\textbf{ACM SIGOPS Blog} (\m{2023}) --- Cited SLO Design Toolkit in ``Observability for the Rest of Us''
+
+% --- Skills ---
+\fhead{Skills \& Domains}
+
+\noindent\textbf{Domains:} Distributed systems, data infrastructure, observability, SLO design, OSS stewardship \\
+\textbf{Discipline:} 0\textrightarrow{}1 platform products, technical writing, public speaking, RFC authorship, founding-team pattern recognition
+
+% --- Education ---
+\fhead{Education}
+
+\noindent\textbf{Carnegie Mellon University} --- M.S. Computer Science, \m{2016} \\
+\textit{Thesis: ``Verifiable Reconfiguration for Replicated State Machines'' (Adviser: Prof. Liskov)}
+
+\vspace{4pt}
+\noindent\textbf{University of California, Berkeley} --- B.S. Computer Science, \m{2014} \\
+\textit{Phi Beta Kappa; TA for CS 61B}
+
+\end{document}

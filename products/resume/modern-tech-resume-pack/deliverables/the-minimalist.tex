@@ -1,0 +1,134 @@
+% =====================================================================
+% The Minimalist — Modern Tech Resume Pack
+% Compile with: pdflatex (NOT XeLaTeX; this one uses charter, not fontspec)
+%   Overleaf: click the compiler dropdown, pick "pdflatex"
+%   Local:    pdflatex the-minimalist.tex
+% Style: 1-page senior+ IC; quiet confidence, generous whitespace
+% Author: Alex Chen (sample) — see the-minimalist-content.md for swappable content
+% =====================================================================
+
+\documentclass[letterpaper,10.5pt]{article}
+
+\usepackage[margin=0.75in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{charter}                  % serif name; available in texlive-fonts-recommended
+\usepackage{helvet}                   % sans for body and headings
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+
+\definecolor{mintext}{HTML}{111111}
+\definecolor{minsec}{HTML}{555555}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\pagestyle{empty}
+
+% --- Custom commands ---
+\newcommand{\sectionhead}[1]{%
+  \vspace{14pt}%
+  {\bfseries\fontsize{9}{11}\selectfont\textcolor{mintext}{\MakeUppercase{#1}}}%
+  \vspace{8pt}%
+}
+
+\newcommand{\role}[3]{%
+  \begin{tabularx}{\linewidth}{@{}Xr@{}}
+    \textbf{#1} & \textcolor{minsec}{#3} \\
+    \textit{#2} & \\
+  \end{tabularx}
+  \vspace{4pt}
+}
+
+\setlist[itemize]{label=\textemdash, leftmargin=1.5em, itemsep=2pt, topsep=2pt}
+
+\hypersetup{colorlinks=true, urlcolor=mintext, linkcolor=mintext}
+
+\begin{document}
+
+% --- Name + tagline ---
+{\fontfamily{bch}\selectfont\fontsize{28}{32}\selectfont\textcolor{mintext}{Alex Chen}}
+
+\vspace{2pt}
+{\fontsize{11}{14}\selectfont\textcolor{minsec}{Staff Software Engineer --- Distributed Systems \& Data Platform}}
+
+\vspace{6pt}
+{\fontsize{10.5}{15}\selectfont\textcolor{mintext}{alex@chen.dev \textperiodcentered{} +1 415 555 0142 \textperiodcentered{} San Francisco, CA \textperiodcentered{} linkedin.com/in/alexchen \textperiodcentered{} github.com/alexchen}}
+
+\vspace{6pt}
+\noindent\textcolor{mintext}{\rule{\linewidth}{0.5pt}}
+\vspace{6pt}
+
+% --- Summary ---
+\sectionhead{Summary}
+Staff engineer with 9 years building distributed systems at scale. Owned the data platform serving 40B events/day at Stripe; led the re-architecture that cut p99 write latency 7\texttimes{}. Looking for principal-level scope at a company where the data model is the product.
+
+% --- Experience ---
+\sectionhead{Experience}
+
+\role{Stripe}{Staff Software Engineer, Data Platform}{Mar 2022 --- Present}
+\begin{itemize}
+  \item Owned the canonical event ingestion path serving 40B events/day across 11 downstream systems and 3 regions
+  \item Re-architected the write-side commit log in Rust + Tokio; reduced p99 latency from 850ms to 120ms with zero data loss over 14 months
+  \item Led the multi-region active-active migration of the storage layer; cut cross-region failover time from 47s to 4s
+  \item Operate the L1/L2 on-call rotation; reduced pages-per-week from 18 to 3 via SLO tightening and consumer back-pressure fixes
+  \item Mentored 4 senior engineers through staff promo packets; 2 promoted to staff in 18 months
+\end{itemize}
+
+\vspace{6pt}
+\role{Cloudflare}{Senior Software Engineer, Edge Network}{Aug 2018 --- Feb 2022}
+\begin{itemize}
+  \item Shipped the anycast routing rewrite in Go + eBPF; improved global cache hit rate from 89\% to 96.4\%
+  \item Designed the worker isolation model adopted across 8 internal teams and 3 external products; reduced cross-tenant contention by 71\%
+\end{itemize}
+
+\vspace{6pt}
+\role{Dropbox}{Software Engineer, Storage Infrastructure}{Jul 2016 --- Jul 2018}
+\begin{itemize}
+  \item Built the metadata sharding layer in C++ handling 600M objects; reduced rebalance time from 9 hours to 22 minutes via consistent-hash sharding
+\end{itemize}
+
+\vspace{6pt}
+\role{Google}{Software Engineering Intern, Cloud Spanner}{May 2015 --- Aug 2015}
+\begin{itemize}
+  \item Implemented the read-coalescing optimization; reduced p99 read latency by 18\% on a 50-shard test cluster
+\end{itemize}
+
+\vspace{6pt}
+\role{Microsoft}{Software Engineering Intern, Azure Storage}{May 2014 --- Aug 2014}
+\begin{itemize}
+  \item Built the blob-tagging feature shipped in the GA release
+\end{itemize}
+
+% --- Selected Open Source ---
+\sectionhead{Selected Open Source}
+\textbf{libchangelog-rs} --- Maintainer, 2023 --- Present \\
+High-performance changelog generator written in Rust. 1.2k stars, used in production at 4 companies. \texttt{github.com/alexchen/libchangelog-rs}
+
+\vspace{4pt}
+\textbf{postgresql-partition-manager} --- Contributor, 2021 --- 2023 \\
+Time-based partition management for PostgreSQL. Merged 14 PRs; in production at 3 companies. \texttt{github.com/pgpartman/pg\_partman}
+
+% --- Skills ---
+\sectionhead{Skills}
+\textbf{Languages:} Go, Rust, Python, TypeScript, C++ \quad
+\textbf{Systems:} Kafka, PostgreSQL, FoundationDB, Cassandra, Flink \\
+\textbf{Infra:} Kubernetes, Terraform, Envoy, gRPC, Linux, eBPF \quad
+\textbf{Discipline:} Distributed systems, consensus protocols, observability, SLO design, on-call leadership
+
+% --- Education ---
+\sectionhead{Education}
+\textbf{Carnegie Mellon University} --- M.S. Computer Science, 2016 \\
+\textbf{University of California, Berkeley} --- B.S. Computer Science, 2014
+
+% --- Speaking ---
+\sectionhead{Speaking}
+Strange Loop 2024 --- ``Operating Kafka at 40B Events/Day'' \\
+QCon San Francisco 2023 --- ``SLO Design for Event Pipelines'' \\
+USENIX OSDI 2022 (co-author) --- ``Tunable Consistency for Multi-Region Logs''
+
+\end{document}

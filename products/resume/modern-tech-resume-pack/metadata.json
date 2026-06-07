@@ -1,0 +1,30 @@
+{
+  "slug": "resume/modern-tech-resume-pack",
+  "line": "resume",
+  "price": 24,
+  "status": "built",
+  "build_date": "2026-06-07",
+  "name": "Modern Tech Resume Pack — 5 ATS-Optimized Templates",
+  "tagline": "5 designer-quality 1-page resumes proven to pass ATS and impress recruiters",
+  "styles": [
+    "the-minimalist",
+    "the-modern",
+    "the-bold",
+    "the-engineer",
+    "the-founder"
+  ],
+  "file_formats": ["DOCX", "Google Docs", "LaTeX", "PDF"],
+  "page_versions": ["1-page", "2-page (bonus for senior candidates)"],
+  "includes": [
+    "5 distinct resume templates (DOCX + LaTeX + Google Docs)",
+    "5 fully-written sample resumes (1 per style)",
+    "Matching cover letter template",
+    "Matching LinkedIn bio template",
+    "ATS optimization guide",
+    "Format & export guide",
+    "2-page version of each style (bonus)"
+  ],
+  "target_buyer": "Software engineers, product managers, designers, data scientists applying to tech jobs",
+  "channels": ["Etsy", "Creative Market", "Gumroad"],
+  "quality_bar_passed": true
+}
