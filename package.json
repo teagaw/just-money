@@ -25,7 +25,9 @@
     "package": "node --import tsx scripts/package-products.ts",
     "pin:pinterest": "node --import tsx scripts/pin-pinterest.ts",
     "post:x": "node --import tsx scripts/post-x.ts",
-    "setup:webhooks": "node --import tsx scripts/setup-webhooks.ts"
+    "setup:webhooks": "node --import tsx scripts/setup-webhooks.ts",
+    "test": "node products/spreadsheets/budget-pro-2026/scripts/test/pure-functions.test.js",
+    "test:all": "node products/spreadsheets/budget-pro-2026/scripts/test/pure-functions.test.js"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.15",
