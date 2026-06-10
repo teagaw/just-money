@@ -218,11 +218,11 @@ function createTabs(ss) {
   // throws "You can't remove all the sheets in a document").
   function safeReplace(name) {
     const existing = ss.getSheetByName(name);
-    const sheet = ss.insertSheet(name);
     if (existing) {
       ss.deleteSheet(existing);
       Logger.log("Deleted existing '" + name + "' tab");
     }
+    const sheet = ss.insertSheet(name);
     Logger.log("Created " + name + " tab");
     return sheet;
   }
