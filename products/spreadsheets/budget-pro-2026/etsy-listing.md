@@ -96,8 +96,8 @@ That's it. That's the number that changes behavior. When you know your spending 
 
 **Debt Freedom Calculator** (the feature nobody else has)
 - "When am I free?" — enter different extra payment amounts and see your debt-free date shift
-- Custom scenario comparison: what if you cut $200/month from expenses? What if you add a side income? What if interest rates change?
-- Sensitivity table: see your freedom date at 10 different savings rate levels instantly
+- Custom scenario comparison: enter two custom extra-payment amounts and see how each changes your debt-free date
+- Sensitivity table: see your freedom date at 8 different savings rate levels instantly
 
 **Snowball vs Avalanche Simulator**
 - Side-by-side month-by-month breakdown for both strategies

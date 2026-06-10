@@ -218,8 +218,7 @@ const interestSaved = savedMinOnly.totalInterest - savedWithExtra.totalInterest;
 
 assert(interestSaved >= 0,
   `interest saved is non-negative (got ${interestSaved})`);
-assertEqual(interestSaved, savedMinOnly.totalInterest - savedWithExtra.totalInterest,
-  'interest saved = minOnly.totalInterest − strategy.totalInterest');
+
 
 // ─── Test 3: single debt zero extra — basic invariants ───
 
@@ -270,48 +269,6 @@ assertEqual(noExtraMin.totalMonths, noExtraStrat.totalMonths,
   'identical inputs produce identical months');
 assertEqual(noExtraMin.totalInterest, noExtraStrat.totalInterest,
   'identical inputs produce identical interest');
-
-// ─── Test 6: NPER rate includes inflation (Bug 2) ───
-
-console.log('\nNPER formula — rate accounts for inflation (Bug 2)');
-
-// The fix changed NPER(B7/12, ...) to NPER((B7-B10)/12, ...) where B7=APR, B10=inflation.
-// Verify the mathematical relationship: realMonthlyRate = (APR - inflation) / 12.
-const apr = 0.12;
-const inflation = 0.03;
-const expectedRealRate = (apr - inflation) / 12; // 0.09/12 = 0.0075
-
-assertEqual(expectedRealRate, 0.0075,
-  'real monthly rate (APR − inflation)/12 = 0.0075 when APR=12%, inflation=3%');
-
-// Sanity: real rate is lower than nominal rate
-const nominalRate = apr / 12; // 0.01
-assert(expectedRealRate < nominalRate,
-  'real rate (0.0075) < nominal rate (0.01)');
-assert(expectedRealRate > 0,
-  'real rate is positive when APR > inflation');
-
-// ─── Test 7: NPER payment includes debt payment (Bug 2) ───
-
-console.log('\nNPER formula — payment includes debt obligation (Bug 2)');
-
-// The fix changed from NPER(..., -(B4-B5), B8) to NPER(..., -(B4-B5-B9), -(B6-B8))
-// where B4=income, B5=expenses, B9=debtPayment, B6=startBalance, B8=startInvestment.
-// The Pmt parameter is -(B4-B5-B9) = -(income - expenses - debtPayment).
-const income = 6200;
-const expenses = 3200;
-const debtPayment = 590;
-const expectedPayment = -(income - expenses - debtPayment); // -(6200-3200-590) = -2410
-
-assertEqual(expectedPayment, -2410,
-  'Pmt = −(income − expenses − debtPayment) = −2410');
-
-// Verify: without the debt payment fix, the old formula would be -(B4-B5) = -(6200-3200) = -3000
-const oldPayment = -(income - expenses); // old (broken) formula
-assert(expectedPayment !== oldPayment,
-  'new formula produces different Pmt than old formula (−2410 ≠ −3000)');
-assert(Math.abs(expectedPayment) < Math.abs(oldPayment),
-  'correct Pmt is smaller magnitude (more conservative) than old Pmt');
 
 // ─── Summary ───
 

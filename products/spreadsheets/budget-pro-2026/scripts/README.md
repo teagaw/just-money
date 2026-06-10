@@ -19,7 +19,7 @@ Technical documentation for the Google Apps Script engine.
 | Tab | Formulas | Features |
 |-----|----------|----------|
 | Start Here | 0 formulas | Welcome screen, quick start steps, color legend |
-| Scenario Engine | 15+ formulas | 9 inputs, 3 results, comparison table, sensitivity table, cross-tab validation |
+| Scenario Engine | 58+ formulas | 9 inputs, 3 results, comparison table, sensitivity table, cross-tab validation |
 | Goals | 10+ formulas | Savings goals with target amounts, deadlines, progress tracking |
 | Spendable | 8+ formulas | Daily/weekly spending budget, remaining balance, category limits |
 | Budget Tracker | 48+ formulas | 3 income + 8 expense categories, 12 months, totals, savings rate |
@@ -33,7 +33,7 @@ The script pre-fills realistic sample data:
 - **Scenario Engine:** $6,200 income, $3,200 expenses, $8,200 savings, 7.57% APR, $28,200 debt, $590 payment
 - **Goals:** Emergency Fund ($5,000/$1,750), Vacation ($2,000/$600), Car Down Payment ($8,000/$2,400), New Laptop ($1,500/$450), Wedding ($15,000/$3,000)
 - **Spendable:** Weekly = (income - expenses - debt payment) × 12 ÷ 52; daily = weekly ÷ 7
-- **Budget Tracker:** 3 months of income/expense data
+- **Budget Tracker:** 12 months of income/expense data (Jan–Dec)
 - **Debt Payoff:** Chase Visa, Car Loan, Student Loan, Medical Bill
 
 ### Testing
@@ -42,11 +42,11 @@ The script pre-fills realistic sample data:
 npm test
 ```
 
-33 tests covering simulatePayoff() and getColumnLetter().
+43 tests covering simulatePayoff() and getColumnLetter().
 
 ### CI/CD
 
-GitHub Actions runs tests on every push to master. Docker available:
+GitHub Actions runs tests on every push to master (configured at repository root). Docker available (configured at repository root):
 
 ```bash
 docker build -t just-money-test .
