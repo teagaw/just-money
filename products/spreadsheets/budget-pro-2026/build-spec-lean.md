@@ -13,7 +13,7 @@
 
 ### What It Is
 
-Budget Pro 2026 is a $19 Google Sheets budget template with 6 user-facing tabs and 1 hidden engine tab. The key differentiator is the **Scenario Engine** — a calculator that answers "when will I be financially free?" using NPER and EDATE formulas. No other budget spreadsheet at this price point does this.
+Budget Pro 2026 is a $14.99 Google Sheets budget template with 6 user-facing tabs and 1 hidden engine tab. The key differentiator is the **Scenario Engine** — a calculator that answers "when will I be financially free?" using NPER and EDATE formulas. No other budget spreadsheet at this price point does this.
 
 ### Who It's For
 
@@ -26,7 +26,7 @@ Budget Pro 2026 is a $19 Google Sheets budget template with 6 user-facing tabs a
 
 | Competitor | What They Do | What We Do |
 |------------|-------------|------------|
-| YNAB | App, $109/yr, manual entry, no payoff projections | Spreadsheet, $19 once, ownership forever, Scenario Engine |
+| YNAB | App, $109/yr, manual entry, no payoff projections | Spreadsheet, $14.99 once, ownership forever, Scenario Engine |
 | Generic budget templates | Static categories, no payoff math | NPER/EDATE formulas show exact freedom date |
 | Debt payoff calculators | Single-purpose, no budget tracking | Budget + debt + goals + spending + scenario planning in one file |
 | Other Etsy templates | 12+ sheets, overwhelming, features you never touch | 6 tabs, stripped to essentials, zero bloat |
@@ -49,7 +49,7 @@ Budget Pro 2026 is a $19 Google Sheets budget template with 6 user-facing tabs a
 
 | # | Tab Name | Purpose | User Action |
 |---|----------|---------|-------------|
-| 1 | Scenario Engine | "When am I free?" calculator | Enter 6 numbers, read results |
+| 1 | Scenario Engine | "When am I free?" calculator | Enter 9 numbers, read results |
 | 2 | Goals | Savings goals with targets and deadlines | Set goals, track progress |
 | 3 | Spendable | Daily/weekly spending budget | Set limits, track remaining |
 | 4 | Budget Tracker | Monthly income vs expenses | Enter income and expenses monthly |
@@ -80,31 +80,33 @@ A                B                  C                  D
 5  │ Monthly living expenses     [green cell]  $3,200       │
 6  │ Current savings             [green cell]  $12,000      │
 7  │ Weighted average APR (%)    [green cell]  8.50         │
-8  │ Total debt balance          [green cell]  $24,200      │
-9  │ Total monthly debt payment  [green cell]  $490         │
+ 8  │ Total debt balance          [green cell]  $24,200      │
+ 9  │ Total monthly debt payment  [green cell]  $490         │
 10 │ Inflation adjustment (%)    [green cell]  3.00         │
-11 └─────────────────────────────────────────────────────────┘
+11 │ Custom comparison #1        [green cell]  $200         │
+12 │ Custom comparison #2        [green cell]  $400         │
+13 └─────────────────────────────────────────────────────────┘
 12
-13 ┌─ RESULTS (auto-calculated) ─────────────────────────────┐
-14 │ Months to financial freedom     [result cell]  24      │
-15 │ Freedom date                    [result cell]  Jun 2028│
-16 │ Total interest saved            [result cell]  $3,847  │
-17 └─────────────────────────────────────────────────────────┘
+14 ┌─ RESULTS (auto-calculated) ─────────────────────────────┐
+15 │ Months to financial freedom     [result cell]  24      │
+16 │ Freedom date                    [result cell]  Jun 2028│
+17 │ Total interest saved            [result cell]  $3,847  │
+18 └─────────────────────────────────────────────────────────┘
 18
-19 ┌─ CROSS-TAB CHECK ───────────────────────────────────────┐
-20 │ Weighted APR from Debt Payoff tab:  [formula]  8.50%    │
-21 │ Your entered APR:                   [B7]       8.50%    │
-22 │ Match:                              [formula]  ✓        │
-23 └─────────────────────────────────────────────────────────┘
+20 ┌─ CROSS-TAB CHECK ───────────────────────────────────────┐
+21 │ Weighted APR from Debt Payoff tab:  [formula]  8.50%    │
+22 │ Your entered APR:                   [B7]       8.50%    │
+23 │ Match:                              [formula]  ✓        │
+24 └─────────────────────────────────────────────────────────┘
 24
-25 ┌─ COMPARISON ────────────────────────────────────────────┐
-26 │ Scenario              Months    Interest    Freedom     │
-27 │ Minimum payments only   48      $8,420      Dec 2029   │
-28 │ Extra $200/month        28      $5,213      Oct 2028   │
-29 │ Extra $400/month        19      $3,190      Jan 2028   │
-30 │ Match my scenario       24      $3,847      Jun 2028   │
-31 │ Inflation-adjusted      24      $3,847      Jun 2028   │
-32 └─────────────────────────────────────────────────────────┘
+26 ┌─ COMPARISON ────────────────────────────────────────────┐
+27 │ Scenario              Months    Interest    Freedom     │
+28 │ Minimum payments only   48      $8,420      Dec 2029   │
+29 │ Extra $200/month        28      $5,213      Oct 2028   │
+30 │ Extra $400/month        19      $3,190      Jan 2028   │
+31 │ Match my scenario       24      $3,847      Jun 2028   │
+32 │ Inflation-adjusted      24      $3,847      Jun 2028   │
+33 └─────────────────────────────────────────────────────────┘
 33
 34 ┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──┐
 35 │ Extra $/month    Months    Freedom Date    Interest Saved│
@@ -165,76 +167,76 @@ A                B                  C                  D
 
 | Cell | Label | Formula | Format |
 |------|-------|---------|--------|
-| `B13` | Months to financial freedom | `=Engine!B2` | Number, 0 decimal |
-| `B14` | Freedom date | `=Engine!B3` | Date, "MMM YYYY" |
-| `B15` | Total interest saved | `=Engine!B4` | Currency, $#,##0 |
+| `B16` | Months to financial freedom | `=Engine!B2` | Number, 0 decimal |
+| `B17` | Freedom date | `=Engine!B3` | Date, "MMM YYYY" |
+| `B18` | Total interest saved | `=Engine!B4` | Currency, $#,##0 |
 
-#### Comparison Table Formulas (rows 20-24)
-
-| Cell | Content | Formula |
-|------|---------|---------|
-| `A20` | "Minimum payments only" | Static label |
-| `B20` | Months | `=Engine!B6` |
-| `C20` | Interest | `=Engine!B7` |
-| `D20` | Freedom date | `=Engine!B8` |
-| `A21` | "Extra $200/month" | Static label |
-| `B21` | Months | `=Engine!B9` |
-| `C21` | Interest | `=Engine!B10` |
-| `D21` | Freedom date | `=Engine!B11` |
-| `A22` | "Extra $400/month" | Static label |
-| `B22` | Months | `=Engine!B12` |
-| `C22` | Interest | `=Engine!B13` |
-| `D22` | Freedom date | `=Engine!B14` |
-| `A23` | "Match my scenario" | Static label |
-| `B23` | Months | `=B13` |
-| `C23` | Interest | `=B15` |
-| `D23` | Freedom date | `=B14` |
-| `A24` | "Inflation-adjusted" | Static label |
-| `B24` | Months | `=Engine!B32` |
-| `C24` | Interest | `=Engine!B33` |
-| `D24` | Freedom date | `=Engine!B34` |
-
-#### Sensitivity Table Formulas (rows 30-37 in Scenario Engine)
+#### Comparison Table Formulas (rows 29-33)
 
 | Cell | Content | Formula |
 |------|---------|---------|
-| `A30` | "── SENSITIVITY: Freedom Date at Different Savings Rates ──" | Label |
-| `A31` | "Extra $/month" | Header |
-| `B31` | "Months" | Header |
-| `C31` | "Freedom Date" | Header |
-| `D31` | "Interest Saved" | Header |
-| `A32` | "$0/month" | Label |
-| `B32` | Months | `=Engine!B35` |
-| `C32` | Freedom Date | `=Engine!B36` |
-| `D32` | Interest Saved | `=Engine!B37` |
-| `A33` | "$100/month" | Label |
-| `B33` | Months | `=Engine!B38` |
-| `C33` | Freedom Date | `=Engine!B39` |
-| `D33` | Interest Saved | `=Engine!B40` |
-| `A34` | "$200/month" | Label |
-| `B34` | Months | `=Engine!B41` |
-| `C34` | Freedom Date | `=Engine!B42` |
-| `D34` | Interest Saved | `=Engine!B43` |
-| `A35` | "$300/month" | Label |
-| `B35` | Months | `=Engine!B44` |
-| `C35` | Freedom Date | `=Engine!B45` |
-| `D35` | Interest Saved | `=Engine!B46` |
-| `A36` | "$400/month" | Label |
-| `B36` | Months | `=Engine!B47` |
-| `C36` | Freedom Date | `=Engine!B48` |
-| `D36` | Interest Saved | `=Engine!B49` |
-| `A37` | "$500/month" | Label |
-| `B37` | Months | `=Engine!B50` |
-| `C37` | Freedom Date | `=Engine!B51` |
-| `D37` | Interest Saved | `=Engine!B52` |
-| `A38` | "$750/month" | Label |
-| `B38` | Months | `=Engine!B53` |
-| `C38` | Freedom Date | `=Engine!B54` |
-| `D38` | Interest Saved | `=Engine!B55` |
-| `A39` | "$1,000/month" | Label |
-| `B39` | Months | `=Engine!B56` |
-| `C39` | Freedom Date | `=Engine!B57` |
-| `D39` | Interest Saved | `=Engine!B58` |
+| `A29` | "Minimum payments only" | Static label |
+| `B29` | Months | `=Engine!B6` |
+| `C29` | Interest | `=IFERROR(Engine!B6*B9-B8,0)` |
+| `D29` | Freedom date | `=Engine!B8` |
+| `A30` | "Extra $/month #1" | `="Extra $"&B11&"/month"` |
+| `B30` | Months | `=Engine!B9` |
+| `C30` | Interest | `=IFERROR(Engine!B9*(B9+B11)-B8,0)` |
+| `D30` | Freedom date | `=Engine!B11` |
+| `A31` | "Extra $/month #2" | `="Extra $"&B12&"/month"` |
+| `B31` | Months | `=Engine!B12` |
+| `C31` | Interest | `=IFERROR(Engine!B12*(B9+B12)-B8,0)` |
+| `D31` | Freedom date | `=Engine!B14` |
+| `A32` | "Match my scenario" | Static label |
+| `B32` | Months | `=B16` |
+| `C32` | Interest | `=IFERROR(Engine!B7-B18,0)` |
+| `D32` | Freedom date | `=B17` |
+| `A33` | "Inflation-adjusted" | Static label |
+| `B33` | Months | `=Engine!B32` |
+| `C33` | Interest | `=Engine!B33` |
+| `D33` | Freedom date | `=Engine!B34` |
+
+#### Sensitivity Table Formulas (rows 36-45 in Scenario Engine)
+
+| Cell | Content | Formula |
+|------|---------|---------|
+| `A36` | "── SENSITIVITY: Freedom Date at Different Savings Rates ──" | Label |
+| `A37` | "Extra $/month" | Header |
+| `B37` | "Months" | Header |
+| `C37` | "Freedom Date" | Header |
+| `D37` | "Interest Paid" | Header |
+| `A38` | "$0/month" | Label |
+| `B38` | Months | `=Engine!B38` |
+| `C38` | Freedom Date | `=Engine!B40` |
+| `D38` | Interest Paid | `=Engine!B39` |
+| `A39` | "$100/month" | Label |
+| `B39` | Months | `=Engine!B41` |
+| `C39` | Freedom Date | `=Engine!B43` |
+| `D39` | Interest Paid | `=Engine!B42` |
+| `A40` | "$200/month" | Label |
+| `B40` | Months | `=Engine!B44` |
+| `C40` | Freedom Date | `=Engine!B46` |
+| `D40` | Interest Paid | `=Engine!B45` |
+| `A41` | "$300/month" | Label |
+| `B41` | Months | `=Engine!B47` |
+| `C41` | Freedom Date | `=Engine!B49` |
+| `D41` | Interest Paid | `=Engine!B48` |
+| `A42` | "$400/month" | Label |
+| `B42` | Months | `=Engine!B50` |
+| `C42` | Freedom Date | `=Engine!B52` |
+| `D42` | Interest Paid | `=Engine!B51` |
+| `A43` | "$500/month" | Label |
+| `B43` | Months | `=Engine!B53` |
+| `C43` | Freedom Date | `=Engine!B55` |
+| `D43` | Interest Paid | `=Engine!B54` |
+| `A44` | "$750/month" | Label |
+| `B44` | Months | `=Engine!B56` |
+| `C44` | Freedom Date | `=Engine!B58` |
+| `D44` | Interest Paid | `=Engine!B57` |
+| `A45` | "$1,000/month" | Label |
+| `B45` | Months | `=Engine!B59` |
+| `C45` | Freedom Date | `=Engine!B61` |
+| `D45` | Interest Paid | `=Engine!B60` |
 
 #### Sensitivity Table Formulas (rows 35-58 in Engine)
 
@@ -271,7 +273,7 @@ A                B                  C                  D
 |------|---------|---------|
 | `B28` | Weighted APR from debts | `=SUMPRODUCT('Debt Payoff'!B5:B8, 'Debt Payoff'!C5:C8) / SUM('Debt Payoff'!B5:B8)` |
 | `B29` | User's entered APR | `='Scenario Engine'!B7` |
-| `B30` | Match check | `=IF(ABS(B28-B29) < 0.001, "✓ Match", "⚠ Check APR — doesn't match Debt Payoff tab")` |
+| `B30` | Match check | `=IF(ABS(B28-B29) < 0.0001, "✓ Match", "⚠ Check APR — doesn't match Debt Payoff tab")` |
 
 #### Conditional Formatting
 
@@ -295,54 +297,50 @@ A                B                  C                  D
 #### Layout
 
 ```
-A                B                  C                  D
-──────────────────────────────────────────────────────────────
-1  GOALS · Track Your Savings Targets
+A                B                  C                  D                  E                  F                  G
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1  SAVINGS GOALS · Track Your Progress
 2
-3  ┌─ YOUR GOALS ─────────────────────────────────────────────┐
-4  │ Goal name       Target    Deadline    Saved     Progress │
-5  │ Emergency fund  $10,000   Dec 2026    $6,000    60%      │
-6  │ Vacation        $3,000    Jun 2027    $800      27%      │
-7  │ New laptop      $1,500    Mar 2026    $1,200    80%      │
-8  │ Down payment    $25,000   Dec 2028    $4,500    18%      │
-9  └─────────────────────────────────────────────────────────┘
-10
-11 ┌─ SUMMARY ────────────────────────────────────────────────┐
-12 │ Total saved across all goals:           $12,500          │
-13 │ Total target across all goals:          $39,500          │
-14 │ Overall progress:                       31.6%            │
-15 │ Next goal deadline:                     Mar 2026         │
-16 └─────────────────────────────────────────────────────────┘
+3  ── SAVINGS GOALS ─────────────────────────────────────────────────────────────────────────────────────────────
+4  Goal Name         Target      Current     Monthly     Months      Progress    Target Date
+5  Emergency Fund    $5,000      $1,750      $200        19          35%         Dec 2027
+6  Vacation          $2,000      $600        $150        10          30%         Apr 2027
+7  Car Down Payment  $8,000      $2,400      $300        20          30%         Feb 2028
+8  New Laptop        $1,500      $450        $100        12          30%         Jun 2027
+9  Wedding           $15,000     $3,000      $400        33          20%         Jan 2029
+10 ──
+11 TOTALS            $31,500     $8,200      $1,150
 ```
 
 #### Cell Specifications
 
 | Cell | Content | Type | Format | Validation |
 |------|---------|------|--------|------------|
-| `A5:A8` | Goal name | Text | Regular, 10pt | — |
-| `B5:B8` | Target amount | Number | Currency, $#,##0 | `> 0` |
-| `C5:C8` | Deadline | Date | Date, "MMM YYYY" | `>= TODAY()` |
-| `D5:D8` | Amount saved | Number | Currency, $#,##0 | `>= 0` |
-| `E5:E8` | Progress % | Formula | Percentage, 0.0% | — |
+| `A5:A9` | Goal name | Text | Regular, 10pt | — |
+| `B5:B9` | Target amount | Number | Currency, $#,##0 | `> 0` |
+| `C5:C9` | Current balance | Number | Currency, $#,##0 | `>= 0` |
+| `D5:D9` | Monthly contribution | Number | Currency, $#,##0 | `>= 0` |
+| `E5:E9` | Months to goal | Formula | Number, 0 | — |
+| `F5:F9` | Progress | Formula | Percentage, 0% | — |
+| `G5:G9` | Target date | Formula | Date, "MMM YYYY" | — |
 
 #### Key Formulas
 
 | Cell | Content | Formula | Format |
 |------|---------|---------|--------|
-| `E5` | Progress % | `=IF(B5=0, 0, D5/B5)` | Percentage, 0.0% |
-| `B12` | Total saved | `=SUM(D5:D8)` | Currency, bold |
-| `B13` | Total target | `=SUM(B5:B8)` | Currency, bold |
-| `B14` | Overall progress | `=IF(B13=0, 0, B12/B13)` | Percentage, 0.0%, bold |
-| `B15` | Next deadline | `=TEXT(MIN(C5:C8), "MMM YYYY")` | Text, bold |
+| `E5` | Months to goal | `=IFERROR(IF(D5<=0,"N/A",ROUNDUP(NPER(0.03/12,-D5,-C5,B5),0)),"Check inputs")` | Number, 0 |
+| `F5` | Progress | `=IFERROR(MIN(C5/B5,1),0)` | Percentage, 0% |
+| `G5` | Target date | `=IFERROR(IF(F5="N/A","N/A",EDATE(TODAY(),E5)),"Check inputs")` | Date, "MMM YYYY" |
+| `B11` | Total target | `=SUM(B5:B9)` | Currency, bold |
+| `C11` | Total current | `=SUM(C5:C9)` | Currency, bold |
+| `D11` | Total monthly | `=SUM(D5:D9)` | Currency, bold |
 
 #### Conditional Formatting
 
 | Range | Condition | Format |
 |-------|-----------|--------|
-| `E5:E8` (progress) | `>= 1.0` | Bold, bg `#DCFCE7`, text `#0F973C`, strikethrough on goal name |
-| `E5:E8` | `>= 0.50 AND < 1.0` | Bold, bg `#FEF9C3`, text `#A16207` |
-| `E5:E8` | `< 0.50` | Bold, bg `#FEE2E2`, text `#DC2626` |
-| `C5:C8` (deadline) | `<= TODAY() + 30` | Text `#DC2626` (due within 30 days) |
+| `F5:F9` (progress) | `>= 1` | Bold, bg `#DCFCE7`, text `#0F973C` |
+| `F5:F9` | `>= 0.50 AND < 1` | Bold, bg `#FEF9C3`, text `#A16207` |
 
 #### Frozen Panes
 
@@ -358,69 +356,67 @@ A                B                  C                  D
 #### Layout
 
 ```
-A                B                  C                  D
-──────────────────────────────────────────────────────────────
-1  SPENDABLE · Daily & Weekly Budget
+A                B                  C
+─────────────────────────────────────────────────────────────
+1  SPENDABLE · Your guilt-free spending money
 2
-3  ┌─ BUDGET SETUP ──────────────────────────────────────────┐
-4  │ Monthly take-home pay        [green cell]  $4,200       │
-5  │ Daily budget (= pay ÷ 30)    [result]      $140         │
-6  │ Weekly budget (= pay ÷ 4.3)  [result]      $977         │
-7  └─────────────────────────────────────────────────────────┘
-8
-9  ── TODAY ──────────────────────────────────────────────────
-10 Date                  Category        Amount      Remaining
-11 Jun 9                 Food            $42         $98
-12 Jun 9                 Transport       $15         $83
-13 Jun 9                 Entertainment   $0          $83
-14
-15 ── THIS WEEK (Jun 9 - Jun 15) ─────────────────────────────
-16 Total spent this week:                $57
-17 Weekly budget:                        $977
-18 Remaining this week:                  $920
-19
-20 ── CATEGORY LIMITS ────────────────────────────────────────
-21 Category            Monthly Limit   Spent      Remaining
-22 Food                $600            $180       $420
-23 Transport           $200            $45        $155
-24 Entertainment       $300            $75        $225
-25 Other               $200            $30        $170
+3  ── SPENDABLE ──────────────────────────────────────────────
+4  You have         $377           this week
+5
+6  You have         $53.86         this day
+7
+8  ── HOW IT'S CALCULATED ────────────────────────────────────
+9  Monthly income         $6,200
+10 Minus expenses         $3,200
+11 Minus debt payment     $590
+12 Monthly spendable      $2,410
+13
+14 Monthly × 12 ÷ 52      $556       weekly spendable
+15 Divided by 7            $79.43     daily spendable
+16
+17 This is your guilt-free spending money after all obligations are met
 ```
 
 #### Cell Specifications
 
 | Cell | Content | Type | Format | Validation |
 |------|---------|------|--------|------------|
-| `B4` | Monthly take-home | Number | Currency, $#,##0 | `> 0` |
-| `A11:A13` | Date | Date | Date, "MMM D" | — |
-| `B11:B13` | Category | Text | Regular, 10pt | List from category range |
-| `C11:C13` | Amount | Number | Currency, $#,##0 | `>= 0` |
-| `D11:D13` | Remaining | Formula | Currency, $#,##0 | — |
+| `B4` | Weekly spendable | Formula | Currency, $#,##0 | — |
+| `B6` | Daily spendable | Formula | Currency, $#,##0.00 | — |
+| `B9` | Monthly income | Formula | Currency, $#,##0 | — |
+| `B10` | Minus expenses | Formula | Currency, $#,##0 | — |
+| `B11` | Minus debt payment | Formula | Currency, $#,##0 | — |
+| `B12` | Monthly spendable | Formula | Currency, $#,##0 | — |
+| `B14` | Weekly spendable | Formula | Currency, $#,##0 | — |
+| `B15` | Daily spendable | Formula | Currency, $#,##0.00 | — |
 
 #### Key Formulas
 
 | Cell | Content | Formula | Format |
 |------|---------|---------|--------|
-| `B5` | Daily budget | `=IF(B4=0, 0, B4/30)` | Currency, bold |
-| `B6` | Weekly budget | `=IF(B4=0, 0, B4/4.3)` | Currency, bold |
-| `D11` | Remaining (daily) | `=B5 - SUMIF(A:A, A11, C:C)` | Currency |
-| `B16` | Weekly spent | `=SUMIFS(C:C, A:A, ">="&week_start, A:A, "<="&week_end)` | Currency, bold |
-| `B18` | Weekly remaining | `=B6 - B16` | Currency, bold |
-| `D22` | Category remaining | `=C22 - SUMIF(B:B, A22, C:C)` | Currency |
+| `B4` | Weekly spendable | `=IFERROR(MAX(0,('Scenario Engine'!B4-'Scenario Engine'!B5-'Scenario Engine'!B9)*12/52),0)` | Currency, bold |
+| `B6` | Daily spendable | `=IFERROR(MAX(0,B4/7),0)` | Currency, bold |
+| `B9` | Monthly income | `=MAX(0,'Scenario Engine'!B4)` | Currency |
+| `B10` | Minus expenses | `=MAX(0,'Scenario Engine'!B5)` | Currency |
+| `B11` | Minus debt payment | `=MAX(0,'Scenario Engine'!B9)` | Currency |
+| `B12` | Monthly spendable | `=IFERROR(MAX(0,B9-B10-B11),0)` | Currency, bold |
+| `B14` | Weekly (monthly×12÷52) | `=IFERROR(MAX(0,B12*12/52),0)` | Currency, bold |
+| `B15` | Daily (weekly÷7) | `=IFERROR(MAX(0,B14/7),0)` | Currency, bold |
 
 #### Conditional Formatting
 
 | Range | Condition | Format |
 |-------|-----------|--------|
-| `D11:D13` (remaining) | `< 0` | Text `#DC2626`, bold |
-| `D11:D13` | `< 20` | Text `#F59E0B` (warning: low balance) |
-| `B18` (weekly remaining) | `< 0` | Text `#DC2626`, bold, bg `#FEE2E2` |
-| `D22:D25` (category remaining) | `< 0` | Text `#DC2626`, bold |
+| `B4` (weekly) | `< 20` | Text `#DC2626` (urgent, very low balance) |
+| `B4` (weekly) | `< 50` | Text `#F59E0B` (warning, low balance) |
+| `B6` (daily) | `< 10` | Text `#DC2626` (urgent, very low daily) |
+| `B6` (daily) | `< 20` | Text `#F59E0B` (warning, low daily) |
+| `B15` (daily by calc) | `< 5` | Text `#DC2626` (urgent, almost broke) |
+| `B15` (daily by calc) | `< 15` | Text `#F59E0B` (warning, tight budget) |
 
 #### Frozen Panes
 
 - Row 1 frozen
-- Column A frozen
 
 ---
 
@@ -439,25 +435,24 @@ A                B          C          D          E          F
 4  Category                Jan        Feb        Mar        ...
 5  Salary                  $5,400     $5,400     $5,400
 6  Side hustle             $800       $1,200     $600
-7  Other income            $0         $200       $0
-8  ─────────────────────────────────────────────────────────────
-9  Total income            $6,200     $6,800     $6,000
-10
-11 ── EXPENSES ────────────────────────────────────────────────
-12 Category                Jan        Feb        Mar        ...
-13 Housing                 $1,800     $1,800     $1,800
-14 Utilities               $280       $310       $260
-15 Food                    $450       $520       $480
-16 Transport               $160       $140       $180
-17 Entertainment           $200       $150       $250
-18 Savings                 $500       $500       $500
-19 Debt payments           $490       $490       $490
-20 Other                   $100       $80        $120
-21 ─────────────────────────────────────────────────────────────
-22 Total expenses          $3,980     $3,990     $4,080
-23
-24 Net (income - expenses) $2,220     $2,810     $1,920
-25 Savings rate            35.8%      41.3%      32.0%
+7  ─────────────────────────────────────────────────────────────
+8  Total income            $6,200     $6,600     $6,000
+9
+10 ── EXPENSES ────────────────────────────────────────────────
+11 Category                Jan        Feb        Mar        ...
+12 Housing                 $1,800     $1,800     $1,800
+13 Utilities               $280       $310       $260
+14 Food                    $450       $520       $480
+15 Transport               $160       $140       $180
+16 Entertainment           $200       $150       $250
+17 Insurance               $150       $150       $150
+18 Debt payment            $490       $490       $490
+19 Other                   $100       $80        $120
+20 ─────────────────────────────────────────────────────────────
+21 Total expenses          $3,630     $3,640     $3,730
+22
+23 Net (income - expenses) $2,570     $2,960     $2,270
+24 Savings rate            41.5%      44.8%      37.8%
 ```
 
 #### Cell Specifications
@@ -465,28 +460,28 @@ A                B          C          D          E          F
 | Cell | Content | Type | Format |
 |------|---------|------|--------|
 | `A1` | Title | Label | Bold, 14pt, #0F172A |
-| `A4:A8` | Income category labels | Label | Regular, 10pt |
-| `A12:A20` | Expense category labels | Label | Regular, 10pt |
-| `B4:F8` | Income amounts | Number | Currency, $#,##0 |
-| `B12:F20` | Expense amounts | Number | Currency, $#,##0 |
+| `A5:A6` | Income category labels | Label | Regular, 10pt |
+| `A12:A19` | Expense category labels | Label | Regular, 10pt |
+| `B5:M6` | Income amounts | Number | Currency, $#,##0 |
+| `B12:M19` | Expense amounts | Number | Currency, $#,##0 |
 
 #### Formula Row Specifications
 
 | Row | Label | Formula (column B, repeat across) | Format |
 |-----|-------|-----------------------------------|--------|
-| 9 | "Total income" | `=SUM(B4:B8)` | Currency, bold, top border |
-| 22 | "Total expenses" | `=SUM(B12:F20)` | Currency, bold, top border |
-| 24 | "Net (income - expenses)" | `=B9-B22` | Currency, bold |
-| 25 | "Savings rate" | `=IF(B9=0, 0, B24/B9)` | Percentage, 1 decimal |
+| 8 | "Total income" | `=SUM(B5:B6)` | Currency, bold, top border |
+| 21 | "Total expenses" | `=SUM(B12:B19)` | Currency, bold, top border |
+| 23 | "Net (income - expenses)" | `=B8-B21` | Currency, bold |
+| 24 | "Savings rate" | `=IF(B8=0, 0, B23/B8)` | Percentage, 1 decimal |
 
 #### Conditional Formatting
 
 | Range | Condition | Format |
 |-------|-----------|--------|
-| `B24:F24` (net) | `< 0` | Text `#DC2626`, bold |
-| `B24:F24` | `>= 0` | Text `#10B981`, bold |
-| `B25:F25` (savings rate) | `>= 0.20` | Bold, bg `#DCFCE7`, text `#0F973C` |
-| `B25:F25` | `< 0.10` | Bold, bg `#FEE2E2`, text `#DC2626` |
+| `B23:M23` (net) | `< 0` | Text `#DC2626`, bold |
+| `B23:M23` | `>= 0` | Text `#10B981`, bold |
+| `B24:M24` (savings rate) | `>= 0.20` | Bold, bg `#DCFCE7`, text `#0F973C` |
+| `B24:M24` | `< 0.10` | Bold, bg `#FEE2E2`, text `#DC2626` |
 
 #### Frozen Panes
 
@@ -495,7 +490,7 @@ A                B          C          D          E          F
 
 ---
 
-### Tab 5: Debt Payoff
+### Tab 4: Debt Payoff
 
 **Purpose:** Snowball vs avalanche comparison with payoff timeline.
 
@@ -534,7 +529,7 @@ A                B          C          D          E          F
 | Cell | Content | Type | Format | Validation |
 |------|---------|------|--------|------------|
 | `A5:A8` | Debt name | Text | Regular, 10pt | — |
-| `B5:B8` | Balance | Number | Currency, $#,##0 | `> 0` |
+| `B5:B8` | Balance | Number | Currency, $#,##0 | `>= 0` |
 | `C5:C8` | APR | Number | Percentage, 0.00% | `>= 0` AND `<= 0.50` |
 | `D5:D8` | Minimum payment | Number | Currency, $#,##0 | `>= 0` |
 | `E5:E8` | Extra payment | Number | Currency, $#,##0 | `>= 0` |
@@ -545,25 +540,25 @@ A                B          C          D          E          F
 |------|---------|---------|--------|
 | `B10` | Total balance | `=SUM(B5:B8)` | Currency, bold |
 | `E10` | Total extra | `=SUM(E5:E8)` | Currency, bold |
-| `B13` | Snowball total months | `=Engine!B20` | Number |
-| `C13` | Avalanche total months | `=Engine!B21` | Number |
-| `B14` | Snowball total interest | `=Engine!B22` | Currency |
-| `C14` | Avalanche total interest | `=Engine!B23` | Currency |
-| `B15` | Snowball interest saved | `=Engine!B24` | Currency |
-| `C15` | Avalanche interest saved | `=Engine!B25` | Currency |
+| `B14` | Snowball total months | `=Engine!B20` | Number |
+| `C14` | Avalanche total months | `=Engine!B21` | Number |
+| `B15` | Snowball total interest | `=Engine!B22` | Currency |
+| `C15` | Avalanche total interest | `=Engine!B23` | Currency |
+| `B16` | Snowball interest saved | `=Engine!B24` | Currency |
+| `C16` | Avalanche interest saved | `=Engine!B25` | Currency |
 
 #### Per-Debt Payoff Formulas (rows 20-23)
 
 | Cell | Formula |
 |------|---------|
-| `B20` | `=Engine!C2` (Snowball payoff for debt 1) |
-| `C20` | `=Engine!D2` (Avalanche payoff for debt 1) |
-| `B21` | `=Engine!C3` (Snowball payoff for debt 2) |
-| `C21` | `=Engine!D3` (Avalanche payoff for debt 2) |
-| `B22` | `=Engine!C4` (Snowball payoff for debt 3) |
-| `C22` | `=Engine!D4` (Avalanche payoff for debt 3) |
-| `B23` | `=Engine!C5` (Snowball payoff for debt 4) |
-| `C23` | `=Engine!D5` (Avalanche payoff for debt 4) |
+| `B20` | `=IFERROR(EDATE(TODAY(),Engine!C2),"—")` (Snowball payoff for debt 1) |
+| `C20` | `=IFERROR(EDATE(TODAY(),Engine!D2),"—")` (Avalanche payoff for debt 1) |
+| `B21` | `=IFERROR(EDATE(TODAY(),Engine!C3),"—")` (Snowball payoff for debt 2) |
+| `C21` | `=IFERROR(EDATE(TODAY(),Engine!D3),"—")` (Avalanche payoff for debt 2) |
+| `B22` | `=IFERROR(EDATE(TODAY(),Engine!C4),"—")` (Snowball payoff for debt 3) |
+| `C22` | `=IFERROR(EDATE(TODAY(),Engine!D4),"—")` (Avalanche payoff for debt 3) |
+| `B23` | `=IFERROR(EDATE(TODAY(),Engine!C5),"—")` (Snowball payoff for debt 4) |
+| `C23` | `=IFERROR(EDATE(TODAY(),Engine!D5),"—")` (Avalanche payoff for debt 4) |
 
 #### Conditional Formatting
 
@@ -571,8 +566,8 @@ A                B          C          D          E          F
 |-------|-----------|--------|
 | `B5:B8` (balance) | `= 0` | Strikethrough, text `#94A3B8` |
 | `C5:C8` (APR) | `>= 0.20` | Bold, text `#DC2626` |
-| `B14:C14` (total interest) | — | Bold |
-| `B15:C15` (interest saved) | `> 0` | Bold, bg `#DCFCE7`, text `#10B981` |
+| `B15:C15` (total interest) | — | Bold |
+| `B16:C16` (interest saved) | `> 0` | Bold, bg `#DCFCE7`, text `#10B981` |
 
 #### Frozen Panes
 
@@ -594,7 +589,7 @@ A                B
 2
 3  ── QUICK START (5 minutes) ───────────────────
 4  1. Open the "Scenario Engine" tab
-5  2. Enter your 6 numbers in the green cells
+5  2. Enter your 9 numbers in the green cells
 6  3. Read your results in the blue section
 7  4. Try different scenarios by changing inputs
 8
@@ -619,17 +614,17 @@ A                B
 26 - Interest saved: how much less interest you'll
 27   pay compared to minimum payments only
 28
-29 ── WHY TAB 1 AND TAB 5 SHOW DIFFERENT DATES ──
+29 ── WHY TAB 1 AND TAB 4 SHOW DIFFERENT DATES ──
 30 Tab 1 (Scenario Engine) uses your weighted average
-31 APR — one rate for all debt combined. Tab 5 (Debt
+31 APR — one rate for all debt combined. Tab 4 (Debt
 32 Payoff) calculates each debt individually with its
 33 own APR. Different math = different dates.
 34
 35 Both are correct. Tab 1 gives you a quick estimate.
-36 Tab 5 gives you the exact payoff for each debt.
+36 Tab 4 gives you the exact payoff for each debt.
 37
 38 Tip: Use Tab 1 for "what if" experiments.
-39 Use Tab 5 for your actual payoff plan.
+39 Use Tab 4 for your actual payoff plan.
 40
 41 ── HOW THE SCENARIO ENGINE WORKS ──
 42 The Scenario Engine uses two powerful Google Sheets
@@ -719,11 +714,12 @@ A                B
 57
 58 ── FAQ ────────────────────────────────────────
 59 Q: Can I add more debts?
-60 A: Yes, add rows below row 8. The formulas
-61    auto-extend.
+60 A: Yes, add rows below row 12. The spreadsheet
+61    supports up to 8 debts. For more, you'll need
+62    to modify the Engine formulas.
 62
 63 Q: Can I add more expense categories?
-64 A: Yes, add rows below row 20 in Budget Tracker.
+64 A: Yes, add rows below row 19 in Budget Tracker.
 65
 66 Q: What if my income changes each month?
 67 A: That's fine — enter each month separately.
@@ -811,7 +807,7 @@ A                B                  C                  D
 28 ── CROSS-TAB CHECK ─────────────────────────────────────────
 29 Weighted APR from debts  =SUMPRODUCT('Debt Payoff'!B5:B8, 'Debt Payoff'!C5:C8) / SUM('Debt Payoff'!B5:B8)
 30 User's entered APR       ='Scenario Engine'!B7
-31 Match check              =IF(ABS(B28-B29) < 0.001, "✓ Match", "⚠ Check APR — doesn't match Debt Payoff tab")
+31 Match check              =IF(ABS(B28-B29) < 0.0001, "✓ Match", "⚠ Check APR — doesn't match Debt Payoff tab")
 32
 33 ── INFLATION-ADJUSTED SCENARIO ─────────────────────────────
 34 Inflation-adjusted months =NPER(...)
@@ -837,10 +833,18 @@ A                B                  C                  D
 
 ```
 =IFERROR(
-  NPER(
-    ('Scenario Engine'!B7 - 'Scenario Engine'!B10)/12,
-    -('Scenario Engine'!B4 - 'Scenario Engine'!B5 - 'Scenario Engine'!B9),
-    -('Scenario Engine'!B6 - 'Scenario Engine'!B8)
+  IF(
+    'Scenario Engine'!B4 <= 'Scenario Engine'!B5,
+    "income ≤ expenses",
+    IF(
+      'Scenario Engine'!B6 <= 'Scenario Engine'!B8,
+      "debt ≥ savings",
+      NPER(
+        ('Scenario Engine'!B7 - 'Scenario Engine'!B10)/12,
+        -('Scenario Engine'!B4 - 'Scenario Engine'!B5 - 'Scenario Engine'!B9),
+        -('Scenario Engine'!B6 - 'Scenario Engine'!B8)
+      )
+    )
   ),
   "Check inputs"
 )
@@ -865,7 +869,14 @@ A                B                  C                  D
 ### Formula 2: Freedom Date (Engine `B3`)
 
 ```
-=EDATE(TODAY(), ROUNDUP(B2, 0))
+=IFERROR(
+  IF(
+    ISNUMBER(Engine!B2),
+    EDATE(TODAY(), ROUNDUP(Engine!B2, 0)),
+    Engine!B2
+  ),
+  "Check inputs"
+)
 ```
 
 **What it does:** Adds the calculated number of months to today's date, producing the calendar month of financial freedom.
@@ -879,7 +890,10 @@ A                B                  C                  D
 This is a comparison formula. The exact implementation:
 
 ```
-=Engine!B7 - Engine!B23
+=IFERROR(
+  Engine!B7 - Engine!B23,
+  "Check inputs"
+)
 ```
 
 Where `B7` = total interest paid under minimum-only scenario, and `B23` = total interest paid under the user's scenario. The difference is interest saved.
@@ -1127,20 +1141,20 @@ Where `B7` = total interest paid under minimum-only scenario, and `B23` = total 
 
 ---
 
-### Formula 28: Budget Tracker Total Income (row 9)
+### Formula 28: Budget Tracker Total Income (row 8)
 
 ```
-=SUM(B4:B8)
+=SUM(B5:B6)
 ```
 
 Repeat for each month column (C, D, E, ...).
 
 ---
 
-### Formula 29: Budget Tracker Total Expenses (row 22)
+### Formula 29: Budget Tracker Total Expenses (row 21)
 
 ```
-=SUM(B12:B20)
+=SUM(B12:B19)
 ```
 
 Repeat for each month column.
@@ -1157,10 +1171,10 @@ Repeat for each month column.
 
 ---
 
-### Formula 31: Budget Tracker Savings Rate (row 25)
+### Formula 31: Budget Tracker Savings Rate (row 24)
 
 ```
-=IF(B9=0, 0, B24/B9)
+=IF(B8=0, 0, B23/B8)
 ```
 
 Formatted as percentage. Repeat for each month column.
@@ -1185,7 +1199,7 @@ Formatted as percentage. Repeat for each month column.
 
 ### Step 3: Protect Formula Cells on Scenario Engine
 
-1. Select cells `B13:B15` (results) and `B20:D24` (comparison table)
+1. Select cells `B16:B18` (results) and `B27:D33` (comparison table)
 2. Data → Protected sheets and ranges → Add a range
 3. Name it "Scenario Engine Results"
 4. Set permissions: "Only you"
@@ -1273,7 +1287,7 @@ Formatted as percentage. Repeat for each month column.
 | 0:00-0:30 | Create Google Sheet, name tabs | 7 tabs created: Scenario Engine, Goals, Spendable, Budget Tracker, Debt Payoff, Instructions, Engine |
 | 0:30-1:00 | Build Scenario Engine input section | Cells A1:B10 with labels, green formatting, data validation |
 | 1:00-1:30 | Build Engine tab formulas | NPER/EDATE formulas in Engine B2:B14 |
-| 1:30-2:00 | Wire Scenario Engine outputs to Engine | Cells B13:B15 pulling from Engine tab |
+| 1:30-2:00 | Wire Scenario Engine outputs to Engine | Cells B16:B18 pulling from Engine tab |
 | 2:00-2:30 | Build comparison table | Rows 18-24 with labels and Engine references |
 | 2:30-3:00 | Add inflation toggle | Row 10 with B10 input, validation, and note |
 | 3:00-3:30 | Add sensitivity table | Engine rows 30-37 with 8 extra payment scenarios |
@@ -1330,7 +1344,7 @@ Formatted as percentage. Repeat for each month column.
 |------|------|-------------|
 | 11:00-11:30 | Write Quick Start section | 4-step setup in rows 3-8 |
 | 11:30-12:00 | Write tab-by-tab guides | Rows 9-42 with usage instructions |
-| 12:00-12:30 | Write "Why Dates Differ" section | Explanation of Tab 1 vs Tab 5 differences |
+| 12:00-12:30 | Write "Why Dates Differ" section | Explanation of Tab 1 vs Tab 4 differences |
 | 12:30-12:45 | Write NPER/EDATE documentation | Technical explanation in plain language |
 | 12:45-13:00 | Write FAQ | Rows 43-80 with 9 common questions |
 | 13:00-13:30 | Write support info + format | Contact details, refund policy, consistent typography |
@@ -1386,7 +1400,7 @@ Budget Pro 2026 is a $14.99 Google Sheets budget template with a built-in Scenar
 
 **THE SCENARIO ENGINE (THE DIFFERENTIATOR)**
 
-Enter 6 numbers — monthly income, expenses, savings, interest rate, debt balance, minimum payment — and instantly see:
+Enter 9 numbers — monthly income, expenses, savings, interest rate, debt balance, minimum payment, inflation, and two custom comparison amounts — and instantly see:
 - Months to financial freedom
 - Exact freedom date (e.g., "June 2028")
 - Total interest saved vs minimum payments
@@ -1417,7 +1431,7 @@ Change one number. Watch everything recalculate. That's the power of a spreadshe
 
 1. Buy & download (instant access)
 2. Open in Google Sheets (free with any Google account)
-3. Enter your 6 numbers in the Scenario Engine
+3. Enter your 9 numbers in the Scenario Engine
 4. Read your results — when you'll be free, how much interest you'll save
 5. Track your budget monthly in the Budget Tracker tab
 6. Compare debt payoff strategies in the Debt Payoff tab
@@ -1442,7 +1456,7 @@ Change one number. Watch everything recalculate. That's the power of a spreadshe
 **WHO THIS IS NOT FOR**
 
 ❌ You want real-time bank syncing (this is manual entry)
-❌ You want a freebie ($19, premium quality)
+❌ You want a freebie ($14.99, premium quality)
 ❌ You need Excel support (Google Sheets only)
 
 **SPECS**
@@ -1606,7 +1620,7 @@ no text errors, no spelling mistakes, no garbled numbers, no cartoonish style, n
 - [ ] Mobile view is readable (Google Sheets app)
 - [ ] All tabs have frozen panes (title row + first column)
 - [ ] Tab order is intuitive: Scenario Engine → Goals → Spendable → Budget Tracker → Debt Payoff → Instructions
-- [ ] Instructions explain why Tab 1 and Tab 5 show different dates
+- [ ] Instructions explain why Tab 1 and Tab 4 show different dates
 - [ ] NPER/EDATE documentation is clear and non-technical
 - [ ] Inflation toggle has helpful default (3%) and clear label
 
@@ -1693,14 +1707,13 @@ no text errors, no spelling mistakes, no garbled numbers, no cartoonish style, n
 |----------|-----|-----|-----|
 | Salary | $5,400 | $5,400 | $5,400 |
 | Side hustle | $800 | $1,200 | $600 |
-| Other income | $0 | $200 | $0 |
 | Housing | $1,800 | $1,800 | $1,800 |
 | Utilities | $280 | $310 | $260 |
 | Food | $450 | $520 | $480 |
 | Transport | $160 | $140 | $180 |
 | Entertainment | $200 | $150 | $250 |
-| Savings | $500 | $500 | $500 |
-| Debt payments | $490 | $490 | $490 |
+| Insurance | $150 | $150 | $150 |
+| Debt payment | $490 | $490 | $490 |
 | Other | $100 | $80 | $120 |
 
 ### Debt Payoff Sample

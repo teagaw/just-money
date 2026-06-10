@@ -171,7 +171,7 @@ No setup wizard. No account creation. No subscription. No "import your bank data
 ### FAQ
 
 **Do I need to be good at spreadsheets?**
-No. You fill in the yellow cells (your numbers). The formulas do everything else. If you can type a number and press Enter, you can use this.
+No. You fill in the green cells (your numbers). The formulas do everything else. If you can type a number and press Enter, you can use this.
 
 **Can I share it with my partner?**
 Yes. Google Sheets supports real-time collaboration. Both of you can view and edit simultaneously.

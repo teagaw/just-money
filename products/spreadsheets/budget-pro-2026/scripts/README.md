@@ -35,7 +35,7 @@
 
 | Tab | Formulas | Features |
 |-----|----------|----------|
-| Scenario Engine | 15+ formulas | 7 inputs, 3 results, comparison table, sensitivity table, cross-tab validation |
+| Scenario Engine | 15+ formulas | 9 inputs, 3 results, comparison table, sensitivity table, cross-tab validation |
 | Goals | 10+ formulas | Savings goals with target amounts, deadlines, progress tracking |
 | Spendable | 8+ formulas | Daily/weekly spending budget, remaining balance, category limits |
 | Budget Tracker | 48+ formulas | 3 income + 8 expense categories, 12 months, totals, savings rate |
@@ -46,9 +46,9 @@
 ## Sample Data Pre-filled
 
 The script includes realistic sample data:
-- **Scenario Engine:** $5,400 income, $3,200 expenses, $12,000 savings, 8.5% APR, $24,200 debt, $490 payment
-- **Goals:** Emergency fund ($10,000 target, $6,000 saved), Vacation ($3,000 target, $800 saved)
-- **Spendable:** $150/day budget, $1,200/week budget, category limits for food, transport, entertainment
+- **Scenario Engine:** $6,200 income, $3,200 expenses, $8,200 savings, 7.57% APR, $28,200 debt, $590 payment
+- **Goals:** Emergency Fund ($5,000 target, $1,750 saved), Vacation ($2,000 target, $600 saved), Car Down Payment ($8,000 target, $2,400 saved), New Laptop ($1,500 target, $450 saved), Wedding ($15,000 target, $3,000 saved)
+- **Spendable:** Weekly budget calculated as (income - expenses - debt payment) × 12 ÷ 52; daily budget is the weekly amount ÷ 7
 - **Budget Tracker:** 3 months of income/expense data
 - **Debt Payoff:** Chase Visa, Car Loan, Student Loan, Medical Bill
 
