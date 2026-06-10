@@ -54,7 +54,7 @@ This isn't another pretty budget spreadsheet with pastel colors and a place to l
 
 There are 138,000+ budget spreadsheets on Etsy. None of them tell you when you'll be debt-free. Not one.
 
-Budget Pro 2026 uses **NPER and EDATE formulas** — the same functions professional financial planners use — to run scenario simulations on your debt payoff. You enter your debts, your income, your extra payment amount, and the spreadsheet calculates:
+Budget Pro 2026 uses the same calculation methods professional financial planners use to run scenario simulations on your debt payoff. You enter your debts, your income, your extra payment amount, and the spreadsheet calculates:
 
 - **Your exact debt-free date** (down to the month)
 - **What happens if you pay $50 more per month** (how many months you save)
@@ -94,8 +94,8 @@ That's it. That's the number that changes behavior. When you know your spending 
 - Auto-calculated total debt, total interest, and weighted average interest rate
 - Visual progress indicators so you can see the mountain getting smaller
 
-**NPER Scenario Planner** (the feature nobody else has)
-- "When am I free?" calculator — enter different extra payment amounts and see your debt-free date shift
+**Debt Freedom Calculator** (the feature nobody else has)
+- "When am I free?" — enter different extra payment amounts and see your debt-free date shift
 - Custom scenario comparison: what if you cut $200/month from expenses? What if you add a side income? What if interest rates change?
 - Sensitivity table: see your freedom date at 10 different savings rate levels instantly
 
@@ -129,21 +129,26 @@ That's it. That's the number that changes behavior. When you know your spending 
 - Compare 2-3 different strategies side by side
 - Share scenarios with your partner for financial conversations that don't end in arguments
 
-### How to use it
+### How it works
 
-1. **Download** the Google Sheets file from Etsy (instant download)
-2. **Make a copy** to your own Google Drive (File > Make a Copy — this is YOUR copy forever)
-3. **Enter your debts** on the Debt Dashboard (balances, rates, minimum payments)
-4. **Enter your income** and fixed expenses
-5. **Run your first scenario** — try different extra payment amounts and watch your debt-free date change
-6. **Check your Spendable Budget** to see your weekly/daily spending money
-7. **Revisit monthly** — update balances, adjust as life changes
+1. Purchase → download includes a Google Sheet template link
+2. Click the link → "Make a copy" (File → Make a copy)
+3. Start entering your numbers in the green cells
+4. See your debt-free date instantly
 
-No setup wizard. No account creation. No subscription. No "import your bank data" (we don't need or want your banking credentials). Just open, type your numbers, and start planning.
+No apps to install. No code to paste. Works on phone, tablet, and computer.
+
+### What's included
+
+- Google Sheets template (click link → Make a copy)
+- 7 tabs: Debt Dashboard, Debt Freedom Calculator, Snowball vs Avalanche Simulator, Spendable Budget, Savings Goals, 12-Month Tracker, Custom Comparison
+- Pre-filled sample data so you see how it works
+- Financial disclaimer
+- Setup guide (plain text)
 
 ### What makes this different
 
-**It's built on real financial math.** NPER, EDATE, PMT, and amortization formulas aren't buzzwords — they're the actual functions that calculate your debt payoff timeline. Every other spreadsheet on Etsy is manually tracking numbers. This one is running simulations.
+**It's built on real financial math.** Debt freedom calculators, date projections, payment simulations, and amortization tables aren't buzzwords — they're the actual calculations that determine your payoff timeline. Every other spreadsheet on Etsy is manually tracking numbers. This one is running simulations.
 
 **It's a one-time purchase.** YNAB charges $109/year. After 2 years with YNAB, you've spent $218 and your spreadsheet is gone if you cancel. After 2 years with Budget Pro 2026, you've spent $14.99 once and you still have every tool, every formula, every scenario you built. Your data stays in Google Sheets. Forever. No hostage situation.
 
@@ -168,6 +173,20 @@ No setup wizard. No account creation. No subscription. No "import your bank data
 - If you want bank account syncing or automatic transaction import, this is manual-entry only
 - If you need desktop Excel compatibility, this is Google Sheets only
 
+### Share your freedom date
+
+When you see your debt-free date for the first time, you'll want to share it. Screenshot your Debt Freedom Calculator results and share your countdown. Your friends will ask where you got it.
+
+### Why $14.99?
+
+Free templates track your spending. This one tells you WHEN you'll be free.
+- Debt freedom calculator shows exact months to debt-free
+- Compare snowball vs avalanche side-by-side  
+- Inflation-adjusted projections
+- 7 tabs that work together as one system
+
+YNAB costs $109/year. This costs $14.99 once.
+
 ### FAQ
 
 **Do I need to be good at spreadsheets?**
@@ -177,7 +196,7 @@ No. You fill in the green cells (your numbers). The formulas do everything else.
 Yes. Google Sheets supports real-time collaboration. Both of you can view and edit simultaneously.
 
 **What if Google updates Sheets and something breaks?**
-Google Sheets formulas (NPER, EDATE, PMT) have been stable for years. They're core financial functions, not experimental features. If anything ever changes, I provide updates.
+Google Sheets financial functions have been stable for years. They're core features, not experimental. If anything ever changes, I provide updates.
 
 **Is this compatible with Excel?**
 This is designed specifically for Google Sheets. Some formulas use Google Sheets-specific functions. It will not work correctly in Excel.
@@ -189,7 +208,7 @@ Yes. Every category, every line item, every scenario is fully editable. This is 
 Digital downloads are generally non-refundable per Etsy policy, but if something isn't working as described, message me and I'll make it right.
 
 **How is this different from your other budget spreadsheets?**
-Budget Pro 2026 is the premium version with scenario planning, NPER calculations, snowball/avalanche comparison, and inflation adjustments. If you just need basic budget tracking, I have simpler options. This one is for people who want the full planning toolkit.
+Budget Pro 2026 is the premium version with scenario planning, debt freedom calculations, snowball/avalanche comparison, and inflation adjustments. If you just need basic budget tracking, I have simpler options. This one is for people who want the full planning toolkit.
 
 ### The math is simple. The feeling is everything.
 
