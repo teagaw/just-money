@@ -186,7 +186,10 @@ function protectRange(sheet, range, description) {
 function simulatePayoff(debts, strategy) {
   // debts: array of {name, balance, apr, minPayment}
   // strategy: 'snowball' (smallest balance first) or 'avalanche' (highest APR first)
-  
+  if (!debts || debts.length === 0) {
+    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], perDebtMonths: [], payoffMonths: [] };
+  }
+
   const MAX_MONTHS = 120; // 10 year cap
   let balances = debts.map(d => d.balance);
   let rates = debts.map(d => d.apr / 12); // monthly rate
