@@ -1,0 +1,4 @@
+services:
+  test:
+    build: .
+    command: node products/spreadsheets/budget-pro-2026/scripts/test/pure-functions.test.js
