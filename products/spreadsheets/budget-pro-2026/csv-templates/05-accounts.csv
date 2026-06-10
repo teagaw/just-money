@@ -1,9 +1,0 @@
-Account,Type,Institution,Balance,APR,Min Payment,Last updated,Owner,Notes
-Chase Checking,Checking,Chase,3400.00,0.00,,2026-05-31,Me,Primary daily account
-Ally Savings,Savings,Ally,12200.00,4.25,,2026-05-31,Me,Emergency fund + goal sub-accounts
-Vanguard Brokerage,Investment,Vanguard,18200.00,,,2026-05-31,Me,Index funds (VTSAX)
-Fidelity 401k,Retirement,Fidelity,21500.00,,,2026-05-31,Me,Employer 401k match
-Chase Visa,Credit Card,Chase,-2800.00,24.99,85.00,2026-05-31,Me,Working on payoff
-Nelnet Student,Loan,Nelnet,-15800.00,5.50,180.00,2026-05-31,Me,Federal consolidated
-Car Loan,Loan,Capital One,-8400.00,6.75,225.00,2026-05-31,Me,2024 Honda Civic
-Cash Wallet,Cash,Home,100.00,0.00,,2026-05-31,Me,Petty cash
