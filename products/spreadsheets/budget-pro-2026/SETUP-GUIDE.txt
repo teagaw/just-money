@@ -9,7 +9,7 @@ Step 1: Open your template
 
 Click the Google Sheet link in your Etsy download.
 
--> Budget Pro 2026 opens in a new browser tab. You'll see 7 tabs at the bottom.
+-> Budget Pro 2026 opens in a new browser tab. You'll see 8 tabs at the bottom.
 
 [Screenshot: Browser showing Google Sheet with tabs highlighted at bottom]
 
@@ -29,17 +29,19 @@ Name it whatever you want (like "My Budget Pro 2026"). Click Make a copy.
 Step 3: Enter your numbers
 ---------------------------
 
-Click the Scenario Engine tab (the first one).
+Click the Start Here tab (the first one) to read the quick intro, then click Scenario Engine (the second tab) to enter your numbers.
 
 Find the 9 green cells. These are YOUR numbers:
 
-- Monthly income ........... $5,000
-- Monthly expenses ......... $3,200
-- Monthly savings .......... $800
-- Interest rate (APR) ...... 7.5%
-- Total debt ............... $15,000
-- Minimum payment .......... $400
-- Inflation rate ........... 3%
+- Monthly income ........... $6,000
+- Monthly living expenses ... $4,000
+- Current savings ........... $25,000
+- Weighted average APR ...... 7.5%
+- Total debt balance ........ $28,200
+- Total monthly debt payment  $790
+- Inflation adjustment ...... 3%
+- Custom comparison #1 ...... $450
+- Custom comparison #2 ...... $800
 
 [Screenshot: Scenario Engine with green cells clearly visible]
 

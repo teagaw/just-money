@@ -52,16 +52,16 @@ This isn't another pretty budget spreadsheet with pastel colors and a place to l
 
 ### The question nobody else answers
 
-There are 138,000+ budget spreadsheets on Etsy. None of them tell you when you'll be debt-free. Not one.
+Most budget spreadsheets track your spending. None of them tell you when you'll be debt-free.
 
-Budget Pro 2026 uses the same calculation methods professional financial planners use to run scenario simulations on your debt payoff. You enter your debts, your income, your extra payment amount, and the spreadsheet calculates:
+Budget Pro 2026 uses Google Sheets' built-in NPER and EDATE functions — the same calculation methods professional financial planners use — to run scenario simulations on your debt payoff. You enter your debts, your income, your extra payment amount, and the spreadsheet calculates:
 
 - **Your exact debt-free date** (down to the month)
 - **What happens if you pay $50 more per month** (how many months you save)
 - **What happens if you get a raise** (how acceleration changes your timeline)
 - **What happens if inflation eats into your purchasing power** (inflation-adjusted projections so you're not lying to yourself)
 
-No other Etsy spreadsheet does this. The formulas exist in Google Sheets. Nobody uses them. Until now.
+Few Etsy spreadsheets use Google Sheets' built-in NPER and EDATE functions for scenario planning. The formulas exist. Nobody uses them. Until now.
 
 ### Snowball vs Avalanche — side by side, month by month
 
@@ -141,7 +141,7 @@ No apps to install. No code to paste. Works on phone, tablet, and computer.
 ### What's included
 
 - Google Sheets template (click link → Make a copy)
-- 7 tabs: Debt Dashboard, Debt Freedom Calculator, Snowball vs Avalanche Simulator, Spendable Budget, Savings Goals, 12-Month Tracker, Custom Comparison
+- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Debt Payoff, Goals, Spendable, Instructions, Engine (hidden)
 - Pre-filled sample data so you see how it works
 - Financial disclaimer
 - Setup guide (plain text)
@@ -183,7 +183,7 @@ Free templates track your spending. This one tells you WHEN you'll be free.
 - Debt freedom calculator shows exact months to debt-free
 - Compare snowball vs avalanche side-by-side  
 - Inflation-adjusted projections
-- 7 tabs that work together as one system
+- 8 tabs that work together as one system
 
 YNAB costs $109/year. This costs $14.99 once.
 

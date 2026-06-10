@@ -8,7 +8,7 @@
   "build_date": "2026-06-07",
   "version": "2.0.0",
   "format": "Google Sheets",
-  "sheets_count": 7,
+  "sheets_count": 8,
   "csv_templates_count": 0,
   "sample_data_months": 3,
   "target_buyer": "25-40yo professional, post-Mint/YNAB, wants ownership and customization",
@@ -22,7 +22,7 @@
     "financial freedom calculator",
     "YNAB alternative"
   ],
-  "promise": "7 tabs: Scenario Engine shows your freedom date, Budget Tracker shows where money goes, Spendable shows your weekly spending money, Goals tracks savings progress with bars, Debt Payoff compares snowball vs avalanche, Instructions guide you through everything, hidden Engine tab powers the formulas.",
+  "promise": "8 tabs: Start Here gives you a quick intro, Scenario Engine shows your freedom date, Budget Tracker shows where money goes, Spendable shows your weekly spending money, Goals tracks savings progress with bars, Debt Payoff compares snowball vs avalanche, Instructions guide you through everything, hidden Engine tab powers the formulas.",
   "self_promotion_angle": "Scenario Engine calculates freedom date — buyers screenshot their 'months to freedom' countdown and milestone celebrations.",
   "quality_bar_passed": {
     "4_tabs_documented": true,
@@ -46,7 +46,6 @@
   ],
   "binary_assets_present": false,
   "v1_remaining_work": [
-    "Run script in Google Sheets, verify all 7 tabs",
     "Share as Google Sheets template link (NOT script delivery)",
     "Launch on Etsy at $14.99"
   ],

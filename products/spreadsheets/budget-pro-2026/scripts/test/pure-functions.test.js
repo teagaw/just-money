@@ -39,13 +39,19 @@ colCases.forEach(([n, expected]) => assertEqual(getColumnLetter(n), expected, `c
 
 console.log('\nsimulatePayoff — single debt');
 
+// $1000 at 12% APR, $50/month payment
+// Monthly rate: 0.01. Month 1 interest: $10, principal: $40, balance: $960.
+// Total interest is the sum of decreasing monthly interest charges.
 const singleDebt = [{ name: 'Card', balance: 1000, apr: 0.12, minPayment: 50, extraPayment: 0 }];
 const singleResult = simulatePayoff(singleDebt, 'snowball');
 
-assert(singleResult.totalMonths > 0, 'single debt pays off');
-assert(singleResult.totalInterest > 0, 'single debt accrues interest');
-assert(singleResult.totalPaid > 1000, 'total paid exceeds principal');
-assertEqual(singleResult.payoffMonths[0], singleResult.totalMonths, 'payoff month matches total months');
+assertEqual(singleResult.totalMonths, 23, 'single $1000 debt at 12% APR pays off in 23 months');
+assert(singleResult.totalInterest > 50 && singleResult.totalInterest < 150,
+  `single debt interest in expected range (got ${singleResult.totalInterest})`);
+assertEqual(singleResult.totalPaid, 1000 + singleResult.totalInterest,
+  'total paid = principal + interest');
+assertEqual(singleResult.payoffMonths[0], singleResult.totalMonths,
+  'payoff month matches total months');
 
 // ─── simulatePayoff — snowball vs avalanche ordering ───
 
@@ -62,10 +68,13 @@ const avalanche = simulatePayoff(twoDebts, 'avalanche');
 assert(snowball.totalMonths > 0, 'snowball pays off two debts');
 assert(avalanche.totalMonths > 0, 'avalanche pays off two debts');
 
-// Snowball should pay off Small first (smallest balance)
-assertEqual(snowball.payoffMonths[1] > 0, true, 'snowball pays off Small debt');
-// Avalanche should pay off Big first (highest APR)
-assertEqual(avalanche.payoffMonths[0] > 0, true, 'avalanche pays off Big debt');
+// Snowball pays off smallest balance first (Small at $1000 before Big at $5000)
+assert(snowball.payoffMonths[1] > 0 && snowball.payoffMonths[1] < snowball.payoffMonths[0],
+  'snowball pays off Small debt before Big debt');
+
+// Avalanche pays off highest APR first (Big at 18% before Small at 6%)
+assert(avalanche.payoffMonths[0] > 0 && avalanche.payoffMonths[0] < avalanche.payoffMonths[1],
+  'avalanche pays off Big debt before Small debt');
 
 // Avalanche should save more interest (higher APR debt paid first)
 assert(avalanche.totalInterest <= snowball.totalInterest,
@@ -98,9 +107,8 @@ const threeDebts = [
 
 const threeResult = simulatePayoff(threeDebts, 'snowball');
 
-// Tiny should be paid off first (smallest balance)
-assertEqual(threeResult.payoffMonths[0] > 0, true, 'Tiny paid off first');
-assert(threeResult.payoffMonths[0] <= threeResult.payoffMonths[1],
+// Snowball ordering: Tiny (smallest) → Medium → Large (largest)
+assert(threeResult.payoffMonths[0] > 0 && threeResult.payoffMonths[0] <= threeResult.payoffMonths[1],
   'Tiny payoff ≤ Medium payoff');
 assert(threeResult.payoffMonths[1] <= threeResult.payoffMonths[2],
   'Medium payoff ≤ Large payoff');
@@ -121,12 +129,12 @@ assert(zeroResult.totalMonths > 0, 'active debt still pays off');
 
 // ─── simulatePayoff — already free (zero debt) ───
 
-console.log('\nsimulatePayoff — already free');
+console.log('\nsimulatePayoff — empty input returns zeroed result');
 
 const emptyResult = simulatePayoff([], 'snowball');
-assertEqual(emptyResult.totalMonths, 0, 'no debts → 0 months');
-assertEqual(emptyResult.totalInterest, 0, 'no debts → 0 interest');
-assertEqual(emptyResult.totalPaid, 0, 'no debts → 0 paid');
+assertEqual(emptyResult.totalMonths, 0, 'empty input → 0 months');
+assertEqual(emptyResult.totalInterest, 0, 'empty input → 0 interest');
+assertEqual(emptyResult.totalPaid, 0, 'empty input → 0 paid');
 
 // ─── simulatePayoff — math sanity checks ───
 
@@ -159,10 +167,10 @@ const tieDebts = [
 
 const tieResult = simulatePayoff(tieDebts, 'avalanche');
 
-// Same APR, same balance — tiebreaker is smaller balance (both equal), so first match wins
-assert(tieResult.totalMonths > 0, 'identical debts both pay off under avalanche tiebreaker');
-assertEqual(tieResult.payoffMonths[0] > 0, true, 'first debt paid off');
-assertEqual(tieResult.payoffMonths[1] > 0, true, 'second debt paid off');
+// Same APR, same balance — both should pay off and produce deterministic results
+assert(tieResult.totalMonths > 0, 'identical debts complete under avalanche');
+assertEqual(tieResult.payoffMonths[0], tieResult.payoffMonths[1],
+  'identical debts pay off in same month under avalanche tiebreaker');
 
 // ─── Summary ───
 

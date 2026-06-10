@@ -18,6 +18,7 @@ Technical documentation for the Google Apps Script engine.
 
 | Tab | Formulas | Features |
 |-----|----------|----------|
+| Start Here | 0 formulas | Welcome screen, quick start steps, color legend |
 | Scenario Engine | 15+ formulas | 9 inputs, 3 results, comparison table, sensitivity table, cross-tab validation |
 | Goals | 10+ formulas | Savings goals with target amounts, deadlines, progress tracking |
 | Spendable | 8+ formulas | Daily/weekly spending budget, remaining balance, category limits |
@@ -58,5 +59,5 @@ docker run --rm just-money-test
 |-------|----------|
 | "Authorization required" | Click Review permissions → Allow |
 | "Script not found" | Make sure you pasted the entire script |
-| Formulas show errors | Check that all 7 tabs were created |
+| Formulas show errors | Check that all 8 tabs were created |
 | Engine tab visible | Right-click tab → Hide sheet |
