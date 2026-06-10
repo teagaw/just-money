@@ -38,12 +38,13 @@ function onOpen() {
  */
 function showAbout() {
   SpreadsheetApp.getUi().alert(
-    "Budget Pro 2026",
+    "Budget Pro 2026 — by Just Money",
     "Version 2.0.0\n\n" +
-    "A smarter way to plan your debt freedom.\n" +
+    "Premium financial tools you own once.\n" +
+    "No subscriptions, no guilt, no BS.\n\n" +
     "Features: NPER scenario planning, amortization simulation, " +
     "inflation modeling, and spendable budgeting.\n\n" +
-    "Built with love. Not financial advice.",
+    "Built with love by Just Money.",
     SpreadsheetApp.getUi().ButtonSet.OK
   );
 }
@@ -115,15 +116,15 @@ function buildBudgetPro2026() {
   Logger.log("Applying protection...");
   applyProtection(ss, tabs);
 
-  // Set tab colors
-  tabs.startHere.setTabColor("#10B981");
-  tabs.scenario.setTabColor("#10B981");
-  tabs.budget.setTabColor("#3B82F6");
-  tabs.debt.setTabColor("#F59E0B");
-  tabs.goals.setTabColor("#8B5CF6");
-  tabs.spendable.setTabColor("#06B6D4");
-  tabs.instructions.setTabColor("#64748B");
-  tabs.engine.setTabColor("#EF4444");
+  // Set tab colors (Just Money brand palette)
+  tabs.startHere.setTabColor("#0D7C5F");     // Money Green
+  tabs.scenario.setTabColor("#0D7C5F");      // Money Green
+  tabs.budget.setTabColor("#2563EB");        // Ocean Blue
+  tabs.debt.setTabColor("#DC2626");          // Alert Red
+  tabs.goals.setTabColor("#D4AF37");         // Soft Gold
+  tabs.spendable.setTabColor("#E8F5E9");     // Light Sage
+  tabs.instructions.setTabColor("#6B7280");  // Warm Gray
+  tabs.engine.setTabColor("#1A1A2E");        // Deep Charcoal
 
   // Move Start Here to first position, Scenario Engine to second
   ss.setActiveSheet(tabs.startHere);
@@ -138,56 +139,71 @@ function buildBudgetPro2026() {
 function buildStartHereTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
-  const accentColor = "#10B981";
+  const headerColor = "#1A1A2E";   // Deep Charcoal
+  const secondaryColor = "#6B7280"; // Warm Gray
+  const accentColor = "#0D7C5F";   // Money Green
+  const lightBg = "#E8F5E9";       // Light Sage
+
+  // BRAND
+  sheet.getRange("A1").setValue("JUST MONEY")
+    .setFontSize(10).setFontWeight("bold").setFontColor(accentColor)
+    .setLetterSpacing(2);
 
   // TITLE
-  sheet.getRange("A1").setValue("Welcome to Budget Pro 2026")
+  sheet.getRange("A3").setValue("Welcome to Budget Pro 2026")
     .setFontSize(24).setFontWeight("bold").setFontColor(headerColor);
 
   // SUBTITLE
-  sheet.getRange("A2").setValue("You're one step away from knowing exactly where your money goes.")
+  sheet.getRange("A4").setValue("Premium financial tools you own once. No subscriptions, no guilt, no BS.")
     .setFontSize(12).setFontStyle("italic").setFontColor(secondaryColor);
 
+  // SEPARATOR
+  sheet.getRange("A6").setValue("───")
+    .setFontColor(secondaryColor);
+
   // GETTING STARTED SECTION
-  sheet.getRange("A4").setValue("GETTING STARTED")
+  sheet.getRange("A8").setValue("GETTING STARTED")
     .setFontSize(14).setFontWeight("bold").setFontColor(headerColor);
 
   // STEP 1
-  sheet.getRange("A5").setValue("Step 1: Open the Scenario Engine tab")
+  sheet.getRange("A9").setValue("Step 1: Open the Scenario Engine tab")
     .setFontSize(12).setFontWeight("bold").setFontColor(headerColor);
-  sheet.getRange("A6").setValue("Enter your 9 numbers in the green cells. That's it.")
+  sheet.getRange("A10").setValue("Enter your 9 numbers in the green cells. That's it.")
     .setFontSize(10).setFontColor(secondaryColor);
 
   // STEP 2
-  sheet.getRange("A7").setValue("Step 2: Check your results")
+  sheet.getRange("A11").setValue("Step 2: Check your results")
     .setFontSize(12).setFontWeight("bold").setFontColor(headerColor);
-  sheet.getRange("A8").setValue("See when you'll be debt-free and how much interest you'll save.")
+  sheet.getRange("A12").setValue("See when you'll be debt-free and how much interest you'll save.")
     .setFontSize(10).setFontColor(secondaryColor);
 
   // STEP 3
-  sheet.getRange("A9").setValue("Step 3: Try different scenarios")
+  sheet.getRange("A13").setValue("Step 3: Try different scenarios")
     .setFontSize(12).setFontWeight("bold").setFontColor(headerColor);
-  sheet.getRange("A10").setValue("Change the numbers. See what happens. Find your best plan.")
+  sheet.getRange("A14").setValue("Change the numbers. See what happens. Find your best plan.")
     .setFontSize(10).setFontColor(secondaryColor);
 
-  // MOTIVATIONAL MESSAGE
-  sheet.getRange("A11").setValue("You don't need to be perfect. You just need to start.")
-    .setFontSize(12).setFontStyle("italic").setFontColor(accentColor);
-
   // SEPARATOR
-  sheet.getRange("A13").setValue("───")
+  sheet.getRange("A16").setValue("───")
     .setFontColor(secondaryColor);
 
+  // MOTIVATIONAL MESSAGE
+  sheet.getRange("A18").setValue("You don't need to be perfect. You just need to start.")
+    .setFontSize(12).setFontStyle("italic").setFontColor(accentColor);
+
   // HELPFUL NOTES
-  sheet.getRange("A14").setValue("Green cells = edit these. Blue cells = results (don't edit).")
+  sheet.getRange("A20").setValue("Green cells = edit these. Blue cells = results (don't edit).")
     .setFontSize(9).setFontColor(secondaryColor);
-  sheet.getRange("A15").setValue("If you get stuck, check the Instructions tab or message me on Etsy.")
+  sheet.getRange("A21").setValue("If you get stuck, check the Instructions tab.")
     .setFontSize(9).setFontColor(secondaryColor);
+
+  // FOOTER
+  sheet.getRange("A23").setValue("Built with love by Just Money")
+    .setFontSize(9).setFontStyle("italic").setFontColor(secondaryColor);
 
   // FORMATTING
   sheet.setColumnWidth(1, 500);
+  sheet.setTabColor("#0D7C5F");
 
   // Freeze row 1
   sheet.setFrozenRows(1);
@@ -202,11 +218,11 @@ function createTabs(ss) {
   // throws "You can't remove all the sheets in a document").
   function safeReplace(name) {
     const existing = ss.getSheetByName(name);
+    const sheet = ss.insertSheet(name);
     if (existing) {
       ss.deleteSheet(existing);
       Logger.log("Deleted existing '" + name + "' tab");
     }
-    const sheet = ss.insertSheet(name);
     Logger.log("Created " + name + " tab");
     return sheet;
   }
@@ -233,7 +249,7 @@ function createTabs(ss) {
 
 // Helper constants and functions
 const INPUT_BG = "#DCFCE7";
-const INPUT_BORDER = "#10B981";
+const INPUT_BORDER = "#0D7C5F";  // Money Green
 
 /**
  * Styles a cell as an editable input: green background, green border, number format.
@@ -372,7 +388,7 @@ function buildEngineTab(sheet) {
   // B2: Months to debt-free (NPER for debt payoff)
   sheet.getRange("A4").setValue("Months to freedom");
   sheet.getRange("B2").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5),\'Scenario Engine\'!B8),0),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B7-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
   );
 
   // B3: Freedom date
@@ -1812,6 +1828,8 @@ function recalculateDebtSimulation() {
       engineSheet.getRange("B21").setValue(0);
       engineSheet.getRange("B22").setValue(0);
       engineSheet.getRange("B23").setValue(0);
+      engineSheet.getRange("B24").setValue(0);
+      engineSheet.getRange("B25").setValue(0);
       return;
     }
 
@@ -1822,6 +1840,11 @@ function recalculateDebtSimulation() {
     engineSheet.getRange("B21").setValue(avalanche.totalMonths);
     engineSheet.getRange("B22").setValue(snowball.totalInterest);
     engineSheet.getRange("B23").setValue(avalanche.totalInterest);
+
+    // Calculate minimum-only interest for interest saved comparison
+    const minOnly = simulatePayoff(debts.map(d => ({...d, extraPayment: 0})), "snowball");
+    engineSheet.getRange("B24").setValue(Math.max(0, minOnly.totalInterest - snowball.totalInterest));
+    engineSheet.getRange("B25").setValue(Math.max(0, minOnly.totalInterest - avalanche.totalInterest));
 
     // Update per-debt payoff months (C2:D5)
     for (let i = 0; i < debts.length; i++) {

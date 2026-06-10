@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 60" width="400" height="60">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap');
+      .just { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 32px; fill: #4ADE80; letter-spacing: 0.08em; }
+      .money { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 32px; fill: #FFFFFF; letter-spacing: 0.08em; }
+    </style>
+  </defs>
+  <text class="just" x="0" y="42">JUST</text>
+  <text class="money" x="112" y="42">MONEY</text>
+</svg>

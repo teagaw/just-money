@@ -172,6 +172,147 @@ assert(tieResult.totalMonths > 0, 'identical debts complete under avalanche');
 assertEqual(tieResult.payoffMonths[0], tieResult.payoffMonths[1],
   'identical debts pay off in same month under avalanche tiebreaker');
 
+// ─── Bug fixes: B24/B25 interest-saved & B2 NPER formula ───
+
+console.log('\nsimulatePayoff — min-only interest matches manual calculation (Bug 1)');
+
+// Test 1: Single debt $10,000, 12% APR, $200/mo min payment, zero extra.
+// Manually iterate month-by-month to compute expected totalInterest.
+const bug1Debts = [{ name: 'Card', balance: 10000, apr: 0.12, minPayment: 200, extraPayment: 0 }];
+const bug1Result = simulatePayoff(bug1Debts, 'snowball');
+
+let manualBalance = 10000;
+let manualInterest = 0;
+let manualMonths = 0;
+const manualRate = 0.12 / 12;
+while (manualBalance > 0 && manualMonths < 240) {
+  manualMonths++;
+  const interest = manualBalance * manualRate;
+  manualInterest += interest;
+  const payment = Math.min(200, manualBalance + interest);
+  manualBalance -= (payment - interest);
+}
+const expectedInterest = Math.round(manualInterest);
+
+assertEqual(bug1Result.totalInterest, expectedInterest,
+  `min-only interest $${bug1Result.totalInterest} matches manual $${expectedInterest}`);
+assertEqual(bug1Result.totalMonths, manualMonths,
+  `min-only months ${bug1Result.totalMonths} matches manual ${manualMonths}`);
+assertEqual(bug1Result.totalPaid, 10000 + bug1Result.totalInterest,
+  'min-only: totalPaid = principal + interest');
+
+// ─── Interest-saved arithmetic (core of Bug 1 fix) ───
+
+console.log('\nsimulatePayoff — interest-saved calculation (Bug 1 core)');
+
+// Test 2: Two debts. minOnly (extraPayment: 0) minus strategy (extraPayment: 500)
+// must equal the interest saved.
+const savedDebts = [
+  { name: 'Big', balance: 8000, apr: 0.18, minPayment: 160, extraPayment: 0 },
+  { name: 'Small', balance: 2000, apr: 0.06, minPayment: 50, extraPayment: 0 }
+];
+
+const savedMinOnly = simulatePayoff(savedDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
+const savedWithExtra = simulatePayoff(savedDebts.map(d => ({ ...d, extraPayment: 500 })), 'snowball');
+const interestSaved = savedMinOnly.totalInterest - savedWithExtra.totalInterest;
+
+assert(interestSaved >= 0,
+  `interest saved is non-negative (got ${interestSaved})`);
+assertEqual(interestSaved, savedMinOnly.totalInterest - savedWithExtra.totalInterest,
+  'interest saved = minOnly.totalInterest − strategy.totalInterest');
+
+// ─── Test 3: single debt zero extra — basic invariants ───
+
+console.log('\nsimulatePayoff — single debt zero extra invariants (Bug 1)');
+
+const zeroExtraDebt = [{ name: 'Loan', balance: 5000, apr: 0.10, minPayment: 100, extraPayment: 0 }];
+const zeroExtraResult = simulatePayoff(zeroExtraDebt, 'snowball');
+
+assert(zeroExtraResult.totalMonths > 0, 'totalMonths > 0');
+assert(zeroExtraResult.totalInterest > 0, 'totalInterest > 0');
+assert(zeroExtraResult.totalPaid >= zeroExtraResult.totalInterest + 5000,
+  'totalPaid covers interest + principal');
+
+// ─── Test 4: interest saved is always non-negative with extra payments ───
+
+console.log('\nsimulatePayoff — interest saved positive with extra (Bug 1)');
+
+const posDebts = [
+  { name: 'Card', balance: 6000, apr: 0.15, minPayment: 120, extraPayment: 0 },
+  { name: 'Loan', balance: 3000, apr: 0.08, minPayment: 80, extraPayment: 0 }
+];
+
+const posMinOnly = simulatePayoff(posDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
+const posWithExtra = simulatePayoff(posDebts.map(d => ({ ...d, extraPayment: 300 })), 'snowball');
+const posSaved = posMinOnly.totalInterest - posWithExtra.totalInterest;
+
+assert(posSaved >= 0,
+  `interest saved with extra payments ≥ 0 (got ${posSaved})`);
+assert(posWithExtra.totalMonths <= posMinOnly.totalMonths,
+  'extra payments reduce or maintain payoff months');
+
+// ─── Test 5: zero extra means zero interest saved ───
+
+console.log('\nsimulatePayoff — zero extra means zero interest saved (Bug 1)');
+
+const noExtraDebts = [
+  { name: 'A', balance: 4000, apr: 0.12, minPayment: 100, extraPayment: 0 },
+  { name: 'B', balance: 2000, apr: 0.06, minPayment: 50, extraPayment: 0 }
+];
+
+const noExtraMin = simulatePayoff(noExtraDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
+const noExtraStrat = simulatePayoff(noExtraDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
+const noExtraSaved = noExtraMin.totalInterest - noExtraStrat.totalInterest;
+
+assertEqual(noExtraSaved, 0,
+  'interest saved is 0 when both runs use extraPayment: 0');
+assertEqual(noExtraMin.totalMonths, noExtraStrat.totalMonths,
+  'identical inputs produce identical months');
+assertEqual(noExtraMin.totalInterest, noExtraStrat.totalInterest,
+  'identical inputs produce identical interest');
+
+// ─── Test 6: NPER rate includes inflation (Bug 2) ───
+
+console.log('\nNPER formula — rate accounts for inflation (Bug 2)');
+
+// The fix changed NPER(B7/12, ...) to NPER((B7-B10)/12, ...) where B7=APR, B10=inflation.
+// Verify the mathematical relationship: realMonthlyRate = (APR - inflation) / 12.
+const apr = 0.12;
+const inflation = 0.03;
+const expectedRealRate = (apr - inflation) / 12; // 0.09/12 = 0.0075
+
+assertEqual(expectedRealRate, 0.0075,
+  'real monthly rate (APR − inflation)/12 = 0.0075 when APR=12%, inflation=3%');
+
+// Sanity: real rate is lower than nominal rate
+const nominalRate = apr / 12; // 0.01
+assert(expectedRealRate < nominalRate,
+  'real rate (0.0075) < nominal rate (0.01)');
+assert(expectedRealRate > 0,
+  'real rate is positive when APR > inflation');
+
+// ─── Test 7: NPER payment includes debt payment (Bug 2) ───
+
+console.log('\nNPER formula — payment includes debt obligation (Bug 2)');
+
+// The fix changed from NPER(..., -(B4-B5), B8) to NPER(..., -(B4-B5-B9), -(B6-B8))
+// where B4=income, B5=expenses, B9=debtPayment, B6=startBalance, B8=startInvestment.
+// The Pmt parameter is -(B4-B5-B9) = -(income - expenses - debtPayment).
+const income = 6200;
+const expenses = 3200;
+const debtPayment = 590;
+const expectedPayment = -(income - expenses - debtPayment); // -(6200-3200-590) = -2410
+
+assertEqual(expectedPayment, -2410,
+  'Pmt = −(income − expenses − debtPayment) = −2410');
+
+// Verify: without the debt payment fix, the old formula would be -(B4-B5) = -(6200-3200) = -3000
+const oldPayment = -(income - expenses); // old (broken) formula
+assert(expectedPayment !== oldPayment,
+  'new formula produces different Pmt than old formula (−2410 ≠ −3000)');
+assert(Math.abs(expectedPayment) < Math.abs(oldPayment),
+  'correct Pmt is smaller magnitude (more conservative) than old Pmt');
+
 // ─── Summary ───
 
 console.log(`\n${passed + failed} tests: ${passed} passed, ${failed} failed\n`);

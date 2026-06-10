@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" width="60" height="60">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&amp;display=swap');
+      .jm { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 28px; fill: #0D7C5F; letter-spacing: 0.05em; }
+    </style>
+  </defs>
+  <rect width="60" height="60" rx="12" fill="#1A1A2E"/>
+  <text class="jm" x="30" y="40" text-anchor="middle">JM</text>
+</svg>

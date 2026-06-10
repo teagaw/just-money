@@ -1,10 +1,10 @@
-# Etsy Listing — Budget Pro 2026
+# Etsy Listing — Budget Pro 2026 by Just Money
 
 ---
 
 ## Title (140 chars max)
 
-**Budget Pro 2026 — Debt Payoff Planner | Snowball vs Avalanche Calculator | Google Sheets Budget Template | YNAB Alternative**
+**Budget Pro 2026 — Debt Payoff Planner | Snowball vs Avalanche Calculator | Google Sheets Budget Template | YNAB Alternative | by Just Money**
 
 ---
 
@@ -219,5 +219,7 @@ You need a spreadsheet that shows you the light at the end of the tunnel — and
 **Budget Pro 2026. Your debt-free date is a formula away.**
 
 ---
+
+*Premium financial tools you own once. No subscriptions, no guilt, no BS. — Just Money*
 
 *Instant digital download. Google Sheets. One-time purchase. No subscription. Your data, your copy, forever.*

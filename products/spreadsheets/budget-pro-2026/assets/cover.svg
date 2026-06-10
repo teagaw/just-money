@@ -9,8 +9,8 @@
     
     <!-- Green accent gradient -->
     <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#10B981"/>
-      <stop offset="100%" style="stop-color:#34D399"/>
+      <stop offset="0%" style="stop-color:#0D7C5F"/>
+      <stop offset="100%" style="stop-color:#4ADE80"/>
     </linearGradient>
     
     <!-- Card gradient -->
@@ -21,7 +21,7 @@
     
     <!-- Header bar gradient -->
     <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#10B981"/>
+      <stop offset="0%" style="stop-color:#0D7C5F"/>
       <stop offset="100%" style="stop-color:#059669"/>
     </linearGradient>
     
@@ -61,27 +61,30 @@
   <rect width="2700" height="2025" fill="url(#gridPattern)" opacity="0.4"/>
   
   <!-- Decorative circles (subtle background elements) -->
-  <circle cx="2200" cy="300" r="300" fill="#10B981" opacity="0.03"/>
-  <circle cx="500" cy="1700" r="250" fill="#10B981" opacity="0.03"/>
-  <circle cx="2400" cy="1500" r="200" fill="#34D399" opacity="0.02"/>
+  <circle cx="2200" cy="300" r="300" fill="#0D7C5F" opacity="0.03"/>
+  <circle cx="500" cy="1700" r="250" fill="#0D7C5F" opacity="0.03"/>
+  <circle cx="2400" cy="1500" r="200" fill="#4ADE80" opacity="0.02"/>
 
   <!-- ==================== TOP SECTION: TITLE ==================== -->
   
   <!-- Green accent bar at top -->
   <rect x="0" y="0" width="2700" height="6" fill="url(#greenGrad)"/>
   
+  <!-- Just Money brand -->
+  <text x="1350" y="60" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="28" font-weight="700" fill="#0D7C5F" letter-spacing="6">JUST MONEY</text>
+  
   <!-- Main title -->
-  <text x="1350" y="130" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="88" font-weight="800" fill="#ffffff" letter-spacing="-2">Budget Pro 2026</text>
+  <text x="1350" y="170" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="88" font-weight="800" fill="#ffffff" letter-spacing="-2">Budget Pro 2026</text>
   
   <!-- Green underline accent -->
-  <rect x="1050" y="155" width="600" height="4" rx="2" fill="url(#greenGrad)"/>
+  <rect x="1050" y="195" width="600" height="4" rx="2" fill="url(#greenGrad)"/>
   
   <!-- Tagline -->
-  <text x="1350" y="210" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="42" font-weight="400" fill="#94a3b8" letter-spacing="6">PLAN YOUR DEBT FREEDOM</text>
+  <text x="1350" y="250" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="42" font-weight="400" fill="#94a3b8" letter-spacing="6">KNOW WHEN YOU'RE FREE</text>
   
   <!-- Small decorative dots flanking tagline -->
-  <circle cx="830" cy="205" r="4" fill="#10B981" opacity="0.6"/>
-  <circle cx="1870" cy="205" r="4" fill="#10B981" opacity="0.6"/>
+  <circle cx="780" cy="245" r="4" fill="#0D7C5F" opacity="0.6"/>
+  <circle cx="1920" cy="245" r="4" fill="#0D7C5F" opacity="0.6"/>
 
   <!-- ==================== SPREADSHEET MOCKUP ==================== -->
   
@@ -95,7 +98,7 @@
   <!-- Window controls -->
   <circle cx="220" cy="315" r="8" fill="#ef4444"/>
   <circle cx="250" cy="315" r="8" fill="#f59e0b"/>
-  <circle cx="280" cy="315" r="8" fill="#10B981"/>
+  <circle cx="280" cy="315" r="8" fill="#0D7C5F"/>
   
   <!-- Tab bar -->
   <text x="340" y="322" font-family="system-ui, sans-serif" font-size="20" fill="#6b7280">Dashboard</text>
@@ -103,8 +106,8 @@
   <text x="570" y="322" font-family="system-ui, sans-serif" font-size="20" fill="#6b7280">Tracker</text>
   
   <!-- Active tab indicator -->
-  <rect x="680" y="297" width="200" height="52" rx="8" fill="#10B981" opacity="0.15"/>
-  <text x="690" y="322" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#10B981">Scenario Engine</text>
+  <rect x="680" y="297" width="200" height="52" rx="8" fill="#0D7C5F" opacity="0.15"/>
+  <text x="690" y="322" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#0D7C5F">Scenario Engine</text>
   
   <text x="910" y="322" font-family="system-ui, sans-serif" font-size="20" fill="#6b7280">Savings Goals</text>
   <text x="1070" y="322" font-family="system-ui, sans-serif" font-size="20" fill="#6b7280">Spendable Budget</text>
@@ -131,8 +134,8 @@
   <text x="1360" y="492" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#e5e7eb">$600</text>
   <rect x="1630" y="466" width="160" height="40" rx="6" fill="#1e293b" stroke="#374151" stroke-width="1"/>
   <text x="1710" y="492" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#e5e7eb">$750</text>
-  <rect x="1980" y="466" width="160" height="40" rx="6" fill="#10B981" opacity="0.15" stroke="#10B981" stroke-width="1"/>
-  <text x="2060" y="492" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#10B981">$600</text>
+  <rect x="1980" y="466" width="160" height="40" rx="6" fill="#0D7C5F" opacity="0.15" stroke="#0D7C5F" stroke-width="1"/>
+  <text x="2060" y="492" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#0D7C5F">$600</text>
 
   <!-- Row: Interest Rate -->
   <rect x="185" y="510" width="2330" height="64" fill="#0f172a"/>
@@ -154,23 +157,23 @@
 
   <!-- Row: Months to Freedom -->
   <rect x="185" y="638" width="2330" height="64" fill="#0f172a"/>
-  <text x="250" y="678" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#10B981">Months to Freedom</text>
+  <text x="250" y="678" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#0D7C5F">Months to Freedom</text>
   <text x="700" y="678" font-family="system-ui, sans-serif" font-size="20" fill="#f3f4f6">71</text>
   <text x="1000" y="678" font-family="system-ui, sans-serif" font-size="20" fill="#e5e7eb">58</text>
-  <text x="1350" y="678" font-family="system-ui, sans-serif" font-size="20" fill="#10B981">44</text>
+  <text x="1350" y="678" font-family="system-ui, sans-serif" font-size="20" fill="#0D7C5F">44</text>
   <text x="1700" y="678" font-family="system-ui, sans-serif" font-size="20" fill="#e5e7eb">36</text>
-  <rect x="1980" y="658" width="160" height="40" rx="6" fill="#10B981" opacity="0.15" stroke="#10B981" stroke-width="1"/>
-  <text x="2060" y="684" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#10B981">36 mos</text>
+  <rect x="1980" y="658" width="160" height="40" rx="6" fill="#0D7C5F" opacity="0.15" stroke="#0D7C5F" stroke-width="1"/>
+  <text x="2060" y="684" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#0D7C5F">36 mos</text>
 
   <!-- Row: Total Interest -->
   <rect x="185" y="702" width="2330" height="64" fill="#111827"/>
-  <text x="250" y="742" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#10B981">Total Interest Saved</text>
+  <text x="250" y="742" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#0D7C5F">Total Interest Saved</text>
   <text x="700" y="742" font-family="system-ui, sans-serif" font-size="20" fill="#f3f4f6">$8,234</text>
   <text x="1000" y="742" font-family="system-ui, sans-serif" font-size="20" fill="#e5e7eb">$6,891</text>
   <text x="1350" y="742" font-family="system-ui, sans-serif" font-size="20" fill="#f59e0b">$5,102</text>
-  <text x="1700" y="742" font-family="system-ui, sans-serif" font-size="20" fill="#10B981">$3,847</text>
-  <rect x="1980" y="722" width="160" height="40" rx="6" fill="#10B981" opacity="0.15" stroke="#10B981" stroke-width="1"/>
-  <text x="2060" y="748" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#10B981">Best: C</text>
+  <text x="1700" y="742" font-family="system-ui, sans-serif" font-size="20" fill="#0D7C5F">$3,847</text>
+  <rect x="1980" y="722" width="160" height="40" rx="6" fill="#0D7C5F" opacity="0.15" stroke="#0D7C5F" stroke-width="1"/>
+  <text x="2060" y="748" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#0D7C5F">Best: C</text>
 
   <!-- Row: Snowball vs Avalanche -->
   <rect x="185" y="766" width="2330" height="64" fill="#0f172a"/>
@@ -199,9 +202,9 @@
   <text x="700" y="934" font-family="system-ui, sans-serif" font-size="20" fill="#f3f4f6">Mar 2032</text>
   <text x="1000" y="934" font-family="system-ui, sans-serif" font-size="20" fill="#e5e7eb">Feb 2031</text>
   <text x="1350" y="934" font-family="system-ui, sans-serif" font-size="20" fill="#e5e7eb">Sep 2029</text>
-  <text x="1700" y="934" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#10B981">Jun 2029</text>
-  <rect x="1980" y="914" width="160" height="40" rx="6" fill="#10B981" opacity="0.15" stroke="#10B981" stroke-width="1"/>
-  <text x="2060" y="940" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#10B981">Jun '29</text>
+  <text x="1700" y="934" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#0D7C5F">Jun 2029</text>
+  <rect x="1980" y="914" width="160" height="40" rx="6" fill="#0D7C5F" opacity="0.15" stroke="#0D7C5F" stroke-width="1"/>
+  <text x="2060" y="940" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#0D7C5F">Jun '29</text>
 
   <!-- Progress bar visualization -->
   <rect x="250" y="980" width="2200" height="8" rx="4" fill="#1f2937"/>
@@ -209,52 +212,52 @@
   
   <!-- Progress markers -->
   <text x="250" y="1020" font-family="system-ui, sans-serif" font-size="14" fill="#6b7280">Today</text>
-  <text x="1440" y="1020" font-family="system-ui, sans-serif" font-size="14" fill="#10B981" font-weight="600">Jun 2029 — Debt Free!</text>
+  <text x="1440" y="1020" font-family="system-ui, sans-serif" font-size="14" fill="#0D7C5F" font-weight="600">Jun 2029 — Debt Free!</text>
   <text x="2250" y="1020" text-anchor="end" font-family="system-ui, sans-serif" font-size="14" fill="#6b7280">71 months (minimum payments)</text>
 
   <!-- ==================== BOTTOM STATS CARDS ==================== -->
   
   <!-- Card 1: Months to Freedom -->
   <rect x="165" y="1350" width="750" height="190" rx="12" fill="#111827" stroke="#1e293b" stroke-width="1.5"/>
-  <rect x="165" y="1350" width="750" height="6" rx="12" fill="#10B981"/>
-  <rect x="165" y="1356" width="750" height="6" fill="#10B981"/>
-  <circle cx="250" cy="1440" r="36" fill="#10B981" opacity="0.1"/>
-  <text x="250" y="1448" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" fill="#10B981">&#x23F1;</text>
+  <rect x="165" y="1350" width="750" height="6" rx="12" fill="#0D7C5F"/>
+  <rect x="165" y="1356" width="750" height="6" fill="#0D7C5F"/>
+  <circle cx="250" cy="1440" r="36" fill="#0D7C5F" opacity="0.1"/>
+  <text x="250" y="1448" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" fill="#0D7C5F">&#x23F1;</text>
   <text x="320" y="1420" font-family="system-ui, sans-serif" font-size="18" fill="#94a3b8" letter-spacing="2">MONTHS TO FREEDOM</text>
   <text x="320" y="1478" font-family="system-ui, sans-serif" font-size="56" font-weight="800" fill="#ffffff">36</text>
   <text x="450" y="1478" font-family="system-ui, sans-serif" font-size="24" fill="#6b7280">months</text>
-  <text x="320" y="1520" font-family="system-ui, sans-serif" font-size="18" fill="#10B981">vs 71 months minimum payments</text>
+  <text x="320" y="1520" font-family="system-ui, sans-serif" font-size="18" fill="#0D7C5F">vs 71 months minimum payments</text>
 
   <!-- Card 2: Interest Saved -->
   <rect x="975" y="1350" width="750" height="190" rx="12" fill="#111827" stroke="#1e293b" stroke-width="1.5"/>
-  <rect x="975" y="1350" width="750" height="6" rx="12" fill="#10B981"/>
-  <rect x="975" y="1356" width="750" height="6" fill="#10B981"/>
-  <circle cx="1060" cy="1440" r="36" fill="#10B981" opacity="0.1"/>
-  <text x="1060" y="1448" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" fill="#10B981">&#x1F4B0;</text>
+  <rect x="975" y="1350" width="750" height="6" rx="12" fill="#0D7C5F"/>
+  <rect x="975" y="1356" width="750" height="6" fill="#0D7C5F"/>
+  <circle cx="1060" cy="1440" r="36" fill="#0D7C5F" opacity="0.1"/>
+  <text x="1060" y="1448" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" fill="#0D7C5F">&#x1F4B0;</text>
   <text x="1130" y="1420" font-family="system-ui, sans-serif" font-size="18" fill="#94a3b8" letter-spacing="2">INTEREST SAVED</text>
   <text x="1130" y="1478" font-family="system-ui, sans-serif" font-size="56" font-weight="800" fill="#ffffff">$4,387</text>
-  <text x="1130" y="1520" font-family="system-ui, sans-serif" font-size="18" fill="#10B981">using Avalanche strategy</text>
+  <text x="1130" y="1520" font-family="system-ui, sans-serif" font-size="18" fill="#0D7C5F">using Avalanche strategy</text>
 
   <!-- Card 3: Snowball vs Avalanche -->
   <rect x="1785" y="1350" width="750" height="190" rx="12" fill="#111827" stroke="#1e293b" stroke-width="1.5"/>
-  <rect x="1785" y="1350" width="750" height="6" rx="12" fill="#10B981"/>
-  <rect x="1785" y="1356" width="750" height="6" fill="#10B981"/>
-  <circle cx="1870" cy="1440" r="36" fill="#10B981" opacity="0.1"/>
-  <text x="1870" y="1448" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" fill="#10B981">&#x2696;</text>
+  <rect x="1785" y="1350" width="750" height="6" rx="12" fill="#0D7C5F"/>
+  <rect x="1785" y="1356" width="750" height="6" fill="#0D7C5F"/>
+  <circle cx="1870" cy="1440" r="36" fill="#0D7C5F" opacity="0.1"/>
+  <text x="1870" y="1448" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" fill="#0D7C5F">&#x2696;</text>
   <text x="1940" y="1420" font-family="system-ui, sans-serif" font-size="18" fill="#94a3b8" letter-spacing="2">SNOWBALL vs AVALANCHE</text>
   <text x="1940" y="1478" font-family="system-ui, sans-serif" font-size="40" font-weight="800" fill="#3b82f6">58</text>
   <text x="2040" y="1478" font-family="system-ui, sans-serif" font-size="28" fill="#6b7280">months</text>
   <text x="2100" y="1478" font-family="system-ui, sans-serif" font-size="28" fill="#6b7280">vs</text>
   <text x="2150" y="1478" font-family="system-ui, sans-serif" font-size="40" font-weight="800" fill="#f59e0b">44</text>
   <text x="2220" y="1478" font-family="system-ui, sans-serif" font-size="28" fill="#6b7280">months</text>
-  <text x="1940" y="1520" font-family="system-ui, sans-serif" font-size="18" fill="#10B981">Avalanche saves you 14 months</text>
+  <text x="1940" y="1520" font-family="system-ui, sans-serif" font-size="18" fill="#0D7C5F">Avalanche saves you 14 months</text>
 
   <!-- ==================== BOTTOM SECTION: PRICING & CTA ==================== -->
   
   <!-- Pricing badge -->
-  <rect x="890" y="1620" width="920" height="120" rx="16" fill="#111827" stroke="#10B981" stroke-width="2"/>
+  <rect x="890" y="1620" width="920" height="120" rx="16" fill="#111827" stroke="#0D7C5F" stroke-width="2"/>
   <text x="960" y="1665" font-family="system-ui, sans-serif" font-size="22" fill="#94a3b8">One-time purchase</text>
-  <text x="1100" y="1720" font-family="system-ui, sans-serif" font-size="72" font-weight="900" fill="#10B981">$14.99</text>
+  <text x="1100" y="1720" font-family="system-ui, sans-serif" font-size="72" font-weight="900" fill="#0D7C5F">$14.99</text>
   <text x="1400" y="1670" font-family="system-ui, sans-serif" font-size="16" fill="#6b7280">once, not</text>
   <text x="1400" y="1710" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#ef4444" text-decoration="line-through">$109/yr</text>
   
@@ -263,6 +266,9 @@
 
   <!-- Features row -->
   <text x="1350" y="1830" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#94a3b8" letter-spacing="4">NPER SCENARIO PLANNING  &#x2022;  SNOWBALL vs AVALANCHE  &#x2022;  INFLATION ADJUSTED  &#x2022;  SPENDABLE BUDGET  &#x2022;  SAVINGS GOALS  &#x2022;  12-MONTH TRACKER</text>
+
+  <!-- Brand tagline -->
+  <text x="1350" y="1890" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#6b7280" font-style="italic">Premium financial tools you own once. No subscriptions, no guilt, no BS.</text>
 
   <!-- Bottom green accent -->
   <rect x="0" y="2019" width="2700" height="6" fill="url(#greenGrad)"/>
