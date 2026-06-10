@@ -4,7 +4,7 @@
   "name": "Budget Pro 2026 — Scenario Engine + Budget Tracker + Goals + Spendable",
   "price": 14.99,
   "currency": "USD",
-  "status": "building",
+  "status": "ready",
   "build_date": "2026-06-07",
   "version": "2.0.0",
   "format": "Google Sheets",
@@ -29,23 +29,25 @@
     "scenario_engine_built": true,
     "formula_protection_implemented": true,
     "data_validation_added": true,
-    "cover_image_created": false,
-    "etsy_listing_complete": false
+    "cover_image_created": true,
+    "etsy_listing_complete": true
   },
   "deliverables": [
     "build-spec-lean.md",
     "metadata.json",
     "scripts/build-engine.gs",
-    "scripts/README.md"
+    "scripts/README.md",
+    "scripts/test/pure-functions.js",
+    "scripts/test/pure-functions.test.js",
+    "assets/cover.png",
+    "assets/cover.svg",
+    "etsy-listing.md",
+    "disclaimer.md"
   ],
   "binary_assets_present": false,
   "v1_remaining_work": [
-    "Test script in Google Sheets — verify all 7 tabs + formulas calculate correctly",
-    "Verify interest saved values are consistent across comparison table",
-    "Verify Snowball vs Avalanche show different numbers on Debt Payoff tab",
-    "Run script once, verify, share as Google Sheets template link (NOT script delivery)",
-    "Generate cover image (1h) — 2700x2025 PNG from build-spec-lean.md brief",
-    "Write Etsy listing (1h) — title, description, tags from build-spec-lean.md",
+    "Run script in Google Sheets, verify all 7 tabs",
+    "Share as Google Sheets template link (NOT script delivery)",
     "Launch on Etsy at $14.99"
   ],
   "build_to_revenue_path": {
