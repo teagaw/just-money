@@ -404,7 +404,7 @@ function buildEngineTab(sheet) {
   // B2: Months to debt-free (NPER for debt payoff)
   sheet.getRange("A4").setValue("Months to freedom");
   sheet.getRange("B2").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B7-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B16-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
   );
 
   // B3: Freedom date
@@ -424,7 +424,7 @@ function buildEngineTab(sheet) {
   // B6: Minimum-only months (debt payoff with minimum payments only)
   sheet.getRange("A8").setValue("Min-only months");
   sheet.getRange("B6").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-\'Scenario Engine\'!B9,\'Scenario Engine\'!B8),0),"Check inputs"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-\'Scenario Engine\'!B9,\'Scenario Engine\'!B8),0),"Check inputs"))'
   );
 
   // B7: Minimum-only interest
@@ -442,7 +442,7 @@ function buildEngineTab(sheet) {
   // B9: Extra custom #1 months (minimum payment + custom #1 extra)
   sheet.getRange("A11").setFormula("=\"Extra $\"&'Scenario Engine'!B11&\" months\"");
   sheet.getRange("B9").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),\'Scenario Engine\'!B8),0),"Check inputs"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),\'Scenario Engine\'!B8),0),"Check inputs"))'
   );
 
   // B10: Extra custom #1 interest saved (vs min-only baseline)
@@ -460,7 +460,7 @@ function buildEngineTab(sheet) {
   // B12: Extra custom #2 months (minimum payment + custom #2 extra)
   sheet.getRange("A14").setFormula("=\"Extra $\"&'Scenario Engine'!B12&\" months\"");
   sheet.getRange("B12").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),\'Scenario Engine\'!B8),0),"Check inputs"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),\'Scenario Engine\'!B8),0),"Check inputs"))'
   );
 
   // B13: Extra custom #2 interest saved (vs min-only baseline)
@@ -534,7 +534,7 @@ function buildEngineTab(sheet) {
   // B32: Nominal rate (no inflation) — same surplus + net position as B2
   sheet.getRange("A33").setValue("Nominal rate (no inflation)");
   sheet.getRange("B32").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
   );
 
   // B33: Inflation-adjusted interest (real-rate payment × months − debt)
@@ -574,7 +574,7 @@ function buildEngineTab(sheet) {
     // Months — debt payoff with minimum payment + extra
     sheet.getRange(`A${row}`).setValue(`Extra $${extra}/month months`);
     sheet.getRange(`B${row}`).setFormula(
-      `=IF('Scenario Engine'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER('Scenario Engine'!B7/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8),0),"N/A"))`
+      `=IF('Scenario Engine'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER('Scenario Engine'!B16/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8),0),"N/A"))`
     );
 
     // Interest — use EXACT NPER (not rounded) to ensure monotonicity.
@@ -582,7 +582,7 @@ function buildEngineTab(sheet) {
     // a higher-payment scenario into a worse total-payment bucket.
     sheet.getRange(`A${row + 1}`).setValue(`Extra $${extra}/month interest`);
     sheet.getRange(`B${row + 1}`).setFormula(
-      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IFERROR(('Scenario Engine'!B9+${extra})*NPER('Scenario Engine'!B7/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8)-'Scenario Engine'!B8,0)))`
+      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IFERROR(('Scenario Engine'!B9+${extra})*NPER('Scenario Engine'!B16/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8)-'Scenario Engine'!B8,0)))`
     );
 
     // Freedom date
@@ -645,89 +645,123 @@ function buildScenarioEngineTab(sheet) {
   sheet.getRange("A13").setValue("└─────────────────────────────────────────────────────────────┘")
     .setFontColor(secondaryColor);
 
+  // ── TAX ZONE SECTION ──
+  sheet.getRange("A14").setValue("Tax Country").setFontSize(10).setFontColor(headerColor);
+  const countryCell = sheet.getRange("B14");
+  styleInputCell(countryCell, "Other", "@");
+  // Add dropdown validation for B14 (was B13 in original spec, shifted to B14)
+  sheet.getRange("B14").setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(["US", "Canada", "UK", "Australia", "Other"])
+      .setAllowInvalid(false)
+      .setHelpText("Select your country for tax calculation")
+      .build()
+  );
+  sheet.getRange("C14").setValue("← Select your country (or 'Other' to skip)")
+    .setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+
+  sheet.getRange("A15").setValue("Marginal Tax Rate (%)").setFontSize(10).setFontColor(headerColor);
+  styleInputCell(sheet.getRange("B15"), 0, "0.00%");
+  sheet.getRange("C15").setValue("← Your combined federal + state/provincial rate")
+    .setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+
+  sheet.getRange("A16").setValue("Tax-Deductible %").setFontSize(10).setFontColor(headerColor);
+  styleInputCell(sheet.getRange("B16"), 0, "0.00%");
+  sheet.getRange("C16").setValue("← % of interest that's tax-deductible (US=100%, others=0%)")
+    .setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+
+  sheet.getRange("A17").setValue("Effective APR").setFontSize(10).setFontWeight("bold").setFontColor(headerColor);
+  sheet.getRange("B17").setFormula("=B7*(1-(B15*B16))")
+    .setNumberFormat("0.00%")
+    .setBackground("#E0F2F1")
+    .setFontWeight("bold")
+    .setFontSize(10);
+  sheet.getRange("C17").setValue("← Tax-adjusted rate used in calculations (auto-calculated)")
+    .setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+
   // ── INFORMATIONAL ROW ──
   // Net debt after savings — reference only, not used in calculations
-  sheet.getRange("A14").setValue("Net debt after savings").setFontSize(10).setFontColor(headerColor);
-  sheet.getRange("B14").setFormula("=MAX(0,B8-B6)").setNumberFormat("$#,##0").setFontSize(10);
-  sheet.getRange("C14").setValue("← For reference only (not used in calculations)").setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+  sheet.getRange("A18").setValue("Net debt after savings").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("B18").setFormula("=MAX(0,B8-B6)").setNumberFormat("$#,##0").setFontSize(10);
+  sheet.getRange("C18").setValue("← For reference only (not used in calculations)").setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
 
   // RESULTS SECTION
-  sheet.getRange("A15").setValue("┌─ RESULTS (auto-calculated) ─────────────────────────────────┐")
+  sheet.getRange("A19").setValue("┌─ RESULTS (auto-calculated) ─────────────────────────────────┐")
     .setFontColor(secondaryColor);
 
-  sheet.getRange("A16").setValue("Months to financial freedom").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B16").setFormula("=Engine!B2")
+  sheet.getRange("A20").setValue("Months to financial freedom").setFontSize(10).setFontWeight("bold");
+  sheet.getRange("B20").setFormula("=Engine!B2")
     .setBackground(resultBg).setFontWeight("bold").setFontSize(12).setFontColor("#0F172A")
     .setNumberFormat("0");
 
-  sheet.getRange("A17").setValue("Freedom date").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B17").setFormula("=Engine!B3")
+  sheet.getRange("A21").setValue("Freedom date").setFontSize(10).setFontWeight("bold");
+  sheet.getRange("B21").setFormula("=Engine!B3")
     .setBackground(resultBg).setFontWeight("bold").setFontSize(12).setFontColor("#0F172A")
     .setNumberFormat("MMM YYYY");
 
-  sheet.getRange("A18").setValue("Total interest saved").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B18").setFormula("=Engine!B4")
+  sheet.getRange("A22").setValue("Total interest saved").setFontSize(10).setFontWeight("bold");
+  sheet.getRange("B22").setFormula("=Engine!B4")
     .setBackground(resultBg).setFontWeight("bold").setFontSize(12).setFontColor("#10B981")
     .setNumberFormat("$#,##0");
 
-  sheet.getRange("A19").setValue("└─────────────────────────────────────────────────────────────┘")
+  sheet.getRange("A23").setValue("└─────────────────────────────────────────────────────────────┘")
     .setFontColor(secondaryColor);
 
   // EMERGENCY FUND SECTION
-  sheet.getRange("A20").setValue("── EMERGENCY FUND ──").setFontColor(secondaryColor);
+  sheet.getRange("A24").setValue("── EMERGENCY FUND ──").setFontColor(secondaryColor);
 
-  sheet.getRange("A21").setValue("Emergency fund health:").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B21").setFormula("=IFERROR(IF('Scenario Engine'!B5=0,\"N/A\",ROUND('Scenario Engine'!B6/'Scenario Engine'!B5,1)),\"Enter expenses\")")
+  sheet.getRange("A25").setValue("Emergency fund health:").setFontSize(10).setFontWeight("bold");
+  sheet.getRange("B25").setFormula("=IFERROR(IF('Scenario Engine'!B5=0,\"N/A\",ROUND('Scenario Engine'!B6/'Scenario Engine'!B5,1)),\"Enter expenses\")")
     .setNumberFormat("0.0").setFontSize(12).setFontWeight("bold").setBackground(resultBg);
-  sheet.getRange("C21").setFormula("=IF(B21=\"N/A\",\"—\",IF(B21<1,\"⚠ Below 1 month\",IF(B21<3,\"✓ Getting there\",\"✓ Strong (3+ months)\")))")
+  sheet.getRange("C25").setFormula("=IF(B25=\"N/A\",\"—\",IF(B25<1,\"⚠ Below 1 month\",IF(B25<3,\"✓ Getting there\",\"✓ Strong (3+ months)\")))")
     .setFontSize(10).setFontColor(headerColor);
 
   // INTEREST THIS MONTH SECTION
-  sheet.getRange("A23").setValue("── INTEREST ──").setFontColor(secondaryColor);
+  sheet.getRange("A27").setValue("── INTEREST ──").setFontColor(secondaryColor);
 
-  sheet.getRange("A24").setValue("Interest this month:").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B24").setFormula("=IFERROR('Scenario Engine'!B8*'Scenario Engine'!B7/12,0)")
+  sheet.getRange("A28").setValue("Interest this month:").setFontSize(10).setFontWeight("bold");
+  sheet.getRange("B28").setFormula("=IFERROR('Scenario Engine'!B8*'Scenario Engine'!B17/12,0)")
     .setNumberFormat("$#,##0").setFontSize(12).setFontWeight("bold").setBackground(resultBg);
-  sheet.getRange("C24").setFormula("=IFERROR(\"→ ~\"&TEXT(B24*12,\"$#,##0\")&\"/yr\",\"\")")
+  sheet.getRange("C28").setFormula("=IFERROR(\"→ ~\"&TEXT(B28*12,\"$#,##0\")&\"/yr\",\"\")")
     .setFontSize(10).setFontColor(secondaryColor);
 
   // B9 DEPENDENCY GUARDRAIL
-  sheet.getRange("A25").setFormula("=IF(AND('Scenario Engine'!B8>0,'Scenario Engine'!B9=0),\"⚠ You have debt but no payment entered. Go to B9 and enter your monthly debt payment.\",\"\")")
+  sheet.getRange("A29").setFormula("=IF(AND('Scenario Engine'!B8>0,'Scenario Engine'!B9=0),\"⚠ You have debt but no payment entered. Go to B9 and enter your monthly debt payment.\",\"\")")
     .setFontSize(10).setFontColor("#DC2626").setFontWeight("bold");
 
   // CROSS-TAB CHECK
-  sheet.getRange("A27").setValue("┌─ CROSS-TAB CHECK ───────────────────────────────────────────┐")
+  sheet.getRange("A31").setValue("┌─ CROSS-TAB CHECK ───────────────────────────────────────────┐")
     .setFontColor(secondaryColor);
 
-  sheet.getRange("A28").setValue("Weighted APR from Debt Payoff tab:").setFontSize(9);
-  sheet.getRange("B28").setFormula("=Engine!B28").setNumberFormat("0.00%").setFontSize(9);
+  sheet.getRange("A32").setValue("Weighted APR from Debt Payoff tab:").setFontSize(9);
+  sheet.getRange("B32").setFormula("=Engine!B28").setNumberFormat("0.00%").setFontSize(9);
 
-  sheet.getRange("A29").setValue("Your entered APR:").setFontSize(9);
-  sheet.getRange("B29").setFormula("=B7").setNumberFormat("0.00%").setFontSize(9);
+  sheet.getRange("A33").setValue("Your entered APR:").setFontSize(9);
+  sheet.getRange("B33").setFormula("=B7").setNumberFormat("0.00%").setFontSize(9);
 
-  sheet.getRange("A30").setValue("Match:").setFontSize(9).setFontWeight("bold");
-  sheet.getRange("B30").setFormula("=Engine!B30").setFontSize(9).setFontWeight("bold");
+  sheet.getRange("A34").setValue("Match:").setFontSize(9).setFontWeight("bold");
+  sheet.getRange("B34").setFormula("=Engine!B30").setFontSize(9).setFontWeight("bold");
 
-  sheet.getRange("A31").setValue("└─────────────────────────────────────────────────────────────┘")
+  sheet.getRange("A35").setValue("└─────────────────────────────────────────────────────────────┘")
     .setFontColor(secondaryColor);
 
   // COMPARISON TABLE
-  sheet.getRange("A33").setValue("┌─ COMPARISON ────────────────────────────────────────────────┐")
+  sheet.getRange("A37").setValue("┌─ COMPARISON ────────────────────────────────────────────────┐")
     .setFontColor(secondaryColor);
 
   // Headers
-  sheet.getRange("A34").setValue("Scenario").setFontWeight("bold").setFontSize(9);
-  sheet.getRange("B34").setValue("Months").setFontWeight("bold").setFontSize(9);
-  sheet.getRange("C34").setValue("Interest Paid").setFontWeight("bold").setFontSize(9);
-  sheet.getRange("D34").setValue("Freedom").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("A38").setValue("Scenario").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("B38").setValue("Months").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("C38").setValue("Interest Paid").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("D38").setValue("Freedom").setFontWeight("bold").setFontSize(9);
 
   // Comparison rows — all show TOTAL INTEREST PAID for each scenario
   const comparisons = [
-    { row: 35, label: "Minimum payments only", months: "=Engine!B6", interest: "=IFERROR(Engine!B6*B9-B8,0)", date: "=Engine!B8" },
-    { row: 36, labelFormula: "=\"Extra $\"&B11&\"/month\"", label: "Extra $/month #1", months: "=Engine!B9", interest: "=IFERROR(Engine!B9*(B9+B11)-B8,0)", date: "=Engine!B11" },
-    { row: 37, labelFormula: "=\"Extra $\"&B12&\"/month\"", label: "Extra $/month #2", months: "=Engine!B12", interest: "=IFERROR(Engine!B12*(B9+B12)-B8,0)", date: "=Engine!B14" },
-    { row: 38, label: "Match my scenario", months: "=B16", interest: "=IFERROR(Engine!B7-B18,0)", date: "=B17" },
-    { row: 39, label: "Nominal rate (no inflation)", months: "=Engine!B32", interest: "=Engine!B33", date: "=Engine!B34" }
+    { row: 39, label: "Minimum payments only", months: "=Engine!B6", interest: "=IFERROR(Engine!B6*B9-B8,0)", date: "=Engine!B8" },
+    { row: 40, labelFormula: "=\"Extra $\"&B11&\"/month\"", label: "Extra $/month #1", months: "=Engine!B9", interest: "=IFERROR(Engine!B9*(B9+B11)-B8,0)", date: "=Engine!B11" },
+    { row: 41, labelFormula: "=\"Extra $\"&B12&\"/month\"", label: "Extra $/month #2", months: "=Engine!B12", interest: "=IFERROR(Engine!B12*(B9+B12)-B8,0)", date: "=Engine!B14" },
+    { row: 42, label: "Match my scenario", months: "=B20", interest: "=IFERROR(Engine!B7-B22,0)", date: "=B21" },
+    { row: 43, label: "Nominal rate (no inflation)", months: "=Engine!B32", interest: "=Engine!B33", date: "=Engine!B34" }
   ];
 
   comparisons.forEach(c => {
@@ -742,29 +776,29 @@ function buildScenarioEngineTab(sheet) {
     sheet.getRange(`D${c.row}`).setFormula(c.date).setNumberFormat("MMM YYYY").setFontSize(9);
   });
 
-  sheet.getRange("A40").setValue("└─────────────────────────────────────────────────────────────┘")
+  sheet.getRange("A44").setValue("└─────────────────────────────────────────────────────────────┘")
     .setFontColor(secondaryColor);
 
   // SENSITIVITY TABLE
-  sheet.getRange("A42").setValue("┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──────┐")
+  sheet.getRange("A46").setValue("┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──────┐")
     .setFontColor(secondaryColor);
 
   // Headers
-  sheet.getRange("A43").setValue("Extra $/month").setFontWeight("bold").setFontSize(9);
-  sheet.getRange("B43").setValue("Months").setFontWeight("bold").setFontSize(9);
-  sheet.getRange("C43").setValue("Freedom Date").setFontWeight("bold").setFontSize(9);
-  sheet.getRange("D43").setValue("Interest Paid").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("A47").setValue("Extra $/month").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("B47").setValue("Months").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("C47").setValue("Freedom Date").setFontWeight("bold").setFontSize(9);
+  sheet.getRange("D47").setValue("Interest Paid").setFontWeight("bold").setFontSize(9);
 
   // Sensitivity rows — reference Engine tab sensitivity formulas
   const sensitivityData = [
-    { row: 44, label: "$0/month", engineMonths: 38, engineInterest: 39, engineDate: 40 },
-    { row: 45, label: "$100/month", engineMonths: 41, engineInterest: 42, engineDate: 43 },
-    { row: 46, label: "$200/month", engineMonths: 44, engineInterest: 45, engineDate: 46 },
-    { row: 47, label: "$300/month", engineMonths: 47, engineInterest: 48, engineDate: 49 },
-    { row: 48, label: "$400/month", engineMonths: 50, engineInterest: 51, engineDate: 52 },
-    { row: 49, label: "$500/month", engineMonths: 53, engineInterest: 54, engineDate: 55 },
-    { row: 50, label: "$750/month", engineMonths: 56, engineInterest: 57, engineDate: 58 },
-    { row: 51, label: "$1,000/month", engineMonths: 59, engineInterest: 60, engineDate: 61 }
+    { row: 48, label: "$0/month", engineMonths: 38, engineInterest: 39, engineDate: 40 },
+    { row: 49, label: "$100/month", engineMonths: 41, engineInterest: 42, engineDate: 43 },
+    { row: 50, label: "$200/month", engineMonths: 44, engineInterest: 45, engineDate: 46 },
+    { row: 51, label: "$300/month", engineMonths: 47, engineInterest: 48, engineDate: 49 },
+    { row: 52, label: "$400/month", engineMonths: 50, engineInterest: 51, engineDate: 52 },
+    { row: 53, label: "$500/month", engineMonths: 53, engineInterest: 54, engineDate: 55 },
+    { row: 54, label: "$750/month", engineMonths: 56, engineInterest: 57, engineDate: 58 },
+    { row: 55, label: "$1,000/month", engineMonths: 59, engineInterest: 60, engineDate: 61 }
   ];
 
   sensitivityData.forEach(s => {
@@ -774,18 +808,18 @@ function buildScenarioEngineTab(sheet) {
     sheet.getRange(`D${s.row}`).setFormula(`=Engine!B${s.engineInterest}`).setNumberFormat("$#,##0").setFontSize(9);
   });
 
-  sheet.getRange("A52").setValue("└─────────────────────────────────────────────────────────────┘")
+  sheet.getRange("A56").setValue("└─────────────────────────────────────────────────────────────┘")
     .setFontColor(secondaryColor);
 
   // HOW TO READ
-  sheet.getRange("A54").setValue("── HOW TO READ THIS ──").setFontColor(secondaryColor).setFontSize(9);
-  sheet.getRange("A55").setValue("Debt-free = when your debt balance reaches $0.")
+  sheet.getRange("A58").setValue("── HOW TO READ THIS ──").setFontColor(secondaryColor).setFontSize(9);
+  sheet.getRange("A59").setValue("Debt-free = when your debt balance reaches $0.")
     .setFontColor(secondaryColor).setFontSize(9);
-  sheet.getRange("A56").setValue("This calculator shows the month your debt will be")
+  sheet.getRange("A60").setValue("This calculator shows the month your debt will be")
     .setFontColor(secondaryColor).setFontSize(9);
-  sheet.getRange("A57").setValue("paid off, based on your income, expenses,")
+  sheet.getRange("A61").setValue("paid off, based on your income, expenses,")
     .setFontColor(secondaryColor).setFontSize(9);
-  sheet.getRange("A58").setValue("interest rate, and debt balance.")
+  sheet.getRange("A62").setValue("interest rate, and debt balance.")
     .setFontColor(secondaryColor).setFontSize(9);
 
   // FORMATTING
@@ -804,8 +838,9 @@ function buildScenarioEngineTab(sheet) {
   addScenarioEngineConditionalFormatting(sheet);
 
   // Protection
-  protectRange(sheet, "B16:B18", "Results — auto-calculated");
-  protectRange(sheet, "B35:D39", "Comparison table — auto-calculated");
+  protectRange(sheet, "B20:B22", "Results — auto-calculated");
+  protectRange(sheet, "B39:D43", "Comparison table — auto-calculated");
+  protectRange(sheet, "B17", "Effective APR — auto-calculated");
 }
 
 function buildBudgetTrackerTab(sheet) {
@@ -1640,6 +1675,33 @@ function addScenarioEngineValidation(sheet) {
       .setHelpText("Custom comparison amount cannot be negative")
       .build()
   );
+
+  // B14: Country dropdown
+  sheet.getRange("B14").setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(["US", "Canada", "UK", "Australia", "Other"])
+      .setAllowInvalid(false)
+      .setHelpText("Select your country")
+      .build()
+  );
+
+  // B15: Marginal rate 0-100%
+  sheet.getRange("B15").setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireNumberBetween(0, 1)
+      .setAllowInvalid(false)
+      .setHelpText("Enter a rate between 0% and 100%")
+      .build()
+  );
+
+  // B16: Deductible % 0-100%
+  sheet.getRange("B16").setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireNumberBetween(0, 1)
+      .setAllowInvalid(false)
+      .setHelpText("Enter a percentage between 0% and 100%")
+      .build()
+  );
 }
 
 function addDebtPayoffValidation(sheet) {
@@ -1681,42 +1743,42 @@ function addDebtPayoffValidation(sheet) {
 }
 
 function addScenarioEngineConditionalFormatting(sheet) {
-  // B16: Months < 12 = green, 12-36 = yellow, 36+ = red
+  // B20: Months < 12 = green, 12-36 = yellow, 36+ = red
   const monthsRule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberLessThan(12)
     .setBackground("#DCFCE7")
     .setFontColor("#0F973C")
-    .setRanges([sheet.getRange("B16")])
+    .setRanges([sheet.getRange("B20")])
     .build();
 
   const monthsRule2 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberBetween(12, 35)
     .setBackground("#FEF9C3")
     .setFontColor("#A16207")
-    .setRanges([sheet.getRange("B16")])
+    .setRanges([sheet.getRange("B20")])
     .build();
 
   const monthsRule3 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberGreaterThanOrEqualTo(36)
     .setBackground("#FEE2E2")
     .setFontColor("#DC2626")
-    .setRanges([sheet.getRange("B16")])
+    .setRanges([sheet.getRange("B20")])
     .build();
 
-  // B18: Interest saved > 0 = green
+  // B22: Interest saved > 0 = green
   const interestRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberGreaterThan(0)
     .setFontColor("#10B981")
-    .setRanges([sheet.getRange("B18")])
+    .setRanges([sheet.getRange("B22")])
     .build();
 
-  // B21: Emergency fund health score
+  // B25: Emergency fund health score
   // <1 = red bg
   const emergencyRule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberLessThan(1)
     .setBackground("#FEE2E2")
     .setFontColor("#DC2626")
-    .setRanges([sheet.getRange("B21")])
+    .setRanges([sheet.getRange("B25")])
     .build();
 
   // 1-3 = yellow bg
@@ -1724,7 +1786,7 @@ function addScenarioEngineConditionalFormatting(sheet) {
     .whenNumberBetween(1, 2.9)
     .setBackground("#FEF9C3")
     .setFontColor("#A16207")
-    .setRanges([sheet.getRange("B21")])
+    .setRanges([sheet.getRange("B25")])
     .build();
 
   // >3 = green bg
@@ -1732,7 +1794,7 @@ function addScenarioEngineConditionalFormatting(sheet) {
     .whenNumberGreaterThanOrEqualTo(3)
     .setBackground("#DCFCE7")
     .setFontColor("#0F973C")
-    .setRanges([sheet.getRange("B21")])
+    .setRanges([sheet.getRange("B25")])
     .build();
 
   sheet.setConditionalFormatRules([monthsRule1, monthsRule2, monthsRule3, interestRule, emergencyRule1, emergencyRule2, emergencyRule3]);
@@ -1877,11 +1939,30 @@ function recalculateDebtSimulation() {
 /**
  * onEdit trigger — recalculates debt simulation only when the user edits
  * a debt input cell (rows 5-8, columns B-E) in the Debt Payoff tab.
+ * Also handles Tax Zone auto-population on the Scenario Engine tab.
  */
 function onEdit(e) {
   const sheet = e.source.getActiveSheet();
-  if (sheet.getName() !== "Debt Payoff") return;
   const range = e.range;
+  
+  // Tax Zone auto-population
+  if (sheet.getName() === "Scenario Engine" && range.getRow() === 14 && range.getColumn() === 2) {
+    const country = range.getValue();
+    const taxDefaults = {
+      "US": { marginalRate: 0.22, deductiblePct: 1.0 },
+      "Canada": { marginalRate: 0.205, deductiblePct: 0 },
+      "UK": { marginalRate: 0.20, deductiblePct: 0 },
+      "Australia": { marginalRate: 0.325, deductiblePct: 0 },
+      "Other": { marginalRate: 0, deductiblePct: 0 }
+    };
+    const defaults = taxDefaults[country] || taxDefaults["Other"];
+    sheet.getRange("B15").setValue(defaults.marginalRate);
+    sheet.getRange("B16").setValue(defaults.deductiblePct);
+    return;
+  }
+  
+  // Debt Payoff tab — recalculate simulation
+  if (sheet.getName() !== "Debt Payoff") return;
   if (range.getRow() >= 5 && range.getRow() <= 8 &&
       range.getColumn() >= 2 && range.getColumn() <= 5) {
     recalculateDebtSimulation();
