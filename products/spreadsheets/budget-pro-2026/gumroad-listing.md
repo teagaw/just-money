@@ -59,7 +59,7 @@ Monthly income vs. expenses. Category-by-category. Year-over-year comparison.
 ### What's included
 
 - Google Sheets template (click link → Make a copy)
-- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Debt Payoff, Goals, Spendable, Instructions, Engine (hidden)
+- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Goals, Debt Payoff, Spendable, Instructions, Engine (hidden)
 - Pre-filled sample data so you see how it works
 - Works on phone, tablet, and computer
 

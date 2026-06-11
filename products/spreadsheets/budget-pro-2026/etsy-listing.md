@@ -61,7 +61,7 @@ Budget Pro 2026 uses Google Sheets' built-in NPER and EDATE functions — the sa
 - **What happens if you get a raise** (how acceleration changes your timeline)
 - **What happens if inflation eats into your purchasing power** (inflation-adjusted projections so you're not lying to yourself)
 
-Few Etsy spreadsheets use Google Sheets' built-in NPER and EDATE functions for scenario planning. The formulas exist. Nobody uses them. Until now.
+Few Etsy spreadsheets use NPER/EDATE for scenario planning — most just track spending. The formulas exist. Nobody uses them. Until now.
 
 ### Snowball vs Avalanche — side by side, month by month
 
@@ -141,7 +141,7 @@ No apps to install. No code to paste. Works on phone, tablet, and computer.
 ### What's included
 
 - Google Sheets template (click link → Make a copy)
-- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Debt Payoff, Goals, Spendable, Instructions, Engine (hidden)
+- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Goals, Debt Payoff, Spendable, Instructions, Engine (hidden)
 - Pre-filled sample data so you see how it works
 - Financial disclaimer
 - Setup guide (plain text)

@@ -404,7 +404,7 @@ function buildEngineTab(sheet) {
   // B2: Months to debt-free (NPER for debt payoff)
   sheet.getRange("A4").setValue("Months to freedom");
   sheet.getRange("B2").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B16-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B17-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
   );
 
   // B3: Freedom date
@@ -424,7 +424,7 @@ function buildEngineTab(sheet) {
   // B6: Minimum-only months (debt payoff with minimum payments only)
   sheet.getRange("A8").setValue("Min-only months");
   sheet.getRange("B6").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-\'Scenario Engine\'!B9,\'Scenario Engine\'!B8),0),"Check inputs"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B17/12,-\'Scenario Engine\'!B9,\'Scenario Engine\'!B8),0),"Check inputs"))'
   );
 
   // B7: Minimum-only interest
@@ -442,7 +442,7 @@ function buildEngineTab(sheet) {
   // B9: Extra custom #1 months (minimum payment + custom #1 extra)
   sheet.getRange("A11").setFormula("=\"Extra $\"&'Scenario Engine'!B11&\" months\"");
   sheet.getRange("B9").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),\'Scenario Engine\'!B8),0),"Check inputs"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B17/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),\'Scenario Engine\'!B8),0),"Check inputs"))'
   );
 
   // B10: Extra custom #1 interest saved (vs min-only baseline)
@@ -460,7 +460,7 @@ function buildEngineTab(sheet) {
   // B12: Extra custom #2 months (minimum payment + custom #2 extra)
   sheet.getRange("A14").setFormula("=\"Extra $\"&'Scenario Engine'!B12&\" months\"");
   sheet.getRange("B12").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),\'Scenario Engine\'!B8),0),"Check inputs"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B17/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),\'Scenario Engine\'!B8),0),"Check inputs"))'
   );
 
   // B13: Extra custom #2 interest saved (vs min-only baseline)
@@ -534,7 +534,7 @@ function buildEngineTab(sheet) {
   // B32: Nominal rate (no inflation) — same surplus + net position as B2
   sheet.getRange("A33").setValue("Nominal rate (no inflation)");
   sheet.getRange("B32").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B16/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B17/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
   );
 
   // B33: Inflation-adjusted interest (real-rate payment × months − debt)
@@ -574,7 +574,7 @@ function buildEngineTab(sheet) {
     // Months — debt payoff with minimum payment + extra
     sheet.getRange(`A${row}`).setValue(`Extra $${extra}/month months`);
     sheet.getRange(`B${row}`).setFormula(
-      `=IF('Scenario Engine'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER('Scenario Engine'!B16/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8),0),"N/A"))`
+      `=IF('Scenario Engine'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER('Scenario Engine'!B17/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8),0),"N/A"))`
     );
 
     // Interest — use EXACT NPER (not rounded) to ensure monotonicity.
@@ -582,7 +582,7 @@ function buildEngineTab(sheet) {
     // a higher-payment scenario into a worse total-payment bucket.
     sheet.getRange(`A${row + 1}`).setValue(`Extra $${extra}/month interest`);
     sheet.getRange(`B${row + 1}`).setFormula(
-      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IFERROR(('Scenario Engine'!B9+${extra})*NPER('Scenario Engine'!B16/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8)-'Scenario Engine'!B8,0)))`
+      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IFERROR(('Scenario Engine'!B9+${extra})*NPER('Scenario Engine'!B17/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8)-'Scenario Engine'!B8,0)))`
     );
 
     // Freedom date
@@ -649,7 +649,7 @@ function buildScenarioEngineTab(sheet) {
   sheet.getRange("A14").setValue("Tax Country").setFontSize(10).setFontColor(headerColor);
   const countryCell = sheet.getRange("B14");
   styleInputCell(countryCell, "Other", "@");
-  // Add dropdown validation for B14 (was B13 in original spec, shifted to B14)
+  // B14 dropdown — shifted from B13 in original spec
   sheet.getRange("B14").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireValueInList(["US", "Canada", "UK", "Australia", "Other"])
@@ -1945,19 +1945,26 @@ function onEdit(e) {
   const sheet = e.source.getActiveSheet();
   const range = e.range;
   
-  // Tax Zone auto-population
+  // Populate B15/B16 defaults when country changes in B14
   if (sheet.getName() === "Scenario Engine" && range.getRow() === 14 && range.getColumn() === 2) {
-    const country = range.getValue();
-    const taxDefaults = {
-      "US": { marginalRate: 0.22, deductiblePct: 1.0 },
-      "Canada": { marginalRate: 0.205, deductiblePct: 0 },
-      "UK": { marginalRate: 0.20, deductiblePct: 0 },
-      "Australia": { marginalRate: 0.325, deductiblePct: 0 },
-      "Other": { marginalRate: 0, deductiblePct: 0 }
-    };
-    const defaults = taxDefaults[country] || taxDefaults["Other"];
-    sheet.getRange("B15").setValue(defaults.marginalRate);
-    sheet.getRange("B16").setValue(defaults.deductiblePct);
+    try {
+      const country = range.getValue();
+      const taxDefaults = {
+        "US": { marginalRate: 0.22, deductiblePct: 1.0 },
+        "Canada": { marginalRate: 0.205, deductiblePct: 0 },
+        "UK": { marginalRate: 0.20, deductiblePct: 0 },
+        "Australia": { marginalRate: 0.325, deductiblePct: 0 },
+        "Other": { marginalRate: 0, deductiblePct: 0 }
+      };
+      const defaults = taxDefaults[country] || taxDefaults["Other"];
+      if (!taxDefaults[country]) {
+        Logger.log("Unknown tax country: " + country + " — using Other defaults");
+      }
+      sheet.getRange("B15").setValue(defaults.marginalRate);
+      sheet.getRange("B16").setValue(defaults.deductiblePct);
+    } catch (err) {
+      Logger.log("ERROR in onEdit (Tax Zone): " + err.message);
+    }
     return;
   }
   

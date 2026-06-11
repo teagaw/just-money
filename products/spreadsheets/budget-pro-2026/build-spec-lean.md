@@ -13,7 +13,7 @@
 
 ### What It Is
 
-Budget Pro 2026 is a $14.99 Google Sheets budget template with 6 user-facing tabs and 1 hidden engine tab. The key differentiator is the **Scenario Engine** — a calculator that answers "when will I be financially free?" using NPER and EDATE formulas. No other budget spreadsheet at this price point does this.
+Budget Pro 2026 is a $14.99 Google Sheets budget template with 7 user-facing tabs and 1 hidden engine tab. The key differentiator is the **Scenario Engine** — a calculator that answers "when will I be financially free?" using NPER and EDATE formulas, with built-in tax-adjusted projections via a Country dropdown. No other budget spreadsheet at this price point does this.
 
 ### Who It's For
 
@@ -49,18 +49,19 @@ Budget Pro 2026 is a $14.99 Google Sheets budget template with 6 user-facing tab
 
 | # | Tab Name | Purpose | User Action |
 |---|----------|---------|-------------|
-| 1 | Scenario Engine | "When am I free?" calculator | Enter 9 numbers, read results |
-| 2 | Goals | Savings goals with targets and deadlines | Set goals, track progress |
-| 3 | Spendable | Daily/weekly spending budget | Set limits, track remaining |
-| 4 | Budget Tracker | Monthly income vs expenses | Enter income and expenses monthly |
+| 1 | Start Here | Quick-start guide, tax setup, links | Read, set country |
+| 2 | Scenario Engine | "When am I free?" calculator | Enter 9 numbers + country, read results |
+| 3 | Budget Tracker | Monthly income vs expenses | Enter income and expenses monthly |
+| 4 | Goals | Savings goals with targets and deadlines | Set goals, track progress |
 | 5 | Debt Payoff | Snowball vs avalanche comparison | Enter debts, compare strategies |
-| 6 | Instructions | How to use each tab | Read only |
+| 6 | Spendable | Daily/weekly spending budget | Set limits, track remaining |
+| 7 | Instructions | How to use each tab | Read only |
 
 ### Hidden Tab
 
 | # | Tab Name | Purpose | User Action |
 |---|----------|---------|-------------|
-| 7 | Engine | Houses all NPER/EDATE formulas | Never touched — hidden + locked |
+| 8 | Engine | Houses all NPER/EDATE formulas | Never touched — hidden + locked |
 
 ---
 
@@ -80,51 +81,67 @@ A                B                  C                  D
 5  │ Monthly living expenses     [green cell]  $3,200       │
 6  │ Current savings             [green cell]  $12,000      │
 7  │ Weighted average APR (%)    [green cell]  8.50         │
- 8  │ Total debt balance          [green cell]  $24,200      │
- 9  │ Total monthly debt payment  [green cell]  $490         │
+8  │ Total debt balance          [green cell]  $24,200      │
+9  │ Total monthly debt payment  [green cell]  $490         │
 10 │ Inflation adjustment (%)    [green cell]  3.00         │
 11 │ Custom comparison #1        [green cell]  $200         │
 12 │ Custom comparison #2        [green cell]  $400         │
 13 └─────────────────────────────────────────────────────────┘
-12
-14 ┌─ RESULTS (auto-calculated) ─────────────────────────────┐
-15 │ Months to financial freedom     [result cell]  24      │
-16 │ Freedom date                    [result cell]  Jun 2028│
-17 │ Total interest saved            [result cell]  $3,847  │
-18 └─────────────────────────────────────────────────────────┘
-18
-20 ┌─ CROSS-TAB CHECK ───────────────────────────────────────┐
-21 │ Weighted APR from Debt Payoff tab:  [formula]  8.50%    │
-22 │ Your entered APR:                   [B7]       8.50%    │
-23 │ Match:                              [formula]  ✓        │
+
+14 ┌─ TAX ZONE (optional — adjusts projections for tax deductibility) ─┐
+15 │ Country                   [dropdown]     United States │
+16 │ Marginal tax rate (%)     [auto-fill]     22.00        │
+17 │ Tax-deductible %          [auto-fill]     100.00       │
+18 │ Effective APR              [formula]       6.63         │
+19 └─────────────────────────────────────────────────────────┘
+
+20 ┌─ RESULTS (auto-calculated) ─────────────────────────────┐
+21 │ Months to financial freedom     [result cell]  24      │
+22 │ Freedom date                    [result cell]  Jun 2028│
+23 │ Total interest saved            [result cell]  $3,847  │
 24 └─────────────────────────────────────────────────────────┘
-24
-26 ┌─ COMPARISON ────────────────────────────────────────────┐
-27 │ Scenario              Months    Interest    Freedom     │
-28 │ Minimum payments only   48      $8,420      Dec 2029   │
-29 │ Extra $200/month        28      $5,213      Oct 2028   │
-30 │ Extra $400/month        19      $3,190      Jan 2028   │
-31 │ Match my scenario       24      $3,847      Jun 2028   │
-32 │ Nominal rate (no infl.)  24      $3,847      Jun 2028   │
+
+26 ┌─ EMERGENCY FUND ────────────────────────────────────────┐
+27 │ Recommended emergency fund      [formula]      $9,600  │
+28 │ Months to build (from surplus)  [formula]      24      │
+29 └─────────────────────────────────────────────────────────┘
+
+31 ┌─ INTEREST THIS MONTH ───────────────────────────────────┐
+32 │ Interest charged               [formula]       $172    │
 33 └─────────────────────────────────────────────────────────┘
-33
-34 ┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──┐
-35 │ Extra $/month    Months    Freedom Date    Interest Saved│
-36 │ $0/month         48        Dec 2029        $8,420       │
-37 │ $100/month       36        Jun 2028        $6,214       │
-38 │ $200/month       28        Oct 2028        $5,213       │
-39 │ $300/month       23        May 2028        $4,310       │
-40 │ $400/month       19        Jan 2028        $3,190       │
-41 │ $500/month       16        Oct 2027        $2,580       │
-42 │ $750/month       12        Jun 2027        $1,840       │
-43 │ $1,000/month     9         Mar 2027        $1,290       │
-44 └─────────────────────────────────────────────────────────┘
-45
-46  ── HOW TO READ THIS ─────────────────────────────────────
-47  Financial freedom = when your savings exceed your debt
-48   and your investments generate enough passive income
-49   to cover expenses. This calculator shows the fastest
-50   path to that point using your actual numbers.
+
+35 ┌─ CROSS-TAB CHECK ───────────────────────────────────────┐
+36 │ Weighted APR from Debt Payoff tab:  [formula]  8.50%   │
+37 │ Your entered APR:                   [B7]       8.50%   │
+38 │ Match:                              [formula]  ✓       │
+39 └─────────────────────────────────────────────────────────┘
+
+41 ┌─ COMPARISON ────────────────────────────────────────────┐
+42 │ Scenario              Months    Interest    Freedom     │
+43 │ Minimum payments only   48      $8,420      Dec 2029   │
+44 │ Extra $200/month        28      $5,213      Oct 2028   │
+45 │ Extra $400/month        19      $3,190      Jan 2028   │
+46 │ Match my scenario       24      $3,847      Jun 2028   │
+47 │ Nominal rate (no infl.)  24      $3,847      Jun 2028   │
+48 └─────────────────────────────────────────────────────────┘
+
+50 ┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──┐
+51 │ Extra $/month    Months    Freedom Date    Interest Saved│
+52 │ $0/month         48        Dec 2029        $8,420       │
+53 │ $100/month       36        Jun 2028        $6,214       │
+54 │ $200/month       28        Oct 2028        $5,213       │
+55 │ $300/month       23        May 2028        $4,310       │
+56 │ $400/month       19        Jan 2028        $3,190       │
+57 │ $500/month       16        Oct 2027        $2,580       │
+58 │ $750/month       12        Jun 2027        $1,840       │
+59 │ $1,000/month     9         Mar 2027        $1,290       │
+60 └─────────────────────────────────────────────────────────┘
+
+ ── HOW TO READ THIS ─────────────────────────────────────
+ Financial freedom = when your savings exceed your debt
+  and your investments generate enough passive income
+  to cover expenses. This calculator shows the fastest
+  path to that point using your actual numbers.
 ```
 
 #### Cell Specifications
@@ -150,6 +167,18 @@ A                B                  C                  D
 | `A10` | "Inflation adjustment (%)" | Label | Regular, 10pt | — |
 | `B10` | Input: inflation | Number | Percentage, 0.00% | `>= 0` AND `<= 0.15` |
 | `C10` | "← Set to 0% for nominal dollars, 3% for real dollars" | Label | Italic, 9pt, #64748B | — |
+| `A11` | "Custom comparison #1" | Label | Regular, 10pt | — |
+| `B11` | Input: extra #1 | Number | Currency, $#,##0 | `>= 0` |
+| `A12` | "Custom comparison #2" | Label | Regular, 10pt | — |
+| `B12` | Input: extra #2 | Number | Currency, $#,##0 | `>= 0` |
+| `A14` | "Country" | Label | Regular, 10pt | — |
+| `B14` | Country dropdown | Enum | Text | "United States","Canada","United Kingdom","Australia","Other" |
+| `A15` | "Marginal tax rate (%)" | Label | Regular, 10pt | — |
+| `B15` | Auto-filled: marginal rate | Number | Percentage, 0.00% | `>= 0` AND `<= 1` |
+| `A16` | "Tax-deductible %" | Label | Regular, 10pt | — |
+| `B16` | Auto-filled: deductible % | Number | Percentage, 0.00% | `>= 0` AND `<= 1` |
+| `A17` | "Effective APR" | Label | Regular, 10pt | — |
+| `B17` | Formula: effective APR | Formula | Percentage, 0.00% | — |
 
 #### Input Cell Formatting
 
@@ -167,9 +196,9 @@ A                B                  C                  D
 
 | Cell | Label | Formula | Format |
 |------|-------|---------|--------|
-| `B16` | Months to financial freedom | `=Engine!B2` | Number, 0 decimal |
-| `B17` | Freedom date | `=Engine!B3` | Date, "MMM YYYY" |
-| `B18` | Total interest saved | `=Engine!B4` | Currency, $#,##0 |
+| `B20` | Months to financial freedom | `=Engine!B2` | Number, 0 decimal |
+| `B21` | Freedom date | `=Engine!B3` | Date, "MMM YYYY" |
+| `B22` | Total interest saved | `=Engine!B4` | Currency, $#,##0 |
 
 #### Comparison Table Formulas (rows 29-33)
 
@@ -589,7 +618,7 @@ A                B
 2
 3  ── QUICK START (5 minutes) ───────────────────
 4  1. Open the "Scenario Engine" tab
-5  2. Enter your 9 numbers in the green cells
+5  2. Enter your 9 numbers in the green cells, then select your country
 6  3. Read your results in the blue section
 7  4. Try different scenarios by changing inputs
 8
@@ -854,11 +883,13 @@ A                B                  C                  D
 
 | Parameter | Value | Source |
 |-----------|-------|--------|
-| Rate | `(B7 - B10)/12` | Annual interest rate minus inflation, ÷ 12 = monthly real rate |
+| Rate | `(B17 - B10)/12` | Effective APR (adjusted for tax deductibility) minus inflation, ÷ 12 = monthly real rate |
 | Pmt | `-(B4-B5-B9)` | Negative of (income - expenses - debt payment) = net monthly savings toward freedom |
 | Pv | `-(B6-B8)` | Negative of (savings - debt) = starting net position |
 
-**Why inflation adjustment:** The default 3% inflation rate adjusts your returns for purchasing power. If your investments earn 8.5% and inflation is 3%, your real return is 5.5%. Set B10 to 0% for nominal dollars.
+**Why inflation adjustment:** The default 3% inflation rate adjusts your returns for purchasing power. If your effective APR is 6.63% and inflation is 3%, your real return is 3.63%. Set B10 to 0% for nominal dollars.
+
+**Why effective APR:** The Tax Zone (rows 14-17) calculates an effective APR by applying the tax deduction to your weighted average APR. For example, if your APR is 8.5% and you're in the US (22% marginal rate, 100% deductible), your effective APR is 8.5% × (1 - 0.22 × 1.00) = 6.63%.
 
 **Why negative:** NPER expects cash outflows as negative. We negate both payment and present value so the function returns a positive month count.
 
@@ -1400,7 +1431,7 @@ Budget Pro 2026 is a $14.99 Google Sheets budget template with a built-in Scenar
 
 **THE SCENARIO ENGINE (THE DIFFERENTIATOR)**
 
-Enter 9 numbers — monthly income, expenses, savings, interest rate, debt balance, minimum payment, inflation, and two custom comparison amounts — and instantly see:
+Enter 9 numbers + select your country — monthly income, expenses, savings, interest rate, debt balance, minimum payment, inflation, two custom comparison amounts, and country (for tax-adjusted projections) — and instantly see:
 - Months to financial freedom
 - Exact freedom date (e.g., "June 2028")
 - Total interest saved vs minimum payments
@@ -1408,7 +1439,7 @@ Enter 9 numbers — monthly income, expenses, savings, interest rate, debt balan
 
 Change one number. Watch everything recalculate. That's the power of a spreadsheet vs an app.
 
-**WHAT'S INSIDE (6 TABS)**
+**WHAT'S INSIDE (8 TABS)**
 
 | Tab | What It Does |
 |-----|-------------|
@@ -1431,14 +1462,14 @@ Change one number. Watch everything recalculate. That's the power of a spreadshe
 
 1. Buy & download (instant access)
 2. Open in Google Sheets (free with any Google account)
-3. Enter your 9 numbers in the Scenario Engine
+3. Enter your 9 numbers + select your country in the Scenario Engine
 4. Read your results — when you'll be free, how much interest you'll save
 5. Track your budget monthly in the Budget Tracker tab
 6. Compare debt payoff strategies in the Debt Payoff tab
 
 **WHAT'S INCLUDED**
 
-- ✅ 6 Google Sheets tabs (Scenario Engine, Goals, Spendable, Budget Tracker, Debt Payoff, Instructions)
+- ✅ 8 Google Sheets tabs (Start Here, Scenario Engine, Budget Tracker, Goals, Debt Payoff, Spendable, Instructions, Engine)
 - ✅ 1 hidden Engine tab (all formulas — you never see it)
 - ✅ 3 months of sample data (see it working before you customize)
 - ✅ Data validation (prevents bad input)
@@ -1462,7 +1493,7 @@ Change one number. Watch everything recalculate. That's the power of a spreadshe
 **SPECS**
 
 - Platform: Google Sheets (free with any Google account)
-- Tabs: 6 visible + 1 hidden
+- Tabs: 7 visible + 1 hidden
 - Mobile: Optimized for Google Sheets app
 - Protection: Formula cells locked, input cells editable
 - Updates: Free updates for 12 months
