@@ -126,11 +126,23 @@ function buildBudgetPro2026() {
   tabs.instructions.setTabColor("#6B7280");  // Warm Gray
   tabs.engine.setTabColor("#1A1A2E");        // Deep Charcoal
 
-  // Move Start Here to first position, Scenario Engine to second
+  // Set explicit tab order for all 8 tabs
   ss.setActiveSheet(tabs.startHere);
   ss.moveActiveSheet(1);
   ss.setActiveSheet(tabs.scenario);
   ss.moveActiveSheet(2);
+  ss.setActiveSheet(tabs.budget);
+  ss.moveActiveSheet(3);
+  ss.setActiveSheet(tabs.goals);
+  ss.moveActiveSheet(4);
+  ss.setActiveSheet(tabs.debt);
+  ss.moveActiveSheet(5);
+  ss.setActiveSheet(tabs.spendable);
+  ss.moveActiveSheet(6);
+  ss.setActiveSheet(tabs.instructions);
+  ss.moveActiveSheet(7);
+  ss.setActiveSheet(tabs.engine);
+  ss.moveActiveSheet(8);
 
   SpreadsheetApp.flush();
   Logger.log("Budget Pro 2026 built successfully! URL: " + ss.getUrl());
@@ -212,15 +224,19 @@ function buildStartHereTab(sheet) {
 function createTabs(ss) {
   Logger.log("Creating tabs...");
 
-  // Safe per-tab replacement: delete only the existing tab, then immediately
-  // create its replacement.  This guarantees at least one sheet always exists
-  // (Google Sheets requires ≥1 sheet at all times — batch-deleting all sheets
-  // throws "You can't remove all the sheets in a document").
+  // Safe per-tab replacement: insert a temp sheet first, delete the existing
+  // sheet, then rename the temp to the target name.  This avoids Google's
+  // "cannot delete all sheets" error because we never go below 1 sheet.
   function safeReplace(name) {
     const existing = ss.getSheetByName(name);
     if (existing) {
+      const tempName = "_TEMP_" + Date.now();
+      const temp = ss.insertSheet(tempName);
       ss.deleteSheet(existing);
       Logger.log("Deleted existing '" + name + "' tab");
+      temp.setName(name);
+      Logger.log("Created " + name + " tab");
+      return temp;
     }
     const sheet = ss.insertSheet(name);
     Logger.log("Created " + name + " tab");
@@ -420,7 +436,7 @@ function buildEngineTab(sheet) {
   // B8: Minimum-only freedom date
   sheet.getRange("A10").setValue("Min-only freedom date");
   sheet.getRange("B8").setFormula(
-    '=IF(B6="Already free!","Already free!",IF(B6="Check inputs","N/A",IFERROR(EDATE(TODAY(),B6),"N/A")))'
+    '=IF(B6="Already free!","Already free!",IF(B6="Check inputs","N/A",IF(B6=0,"120+ months",IFERROR(EDATE(TODAY(),B6),"N/A"))))'
   );
 
   // B9: Extra custom #1 months (minimum payment + custom #1 extra)
@@ -438,7 +454,7 @@ function buildEngineTab(sheet) {
   // B11: Extra custom #1 freedom date
   sheet.getRange("A13").setFormula("=\"Extra $\"&'Scenario Engine'!B11&\" freedom date\"");
   sheet.getRange("B11").setFormula(
-    '=IF(B9="Already free!","Already free!",IF(B9="Check inputs","N/A",IFERROR(EDATE(TODAY(),B9),"N/A")))'
+    '=IF(B9="Already free!","Already free!",IF(B9="Check inputs","N/A",IF(B9=0,"120+ months",IFERROR(EDATE(TODAY(),B9),"N/A"))))'
   );
 
   // B12: Extra custom #2 months (minimum payment + custom #2 extra)
@@ -456,7 +472,7 @@ function buildEngineTab(sheet) {
   // B14: Extra custom #2 freedom date
   sheet.getRange("A16").setFormula("=\"Extra $\"&'Scenario Engine'!B12&\" freedom date\"");
   sheet.getRange("B14").setFormula(
-    '=IF(B12="Already free!","Already free!",IF(B12="Check inputs","N/A",IFERROR(EDATE(TODAY(),B12),"N/A")))'
+    '=IF(B12="Already free!","Already free!",IF(B12="Check inputs","N/A",IF(B12=0,"120+ months",IFERROR(EDATE(TODAY(),B12),"N/A"))))'
   );
 
   sheet.getRange("A18").setValue("── DEBT PAYOFF FORMULAS ──").setFontWeight("bold");
@@ -515,10 +531,10 @@ function buildEngineTab(sheet) {
 
   sheet.getRange("A32").setValue("── INFLATION-ADJUSTED ──").setFontWeight("bold");
 
-  // B32: Inflation-adjusted months (real interest rate = APR − inflation → longer payoff)
-  sheet.getRange("A33").setValue("Inflation-adjusted months");
+  // B32: Nominal rate (no inflation) — same surplus + net position as B2
+  sheet.getRange("A33").setValue("Nominal rate (no inflation)");
   sheet.getRange("B32").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B7-\'Scenario Engine\'!B10)/12,-\'Scenario Engine\'!B9,\'Scenario Engine\'!B8),0),"N/A"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
   );
 
   // B33: Inflation-adjusted interest (real-rate payment × months − debt)
@@ -527,15 +543,15 @@ function buildEngineTab(sheet) {
     '=IF(B32="Already free!",0,IF(B32="N/A","N/A",IFERROR(B32*\'Scenario Engine\'!B9-\'Scenario Engine\'!B8,0)))'
   );
 
-  // B34: Inflation-adjusted freedom date
-  sheet.getRange("A35").setValue("Inflation-adjusted freedom date");
+  // B34: Nominal rate freedom date
+  sheet.getRange("A35").setValue("Nominal rate freedom date");
   sheet.getRange("B34").setFormula(
-    '=IF(B32="Already free!","Already free!",IF(B32="Check inputs","N/A",IFERROR(EDATE(TODAY(),B32),"N/A")))'
+    '=IF(B32="Already free!","Already free!",IF(B32="Check inputs","N/A",IF(B32=0,"120+ months",IFERROR(EDATE(TODAY(),B32),"N/A"))))'
   );
 
-  // Sample data warning note
+  // Nominal rate comparison note
   sheet.getRange("A36").setValue("⚠ Note:").setFontWeight("bold").setFontColor("#666666").setFontSize(9);
-  sheet.getRange("B36").setValue("Sample results — enter your debts in the Debt Payoff tab for your personalized plan")
+  sheet.getRange("B36").setValue("Nominal rate (no inflation) — same surplus + net position as B2")
     .setFontStyle("italic")
     .setFontColor("#666666")
     .setFontSize(9);
@@ -543,7 +559,7 @@ function buildEngineTab(sheet) {
   sheet.getRange("B2").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B24").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B25").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
-  sheet.getRange("B32").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
+  sheet.getRange("B32").setComment("Nominal rate (no inflation) — same surplus + net position as B2");
   sheet.getRange("B33").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
 
   sheet.getRange("A37").setValue("── SENSITIVITY TABLE ──").setFontWeight("bold");
@@ -572,7 +588,7 @@ function buildEngineTab(sheet) {
     // Freedom date
     sheet.getRange(`A${row + 2}`).setValue(`Extra $${extra}/month freedom date`);
     sheet.getRange(`B${row + 2}`).setFormula(
-      `=IF(B${row}="Already free!","Already free!",IF(B${row}="Check inputs","N/A",IFERROR(EDATE(TODAY(),B${row}),"N/A")))`
+      `=IF(B${row}="Already free!","Already free!",IF(B${row}="Check inputs","N/A",IF(B${row}=0,"120+ months",IFERROR(EDATE(TODAY(),B${row}),"N/A"))))`
     );
   }
 
@@ -711,7 +727,7 @@ function buildScenarioEngineTab(sheet) {
     { row: 36, labelFormula: "=\"Extra $\"&B11&\"/month\"", label: "Extra $/month #1", months: "=Engine!B9", interest: "=IFERROR(Engine!B9*(B9+B11)-B8,0)", date: "=Engine!B11" },
     { row: 37, labelFormula: "=\"Extra $\"&B12&\"/month\"", label: "Extra $/month #2", months: "=Engine!B12", interest: "=IFERROR(Engine!B12*(B9+B12)-B8,0)", date: "=Engine!B14" },
     { row: 38, label: "Match my scenario", months: "=B16", interest: "=IFERROR(Engine!B7-B18,0)", date: "=B17" },
-    { row: 39, label: "Inflation-adjusted", months: "=Engine!B32", interest: "=Engine!B33", date: "=Engine!B34" }
+    { row: 39, label: "Nominal rate (no inflation)", months: "=Engine!B32", interest: "=Engine!B33", date: "=Engine!B34" }
   ];
 
   comparisons.forEach(c => {
@@ -1000,8 +1016,8 @@ function buildDebtPayoffTab(sheet) {
     const row = 20 + i;
     const engineRow = i + 2;
     sheet.getRange(`A${row}`).setValue(debt.name).setFontSize(10);
-    sheet.getRange(`B${row}`).setFormula(`=IFERROR(EDATE(TODAY(),Engine!C${engineRow}),"N/A")`).setNumberFormat("MMM YYYY").setFontSize(10);
-    sheet.getRange(`C${row}`).setFormula(`=IFERROR(EDATE(TODAY(),Engine!D${engineRow}),"N/A")`).setNumberFormat("MMM YYYY").setFontSize(10);
+    sheet.getRange(`B${row}`).setFormula(`=IF(Engine!C${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!C${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
+    sheet.getRange(`C${row}`).setFormula(`=IF(Engine!D${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!D${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
   });
 
   // DISCLAIMER

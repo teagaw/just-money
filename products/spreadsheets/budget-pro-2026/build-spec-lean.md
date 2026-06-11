@@ -105,7 +105,7 @@ A                B                  C                  D
 29 │ Extra $200/month        28      $5,213      Oct 2028   │
 30 │ Extra $400/month        19      $3,190      Jan 2028   │
 31 │ Match my scenario       24      $3,847      Jun 2028   │
-32 │ Inflation-adjusted      24      $3,847      Jun 2028   │
+32 │ Nominal rate (no infl.)  24      $3,847      Jun 2028   │
 33 └─────────────────────────────────────────────────────────┘
 33
 34 ┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──┐
@@ -191,7 +191,7 @@ A                B                  C                  D
 | `B32` | Months | `=B16` |
 | `C32` | Interest | `=IFERROR(Engine!B7-B18,0)` |
 | `D32` | Freedom date | `=B17` |
-| `A33` | "Inflation-adjusted" | Static label |
+| `A33` | "Nominal rate (no inflation)" | Static label |
 | `B33` | Months | `=Engine!B32` |
 | `C33` | Interest | `=Engine!B33` |
 | `D33` | Freedom date | `=Engine!B34` |
@@ -809,10 +809,10 @@ A                B                  C                  D
 30 User's entered APR       ='Scenario Engine'!B7
 31 Match check              =IF(ABS(B28-B29) < 0.0001, "✓ Match", "⚠ Check APR — doesn't match Debt Payoff tab")
 32
-33 ── INFLATION-ADJUSTED SCENARIO ─────────────────────────────
-34 Inflation-adjusted months =NPER(...)
-35 Inflation-adjusted interest =...
-36 Inflation-adjusted freedom date =EDATE(TODAY(), B32)
+33 ── NOMINAL RATE COMPARISON ─────────────────────────────────
+34 Nominal rate months =NPER(B7/12, -(B4-B5-B9), -(B6-B8))
+35 Nominal rate interest =... (see code B33)
+36 Nominal rate freedom date =EDATE(TODAY(), B32)
 37
 38 ── SENSITIVITY TABLE ───────────────────────────────────────
 39 $0/month extra          =NPER(...) → Months, Freedom Date, Interest Saved
