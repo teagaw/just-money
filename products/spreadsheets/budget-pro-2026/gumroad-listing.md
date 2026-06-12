@@ -12,7 +12,9 @@ Know when you're free.
 
 ## Price
 
-**$14.99** (one-time purchase)
+**$7.99** (one-time purchase) — **first 15 buyers get 50% off with code LAUNCH50**
+
+After 15 sales, price goes to $11.99.
 
 ## Cover Image
 
@@ -42,8 +44,8 @@ Enter different extra payment amounts and see your debt-free date shift. "What i
 **Snowball vs Avalanche — side by side**
 Both strategies, month by month, for your specific debts. You see the real dollar difference between the two. No more debating theory.
 
-**Inflation-Adjusted Projections**
-Your $500 extra payment today won't have the same purchasing power in 3 years. This spreadsheet accounts for that.
+**Nominal Rate Comparison**
+See exactly how different interest rates affect your payoff timeline — no guesswork, no theory.
 
 **Spendable Budget Calculator**
 See exactly how much money you have left to spend each week — after every bill, every debt payment, every obligation.
@@ -76,11 +78,11 @@ No apps to install. No code to paste.
 
 ---
 
-### Why $14.99?
+### Why $7.99?
 
 YNAB charges $109/year. After 2 years, you've spent $218 and your spreadsheet is gone if you cancel.
 
-After 2 years with Budget Pro 2026, you've spent $14.99 once and you still have everything. Your data stays in Google Sheets. Forever.
+After 2 years with Budget Pro 2026, you've spent $7.99 once and you still have everything. Your data stays in Google Sheets. Forever.
 
 ---
 
@@ -107,7 +109,7 @@ No. This is designed specifically for Google Sheets.
 Google Sheets financial functions have been stable for years. If anything changes, I provide updates.
 
 **Refund policy?**
-If something isn't working as described, message me and I'll make it right.
+30-day money-back guarantee. If it's not what you expected, message me and I'll refund you — no questions asked.
 
 ---
 

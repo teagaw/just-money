@@ -48,7 +48,7 @@ Violation of these terms may result in removal from Etsy without refund.
 
 ## 6. Refund Policy
 
-All sales are final. As a digital download, Budget Pro 2026 cannot be returned or refunded once delivered. If you experience an issue with the file itself (corruption, missing sheets), contact us and we will provide a working copy.
+30-day money-back guarantee. If Budget Pro 2026 is not what you expected, contact us within 30 days of purchase for a full refund — no questions asked. If you experience an issue with the file itself (corruption, missing sheets), contact us and we will provide a working copy.
 
 ## 7. Contact
 

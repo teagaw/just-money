@@ -10,7 +10,9 @@
 
 ## Price
 
-**$14.99** (one-time purchase)
+**$7.99** (one-time purchase) — **first 15 buyers get 50% off**
+
+After 15 sales, price goes to $11.99.
 
 ---
 
@@ -59,7 +61,7 @@ Budget Pro 2026 uses Google Sheets' built-in NPER and EDATE functions — the sa
 - **Your exact debt-free date** (down to the month)
 - **What happens if you pay $50 more per month** (how many months you save)
 - **What happens if you get a raise** (how acceleration changes your timeline)
-- **What happens if inflation eats into your purchasing power** (inflation-adjusted projections so you're not lying to yourself)
+- **What happens if your rate changes** (see how even small rate differences shift your timeline)
 
 Few Etsy spreadsheets use NPER/EDATE for scenario planning — most just track spending. The formulas exist. Nobody uses them. Until now.
 
@@ -104,10 +106,10 @@ That's it. That's the number that changes behavior. When you know your spending 
 - Full amortization schedule showing exactly where every dollar goes each month
 - Interest savings calculator: the real cost of choosing one strategy over the other
 
-**Inflation-Adjusted Projections**
-- Because your $500 extra payment today won't have the same purchasing power in 3 years
-- Real-value debt tracking that accounts for inflation
-- Honest projections that don't pretend the economy stands still
+**Nominal Rate Comparison**
+- See exactly how different interest rates affect your payoff timeline
+- Compare scenarios side by side with real numbers
+- No guesswork, no theory — just the math
 
 **Spendable Budget Calculator**
 - Weekly and daily spending money after all obligations
@@ -150,7 +152,7 @@ No apps to install. No code to paste. Works on phone, tablet, and computer.
 
 **It's built on real financial math.** Debt freedom calculators, date projections, payment simulations, and amortization tables aren't buzzwords — they're the actual calculations that determine your payoff timeline. Every other spreadsheet on Etsy is manually tracking numbers. This one is running simulations.
 
-**It's a one-time purchase.** YNAB charges $109/year. After 2 years with YNAB, you've spent $218 and your spreadsheet is gone if you cancel. After 2 years with Budget Pro 2026, you've spent $14.99 once and you still have every tool, every formula, every scenario you built. Your data stays in Google Sheets. Forever. No hostage situation.
+**It's a one-time purchase.** YNAB charges $109/year. After 2 years with YNAB, you've spent $218 and your spreadsheet is gone if you cancel. After 2 years with Budget Pro 2026, you've spent $7.99 once and you still have every tool, every formula, every scenario you built. Your data stays in Google Sheets. Forever. No hostage situation.
 
 **It's designed for debt freedom, not just budgeting.** Most spreadsheets track spending. This one tracks progress toward a specific, dateable goal: being debt-free. Every feature serves that mission.
 
@@ -177,15 +179,15 @@ No apps to install. No code to paste. Works on phone, tablet, and computer.
 
 When you see your debt-free date for the first time, you'll want to share it. Screenshot your Debt Freedom Calculator results and share your countdown. Your friends will ask where you got it.
 
-### Why $14.99?
+### Why $7.99?
 
 Free templates track your spending. This one tells you WHEN you'll be free.
 - Debt freedom calculator shows exact months to debt-free
 - Compare snowball vs avalanche side-by-side  
-- Inflation-adjusted projections
+- Nominal rate comparison table
 - 8 tabs that work together as one system
 
-YNAB costs $109/year. This costs $14.99 once.
+YNAB costs $109/year. This costs $7.99 once.
 
 ### FAQ
 
@@ -205,7 +207,7 @@ This is designed specifically for Google Sheets. Some formulas use Google Sheets
 Yes. Every category, every line item, every scenario is fully editable. This is your spreadsheet — change whatever you need.
 
 **What's the refund policy?**
-Digital downloads are generally non-refundable per Etsy policy, but if something isn't working as described, message me and I'll make it right.
+30-day money-back guarantee. If it's not what you expected, message me and I'll refund you — no questions asked.
 
 **How is this different from your other budget spreadsheets?**
 Budget Pro 2026 is the premium version with scenario planning, debt freedom calculations, snowball/avalanche comparison, and inflation adjustments. If you just need basic budget tracking, I have simpler options. This one is for people who want the full planning toolkit.
