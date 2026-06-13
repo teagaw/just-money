@@ -1842,6 +1842,8 @@ function recalculateDebtSimulation() {
       engineSheet.getRange("B23").setValue(0);
       engineSheet.getRange("B24").setValue(0);
       engineSheet.getRange("B25").setValue(0);
+      engineSheet.getRange("I20").setValue(1); // trivially converged
+      engineSheet.getRange("J20").setValue(1);
       return;
     }
 
@@ -1858,10 +1860,16 @@ function recalculateDebtSimulation() {
     engineSheet.getRange("B24").setValue(Math.max(0, minOnly.totalInterest - snowball.totalInterest));
     engineSheet.getRange("B25").setValue(Math.max(0, minOnly.totalInterest - avalanche.totalInterest));
 
-    // Update per-debt payoff months (C2:D5)
+    // Write convergence flags for display formulas
+    engineSheet.getRange("I20").setValue(snowball.converged ? 1 : 0);
+    engineSheet.getRange("J20").setValue(avalanche.converged ? 1 : 0);
+
+    // Update per-debt payoff months (C2:D5) and convergence (I2:J5)
     for (let i = 0; i < debts.length; i++) {
       engineSheet.getRange(`C${i + 2}`).setValue(snowball.payoffMonths[i]);
       engineSheet.getRange(`D${i + 2}`).setValue(avalanche.payoffMonths[i]);
+      engineSheet.getRange(`I${i + 2}`).setValue(snowball.convergedPerDebt[i] ? 1 : 0);
+      engineSheet.getRange(`J${i + 2}`).setValue(avalanche.convergedPerDebt[i] ? 1 : 0);
     }
 
     Logger.log("Debt simulation recalculated: Snowball=" + snowball.totalMonths + "mo, Avalanche=" + avalanche.totalMonths + "mo");
