@@ -38,13 +38,13 @@ function onOpen() {
  */
 function showAbout() {
   SpreadsheetApp.getUi().alert(
-    "Budget Pro 2026 — by Just Money",
+    "Budget Pro 2026 — by your buddy who knows about money",
     "Version 2.0.0\n\n" +
     "Premium financial tools you own once.\n" +
     "No subscriptions, no guilt, no BS.\n\n" +
     "Features: NPER scenario planning, amortization simulation, " +
     "inflation modeling, and spendable budgeting.\n\n" +
-    "Built with love by Just Money.",
+    "Built with love by your buddy who knows about money.",
     SpreadsheetApp.getUi().ButtonSet.OK
   );
 }
@@ -163,7 +163,7 @@ function buildStartHereTab(sheet) {
   const lightBg = "#E8F5E9";       // Light Sage
 
   // BRAND
-  sheet.getRange("A1").setValue("JUST MONEY")
+  sheet.getRange("A1").setValue("YOUR BUDDY WHO KNOWS ABOUT MONEY")
     .setFontSize(10).setFontWeight("bold").setFontColor(accentColor)
     .setLetterSpacing(2);
 
@@ -216,7 +216,7 @@ function buildStartHereTab(sheet) {
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
 
   // FOOTER
-  sheet.getRange("A23").setValue("Built with love by Just Money")
+  sheet.getRange("A23").setValue("Built with love by your buddy who knows about money")
     .setFontSize(9).setFontStyle("italic").setFontColor(SECONDARY_COLOR);
 
   // FORMATTING
@@ -1544,8 +1544,8 @@ function buildInstructionsTab(sheet) {
 
   // NEED HELP
   sheet.getRange("A179").setValue("✦ NEED HELP?").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A180").setValue("Questions? Message me on Etsy. I respond within 48 hours.").setFontSize(10);
-  sheet.getRange("A181").setValue("30-day money-back guarantee.").setFontSize(10);
+  sheet.getRange("A180").setValue("Questions? Contact support with your order confirmation. We respond within 48 hours.").setFontSize(10);
+  sheet.getRange("A181").setValue("30-day money-back guarantee — no questions asked.").setFontSize(10);
 
   // FORMATTING
   sheet.setColumnWidth(1, 400);

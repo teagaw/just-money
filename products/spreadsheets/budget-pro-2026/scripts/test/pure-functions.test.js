@@ -547,6 +547,39 @@ assertEqual(maxMonthsResult.converged, true,
 assertEqual(maxMonthsResult.convergedPerDebt[0], true,
   'MAX_MONTHS boundary: per-debt converged is true');
 
+// ─── getColumnLetter edge cases ───
+
+console.log('\ngetColumnLetter — edge cases');
+
+assertEqual(getColumnLetter(0), '', 'column 0 returns empty string');
+assertEqual(getColumnLetter(256), 'IV', 'column 256 → IV');
+assertEqual(getColumnLetter(702), 'ZZ', 'column 702 → ZZ');
+
+// ─── simulatePayoff — negative balance edge case ───
+
+console.log('\nsimulatePayoff — negative balance edge case');
+
+const negBalanceDebt = [{ name: 'Neg', balance: -100, apr: 0.12, minPayment: 50, extraPayment: 0 }];
+const negBalanceResult = simulatePayoff(negBalanceDebt, 'snowball');
+
+assertEqual(negBalanceResult.totalMonths, 1, 'negative balance → 1 month (immediately paid off)');
+assertEqual(negBalanceResult.totalInterest, 0, 'negative balance → 0 interest');
+assertEqual(negBalanceResult.converged, true, 'negative balance → converged (trivially)');
+
+// ─── simulatePayoff — per-debt interest rounding ───
+
+console.log('\nsimulatePayoff — per-debt interest is integer');
+
+const roundingDebt = [{ name: 'Card', balance: 3333, apr: 0.17, minPayment: 88, extraPayment: 0 }];
+const roundingResult = simulatePayoff(roundingDebt, 'snowball');
+
+assertEqual(typeof roundingResult.perDebtInterest[0], 'number',
+  'per-debt interest is a number');
+assertEqual(Number.isInteger(roundingResult.perDebtInterest[0]), true,
+  'per-debt interest is integer (Math.round applied)');
+assertEqual(roundingResult.totalInterest, roundingResult.perDebtInterest[0],
+  'totalInterest equals per-debt interest for single debt');
+
 // ─── Summary ───
 
 console.log(`\n${passed + failed} tests: ${passed} passed, ${failed} failed\n`);
