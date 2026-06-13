@@ -458,7 +458,7 @@ function buildEngineTab(sheet) {
 
   // A2: Visible warning when income <= expenses
   sheet.getRange("A2").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ WARNING: Income must exceed expenses for these results to be meaningful","")'
+    '=IF(\'Scenario Engine\'!B6<=\'Scenario Engine\'!B7,"⚠ WARNING: Income must exceed expenses for these results to be meaningful","")'
   ).setFontWeight("bold").setFontSize(11).setFontColor("#DC2626");
 
   sheet.getRange("A3").setValue("✦ PAYOFF CALCULATOR FORMULAS").setFontWeight("bold");
@@ -466,7 +466,7 @@ function buildEngineTab(sheet) {
   // B2: Months to debt-free (NPER for debt payoff)
   sheet.getRange("A4").setValue("Months to freedom");
   sheet.getRange("B2").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IF(\'Scenario Engine\'!B7=0,ROUNDUP((\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)/(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),0),IFERROR(ABS(ROUNDUP(NPER((\'Scenario Engine\'!B7-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0)),"Check inputs"))))'
+    '=IF(\'Scenario Engine\'!B6<=\'Scenario Engine\'!B7,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP((\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)/(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),0),IFERROR(ABS(ROUNDUP(NPER((\'Scenario Engine\'!B9-\'Scenario Engine\'!B12)/12,-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),(\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)),0)),"Check inputs"))))'
   );
 
   // B3: Freedom date
@@ -478,7 +478,7 @@ function buildEngineTab(sheet) {
   // B4: Total interest saved = (min months − strategy months) × payment
   sheet.getRange("A6").setValue("Interest saved");
   sheet.getRange("B4").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,0,IFERROR(MAX(0,B7-B22),0))'
+    '=IF(\'Scenario Engine\'!B6<=\'Scenario Engine\'!B7,0,IFERROR(MAX(0,B7-B22),0))'
   );
 
   sheet.getRange("A7").setValue("✦ COMPARISON FORMULAS").setFontWeight("bold");
@@ -486,13 +486,13 @@ function buildEngineTab(sheet) {
   // B6: Minimum-only months (debt payoff with minimum payments only)
   sheet.getRange("A8").setValue("Min-only months");
   sheet.getRange("B6").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IF(\'Scenario Engine\'!B7=0,ROUNDUP(\'Scenario Engine\'!B8/\'Scenario Engine\'!B9,0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-\'Scenario Engine\'!B9,\'Scenario Engine\'!B8),0)),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP(\'Scenario Engine\'!B10/\'Scenario Engine\'!B11,0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-\'Scenario Engine\'!B11,\'Scenario Engine\'!B10),0)),"Check inputs")))'
   );
 
   // B7: Minimum-only interest
   sheet.getRange("A9").setValue("Min-only interest");
   sheet.getRange("B7").setFormula(
-    '=IF(B6="Already free!",0,IF(B6="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B9-\'Scenario Engine\'!B8,0)))'
+    '=IF(B6="Already free!",0,IF(B6="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B11-\'Scenario Engine\'!B10,0)))'
   );
 
   // B8: Minimum-only freedom date
@@ -502,37 +502,37 @@ function buildEngineTab(sheet) {
   );
 
   // B9: Extra custom #1 months (minimum payment + custom #1 extra)
-  sheet.getRange("A11").setFormula("=\"Extra $\"&'Scenario Engine'!B11&\" months\"");
+  sheet.getRange("A11").setFormula("=\"Extra $\"&'Scenario Engine'!B13&\" months\"");
   sheet.getRange("B9").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IF(\'Scenario Engine\'!B7=0,ROUNDUP(\'Scenario Engine\'!B8/(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),\'Scenario Engine\'!B8),0)),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP(\'Scenario Engine\'!B10/(\'Scenario Engine\'!B11+\'Scenario Engine\'!B13),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B11+\'Scenario Engine\'!B13),\'Scenario Engine\'!B10),0)),"Check inputs")))'
   );
 
   // B10: Extra custom #1 interest saved (vs min-only baseline)
-  sheet.getRange("A12").setFormula("=\"Extra $\"&'Scenario Engine'!B11&\" saved\"");
+  sheet.getRange("A12").setFormula("=\"Extra $\"&'Scenario Engine'!B13&\" saved\"");
   sheet.getRange("B10").setFormula(
-    '=IF(B9="Already free!",0,IF(B9="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B9-B9*(\'Scenario Engine\'!B9+\'Scenario Engine\'!B11),0)))'
+    '=IF(B9="Already free!",0,IF(B9="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B11-B9*(\'Scenario Engine\'!B11+\'Scenario Engine\'!B13),0)))'
   );
 
   // B11: Extra custom #1 freedom date
-  sheet.getRange("A13").setFormula("=\"Extra $\"&'Scenario Engine'!B11&\" freedom date\"");
+  sheet.getRange("A13").setFormula("=\"Extra $\"&'Scenario Engine'!B13&\" freedom date\"");
   sheet.getRange("B11").setFormula(
     '=IF(B9="Already free!","Already free!",IF(B9="Check inputs","N/A",IF(B9=0,"120+ months",IFERROR(EDATE(TODAY(),B9),"N/A"))))'
   );
 
   // B12: Extra custom #2 months (minimum payment + custom #2 extra)
-  sheet.getRange("A14").setFormula("=\"Extra $\"&'Scenario Engine'!B12&\" months\"");
+  sheet.getRange("A14").setFormula("=\"Extra $\"&'Scenario Engine'!B14&\" months\"");
   sheet.getRange("B12").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IF(\'Scenario Engine\'!B7=0,ROUNDUP(\'Scenario Engine\'!B8/(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),\'Scenario Engine\'!B8),0)),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP(\'Scenario Engine\'!B10/(\'Scenario Engine\'!B11+\'Scenario Engine\'!B14),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B11+\'Scenario Engine\'!B14),\'Scenario Engine\'!B10),0)),"Check inputs")))'
   );
 
   // B13: Extra custom #2 interest saved (vs min-only baseline)
-  sheet.getRange("A15").setFormula("=\"Extra $\"&'Scenario Engine'!B12&\" saved\"");
+  sheet.getRange("A15").setFormula("=\"Extra $\"&'Scenario Engine'!B14&\" saved\"");
   sheet.getRange("B13").setFormula(
-    '=IF(B12="Already free!",0,IF(B12="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B9-B12*(\'Scenario Engine\'!B9+\'Scenario Engine\'!B12),0)))'
+    '=IF(B12="Already free!",0,IF(B12="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B11-B12*(\'Scenario Engine\'!B11+\'Scenario Engine\'!B14),0)))'
   );
 
   // B14: Extra custom #2 freedom date
-  sheet.getRange("A16").setFormula("=\"Extra $\"&'Scenario Engine'!B12&\" freedom date\"");
+  sheet.getRange("A16").setFormula("=\"Extra $\"&'Scenario Engine'!B14&\" freedom date\"");
   sheet.getRange("B14").setFormula(
     '=IF(B12="Already free!","Already free!",IF(B12="Check inputs","N/A",IF(B12=0,"120+ months",IFERROR(EDATE(TODAY(),B12),"N/A"))))'
   );
@@ -622,7 +622,7 @@ function buildEngineTab(sheet) {
   sheet.getRange("B2").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B24").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B25").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
-  sheet.getRange("B32").setComment("Months to freedom using nominal APR (B7/12) instead of real rate ((B7-B10)/12). Same surplus & net position as B2 — only the rate differs.");
+  sheet.getRange("B32").setComment("Months to freedom using nominal APR (B9/12) instead of real rate ((B9-B12)/12). Same surplus & net position as B2 — only the rate differs.");
   sheet.getRange("B33").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
 
   sheet.getRange("A37").setValue("✦ SENSITIVITY TABLE").setFontWeight("bold");
