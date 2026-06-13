@@ -583,7 +583,7 @@ function buildEngineTab(sheet) {
 
   // B29: User's entered APR
   sheet.getRange("A29").setValue("User's entered APR");
-  sheet.getRange("B29").setFormula("='Scenario Engine'!B7");
+  sheet.getRange("B29").setFormula("='Scenario Engine'!B9");
 
   // B30: Match check
   sheet.getRange("A30").setValue("Match check");
@@ -593,17 +593,17 @@ function buildEngineTab(sheet) {
 
   sheet.getRange("A32").setValue("✦ INFLATION-ADJUSTED").setFontWeight("bold");
 
-  // B32: Months to debt-free using nominal APR (B7) instead of real rate (B7-B10).
+  // B32: Months to debt-free using nominal APR (B9) instead of real rate (B9-B12).
   // Same surplus and net position as B2 — only the rate differs.
   sheet.getRange("A33").setValue("Nominal rate (no inflation)");
   sheet.getRange("B32").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IF(\'Scenario Engine\'!B7=0,ROUNDUP((\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)/(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0)),"N/A")))'
+    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP((\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)/(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),(\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)),0)),"N/A")))'
   );
 
   // B33: Inflation-adjusted interest (real-rate payment × months − debt)
   sheet.getRange("A34").setValue("Inflation-adjusted interest");
   sheet.getRange("B33").setFormula(
-    '=IF(B32="Already free!",0,IF(B32="N/A","N/A",IFERROR(B32*\'Scenario Engine\'!B9-\'Scenario Engine\'!B8,0)))'
+    '=IF(B32="Already free!",0,IF(B32="N/A","N/A",IFERROR(B32*\'Scenario Engine\'!B11-\'Scenario Engine\'!B10,0)))'
   );
 
   // B34: Nominal rate freedom date
@@ -637,7 +637,7 @@ function buildEngineTab(sheet) {
     // Months — debt payoff with minimum payment + extra
     sheet.getRange(`A${row}`).setValue(`Extra $${extra}/month months`);
     sheet.getRange(`B${row}`).setFormula(
-      `=IF('Scenario Engine'!B8<=0,"Already free!",IF('Scenario Engine'!B7=0,ROUNDUP('Scenario Engine'!B8/('Scenario Engine'!B9+${extra}),0),IFERROR(ABS(ROUNDUP(NPER('Scenario Engine'!B7/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8),0)),"N/A")))`
+      `=IF('Scenario Engine'!B10<=0,"Already free!",IF('Scenario Engine'!B9=0,ROUNDUP('Scenario Engine'!B10/('Scenario Engine'!B11+${extra}),0),IFERROR(ABS(ROUNDUP(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+${extra}),'Scenario Engine'!B10),0)),"N/A")))`
     );
 
     // Interest — use EXACT NPER (not rounded) to ensure monotonicity.
@@ -645,7 +645,7 @@ function buildEngineTab(sheet) {
     // a higher-payment scenario into a worse total-payment bucket.
     sheet.getRange(`A${row + 1}`).setValue(`Extra $${extra}/month interest`);
     sheet.getRange(`B${row + 1}`).setFormula(
-      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IF('Scenario Engine'!B7=0,0,IFERROR(('Scenario Engine'!B9+${extra})*ABS(NPER('Scenario Engine'!B7/12,-('Scenario Engine'!B9+${extra}),'Scenario Engine'!B8))-'Scenario Engine'!B8,0))))`
+      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IF('Scenario Engine'!B9=0,0,IFERROR(('Scenario Engine'!B11+${extra})*ABS(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+${extra}),'Scenario Engine'!B10))-'Scenario Engine'!B10,0))))`
     );
 
     // Freedom date
@@ -710,7 +710,7 @@ function buildScenarioEngineTab(sheet) {
     const cell = sheet.getRange(`B${input.row}`);
 
     // Format as currency or percentage
-    const format = (input.row === 7 || input.row === 10) ? "0.00%" : "$#,##0";
+    const format = (input.row === 9 || input.row === 12) ? "0.00%" : "$#,##0";
     styleInputCell(cell, input.value, format);
 
     // Add helper note
@@ -762,13 +762,13 @@ function buildScenarioEngineTab(sheet) {
   sheet.getRange("A25").setValue("✦ INTEREST").setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A26").setValue("Interest this month:").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B24").setFormula("=IFERROR('Scenario Engine'!B8*'Scenario Engine'!B7/12,0)")
+  sheet.getRange("B24").setFormula("=IFERROR('Scenario Engine'!B10*'Scenario Engine'!B9/12,0)")
     .setNumberFormat("$#,##0").setFontSize(12).setFontWeight("bold").setBackground(resultBg);
   sheet.getRange("C24").setFormula("=IFERROR(\"→ ~\"&TEXT(B24*12,\"$#,##0\")&\"/yr\",\"\")")
     .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
-  // B9 DEPENDENCY GUARDRAIL
-  sheet.getRange("A25").setFormula("=IF(AND('Scenario Engine'!B8>0,'Scenario Engine'!B9=0),\"⚠ You have debt but no payment entered. Go to B9 and enter your monthly debt payment.\",\"\")")
+  // B11 DEPENDENCY GUARDRAIL
+  sheet.getRange("A25").setFormula("=IF(AND('Scenario Engine'!B10>0,'Scenario Engine'!B11=0),\"⚠ You have debt but no payment entered. Go to B11 and enter your monthly debt payment.\",\"\")")
     .setFontSize(10).setFontColor("#DC2626").setFontWeight("bold");
 
   // CROSS-TAB CHECK
@@ -779,7 +779,7 @@ function buildScenarioEngineTab(sheet) {
   sheet.getRange("B28").setFormula("=Engine!B28").setNumberFormat("0.00%").setFontSize(9);
 
   sheet.getRange("A29").setValue("Your entered APR:").setFontSize(9);
-  sheet.getRange("B29").setFormula("=B7").setNumberFormat("0.00%").setFontSize(9);
+  sheet.getRange("B29").setFormula("=B9").setNumberFormat("0.00%").setFontSize(9);
 
   sheet.getRange("A30").setValue("Match:").setFontSize(9).setFontWeight("bold");
   sheet.getRange("B30").setFormula("=Engine!B30").setFontSize(9).setFontWeight("bold");
@@ -799,10 +799,10 @@ function buildScenarioEngineTab(sheet) {
 
   // Comparison rows — all show TOTAL INTEREST PAID for each scenario
   const comparisons = [
-    { row: 35, label: "Minimum payments only", months: "=Engine!B6", interest: "=IFERROR(Engine!B6*B9-B8,0)", date: "=Engine!B8" },
-    { row: 36, labelFormula: "=\"Extra $\"&B11&\"/month\"", label: "Extra $/month #1", months: "=Engine!B9", interest: "=IFERROR(Engine!B9*(B9+B11)-B8,0)", date: "=Engine!B11" },
-    { row: 37, labelFormula: "=\"Extra $\"&B12&\"/month\"", label: "Extra $/month #2", months: "=Engine!B12", interest: "=IFERROR(Engine!B12*(B9+B12)-B8,0)", date: "=Engine!B14" },
-    { row: 38, label: "Match my scenario", months: "=B16", interest: "=IFERROR(Engine!B7-B18,0)", date: "=B17" },
+    { row: 35, label: "Minimum payments only", months: "=Engine!B6", interest: "=IFERROR(Engine!B6*B11-B10,0)", date: "=Engine!B8" },
+    { row: 36, labelFormula: "=\"Extra $\"&B13&\"/month\"", label: "Extra $/month #1", months: "=Engine!B9", interest: "=IFERROR(Engine!B9*(B11+B13)-B10,0)", date: "=Engine!B11" },
+    { row: 37, labelFormula: "=\"Extra $\"&B14&\"/month\"", label: "Extra $/month #2", months: "=Engine!B12", interest: "=IFERROR(Engine!B12*(B11+B14)-B10,0)", date: "=Engine!B14" },
+    { row: 38, label: "Match my scenario", months: "=B18", interest: "=IFERROR(Engine!B7-B20,0)", date: "=B19" },
     { row: 39, label: "Nominal rate (no inflation)", months: "=Engine!B32", interest: "=Engine!B33", date: "=Engine!B34" }
   ];
 
@@ -1586,7 +1586,7 @@ function buildSpendableTab(sheet) {
   sheet.getRange("A3").setValue("✦ SPENDABLE").setFontWeight("bold").setFontColor(accentColor);
 
   sheet.getRange("A4").setValue("You have").setFontSize(12).setFontColor(HEADER_COLOR);
-  sheet.getRange("B4").setFormula("=IFERROR(MAX(0,('Scenario Engine'!B4-'Scenario Engine'!B5-'Scenario Engine'!B9)*12/52),0)")
+  sheet.getRange("B4").setFormula("=IFERROR(MAX(0,('Scenario Engine'!B6-'Scenario Engine'!B7-'Scenario Engine'!B11)*12/52),0)")
     .setFontSize(18).setFontWeight("bold").setFontColor(accentColor)
     .setNumberFormat("$#,##0");
   sheet.getRange("C4").setValue("this week").setFontSize(12).setFontColor(HEADER_COLOR);
@@ -1603,17 +1603,17 @@ function buildSpendableTab(sheet) {
 
   // Monthly income
   sheet.getRange("A9").setValue("Monthly income").setFontSize(10).setFontColor(HEADER_COLOR);
-  sheet.getRange("B9").setFormula("=MAX(0,'Scenario Engine'!B4)")
+  sheet.getRange("B9").setFormula("=MAX(0,'Scenario Engine'!B6)")
     .setNumberFormat("$#,##0").setFontSize(10).setFontWeight("bold");
 
   // Minus expenses
   sheet.getRange("A10").setValue("Minus expenses").setFontSize(10).setFontColor(HEADER_COLOR);
-  sheet.getRange("B10").setFormula("=MAX(0,'Scenario Engine'!B5)")
+  sheet.getRange("B10").setFormula("=MAX(0,'Scenario Engine'!B7)")
     .setNumberFormat("$#,##0").setFontSize(10);
 
   // Minus debt payment
   sheet.getRange("A11").setValue("Minus debt payment").setFontSize(10).setFontColor(HEADER_COLOR);
-  sheet.getRange("B11").setFormula("=MAX(0,'Scenario Engine'!B9)")
+  sheet.getRange("B11").setFormula("=MAX(0,'Scenario Engine'!B11)")
     .setNumberFormat("$#,##0").setFontSize(10);
 
   // Equals monthly spendable
