@@ -10,7 +10,7 @@
 
 function simulatePayoff(debts, strategy) {
   if (!debts || debts.length === 0) {
-    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], perDebtMonths: [], payoffMonths: [] };
+    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], perDebtMonths: [], payoffMonths: [], converged: true, convergedPerDebt: [] };
   }
 
   const MAX_MONTHS = 120;
@@ -25,6 +25,7 @@ function simulatePayoff(debts, strategy) {
   let perDebtInterest = new Array(debts.length).fill(0);
   let perDebtMonths = new Array(debts.length).fill(0);
   let payoffMonths = new Array(debts.length).fill(0);
+  let convergedPerDebt = new Array(debts.length).fill(false);
 
   for (let month = 1; month <= MAX_MONTHS; month++) {
     let targetIdx = -1;
@@ -74,6 +75,7 @@ function simulatePayoff(debts, strategy) {
         if (payoffMonths[i] === 0) {
           payoffMonths[i] = month;
         }
+        convergedPerDebt[i] = true;
         totalExtra += minimums[i];
       }
     }
@@ -83,13 +85,17 @@ function simulatePayoff(debts, strategy) {
     if (balances.every(b => b <= 0)) break;
   }
 
+  const converged = balances.every(b => b <= 0);
+
   return {
     totalMonths: months,
     totalInterest: Math.round(totalInterest),
     totalPaid: Math.round(totalPaid),
     perDebtInterest: perDebtInterest.map(i => Math.round(i)),
     perDebtMonths: perDebtMonths,
-    payoffMonths: payoffMonths
+    payoffMonths: payoffMonths,
+    converged: converged,
+    convergedPerDebt: convergedPerDebt
   };
 }
 
