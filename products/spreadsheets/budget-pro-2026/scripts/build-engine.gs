@@ -307,28 +307,34 @@ const SECONDARY_COLOR = "#64748B";
  * Adds data validation to ensure numeric input.
  */
 function styleInputCell(cell, value, format, validation) {
+  // Always set value first — validation failure must not prevent data population
   cell.setValue(value)
     .setBackground(INPUT_BG)
     .setBorder(true, true, true, true, false, false, INPUT_BORDER, SpreadsheetApp.BorderStyle.SOLID)
     .setFontSize(10);
   if (format) cell.setNumberFormat(format);
   
-  // Add data validation if specified
+  // Add data validation if specified — wrapped in try/catch so validation failure
+  // doesn't prevent the value from being displayed
   if (validation) {
-    const rule = SpreadsheetApp.newDataValidation()
-      .setAllowInvalid(false)
-      .setHelpText(validation.helpText)
-      .build();
-    
-    if (validation.min !== undefined && validation.max !== undefined) {
-      rule.requireNumberBetween(validation.min, validation.max);
-    } else if (validation.min !== undefined) {
-      rule.requireNumberGreaterThan(validation.min - 1);
-    } else if (validation.max !== undefined) {
-      rule.requireNumberLessThan(validation.max + 1);
+    try {
+      const rule = SpreadsheetApp.newDataValidation()
+        .setAllowInvalid(false)
+        .setHelpText(validation.helpText)
+        .build();
+      
+      if (validation.min !== undefined && validation.max !== undefined) {
+        rule.requireNumberBetween(validation.min, validation.max);
+      } else if (validation.min !== undefined) {
+        rule.requireNumberGreaterThan(validation.min - 1);
+      } else if (validation.max !== undefined) {
+        rule.requireNumberLessThan(validation.max + 1);
+      }
+      
+      cell.setDataValidation(rule);
+    } catch (e) {
+      Logger.log("Data validation skipped for cell: " + e.message);
     }
-    
-    cell.setDataValidation(rule);
   }
 }
 
@@ -1031,20 +1037,24 @@ function buildDebtPayoffTab(sheet) {
   ];
 
   debts.forEach((debt, i) => {
-    const row = 5 + i;
-    sheet.getRange(`A${row}`).setValue(debt.name).setFontSize(10);
+    try {
+      const row = 5 + i;
+      sheet.getRange(`A${row}`).setValue(debt.name).setFontSize(10);
 
-    const balanceCell = sheet.getRange(`B${row}`);
-    styleInputCell(balanceCell, debt.balance, "$#,##0", { min: 0, helpText: "Enter a positive balance (e.g., 2800)" });
+      const balanceCell = sheet.getRange(`B${row}`);
+      styleInputCell(balanceCell, debt.balance, "$#,##0", { min: 0, helpText: "Enter a positive balance (e.g., 2800)" });
 
-    const aprCell = sheet.getRange(`C${row}`);
-    styleInputCell(aprCell, debt.apr, "0.00%", { min: 0, max: 1, helpText: "Enter as decimal (e.g., 0.2499 for 24.99%)" });
+      const aprCell = sheet.getRange(`C${row}`);
+      styleInputCell(aprCell, debt.apr, "0.00%", { min: 0, max: 1, helpText: "Enter as decimal (e.g., 0.2499 for 24.99%)" });
 
-    const minCell = sheet.getRange(`D${row}`);
-    styleInputCell(minCell, debt.min, "$#,##0", { min: 0, helpText: "Enter a positive payment (e.g., 85)" });
+      const minCell = sheet.getRange(`D${row}`);
+      styleInputCell(minCell, debt.min, "$#,##0", { min: 0, helpText: "Enter a positive payment (e.g., 85)" });
 
-    const extraCell = sheet.getRange(`E${row}`);
-    styleInputCell(extraCell, debt.extra, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 200)" });
+      const extraCell = sheet.getRange(`E${row}`);
+      styleInputCell(extraCell, debt.extra, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 200)" });
+    } catch (e) {
+      Logger.log("Error writing debt " + (i + 1) + ": " + e.message);
+    }
   });
 
   // Totals row
@@ -1167,37 +1177,41 @@ function buildGoalsTab(sheet) {
   ];
 
   goals.forEach((goal, i) => {
-    const row = 6 + i;
+    try {
+      const row = 6 + i;
 
-    // Goal name
-    sheet.getRange(`A${row}`).setValue(goal.name).setFontSize(10);
+      // Goal name
+      sheet.getRange(`A${row}`).setValue(goal.name).setFontSize(10);
 
-    // Target amount (input)
-    const targetCell = sheet.getRange(`B${row}`);
-    styleInputCell(targetCell, goal.target, "$#,##0", { min: 1, helpText: "Enter a positive target (e.g., 5000)" });
+      // Target amount (input)
+      const targetCell = sheet.getRange(`B${row}`);
+      styleInputCell(targetCell, goal.target, "$#,##0", { min: 1, helpText: "Enter a positive target (e.g., 5000)" });
 
-    // Current balance (input)
-    const currentCell = sheet.getRange(`C${row}`);
-    styleInputCell(currentCell, goal.current, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 1750)" });
+      // Current balance (input)
+      const currentCell = sheet.getRange(`C${row}`);
+      styleInputCell(currentCell, goal.current, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 1750)" });
 
-    // Monthly contribution (input)
-    const monthlyCell = sheet.getRange(`D${row}`);
-    styleInputCell(monthlyCell, goal.monthly, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 200)" });
+      // Monthly contribution (input)
+      const monthlyCell = sheet.getRange(`D${row}`);
+      styleInputCell(monthlyCell, goal.monthly, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 200)" });
 
-    // Months to goal (NPER formula) — shows 0 when goal already reached
-    sheet.getRange(`E${row}`).setFormula(
-      `=IFERROR(IF(D${row}<=0,"N/A",IF(C${row}>=B${row},0,ABS(ROUNDUP(NPER($B$2/12,-D${row},-C${row},B${row}),0)))),"Check inputs")`
-    ).setFontSize(10).setFontWeight("bold");
+      // Months to goal (NPER formula) — shows 0 when goal already reached
+      sheet.getRange(`E${row}`).setFormula(
+        `=IFERROR(IF(D${row}<=0,"N/A",IF(C${row}>=B${row},0,ABS(ROUNDUP(NPER($B$2/12,-D${row},-C${row},B${row}),0)))),"Check inputs")`
+      ).setFontSize(10).setFontWeight("bold");
 
-    // Progress (percentage formula)
-    sheet.getRange(`F${row}`).setFormula(
-      `=IFERROR(MIN(C${row}/B${row},1),0)`
-    ).setNumberFormat("0%").setFontSize(10).setFontWeight("bold");
+      // Progress (percentage formula)
+      sheet.getRange(`F${row}`).setFormula(
+        `=IFERROR(MIN(C${row}/B${row},1),0)`
+      ).setNumberFormat("0%").setFontSize(10).setFontWeight("bold");
 
-    // Target date (EDATE formula) - shows "GOAL REACHED!" when progress is 100%
-    sheet.getRange(`G${row}`).setFormula(
-      `=IFERROR(IF(F${row}>=1,"GOAL REACHED!",EDATE(TODAY(),E${row})),"Check inputs")`
-    ).setFontSize(10).setFontWeight("bold");
+      // Target date (EDATE formula) - shows "GOAL REACHED!" when progress is 100%
+      sheet.getRange(`G${row}`).setFormula(
+        `=IFERROR(IF(F${row}>=1,"GOAL REACHED!",EDATE(TODAY(),E${row})),"Check inputs")`
+      ).setFontSize(10).setFontWeight("bold");
+    } catch (e) {
+      Logger.log("Error writing goal " + (i + 1) + ": " + e.message);
+    }
   });
 
   // SEPARATOR
