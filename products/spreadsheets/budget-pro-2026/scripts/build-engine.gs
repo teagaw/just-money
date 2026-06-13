@@ -768,7 +768,7 @@ function buildScenarioEngineTab(sheet) {
     .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // B11 DEPENDENCY GUARDRAIL
-  sheet.getRange("A25").setFormula("=IF(AND('Scenario Engine'!B10>0,'Scenario Engine'!B11=0),\"⚠ You have debt but no payment entered. Go to B11 and enter your monthly debt payment.\",\"\")")
+  sheet.getRange("A26").setFormula("=IF(AND('Scenario Engine'!B10>0,'Scenario Engine'!B11=0),\"⚠ You have debt but no payment entered. Go to B11 and enter your monthly debt payment.\",\"\")")
     .setFontSize(10).setFontColor("#DC2626").setFontWeight("bold");
 
   // CROSS-TAB CHECK
@@ -1051,6 +1051,7 @@ function buildDebtPayoffTab(sheet) {
   sheet.getRange("A9").setValue("—").setFontColor(SECONDARY_COLOR);
   sheet.getRange("A10").setValue("Total").setFontWeight("bold").setFontSize(10);
   sheet.getRange("B10").setFormula("=SUM(B5:B8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("D10").setFormula("=SUM(D5:D8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
   sheet.getRange("E10").setFormula("=SUM(E5:E8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
 
   // PAYOFF COMPARISON
@@ -1183,9 +1184,9 @@ function buildGoalsTab(sheet) {
     const monthlyCell = sheet.getRange(`D${row}`);
     styleInputCell(monthlyCell, goal.monthly, "$#,##0", { min: 0, helpText: "Enter 0 or more (e.g., 200)" });
 
-    // Months to goal (NPER formula)
+    // Months to goal (NPER formula) — shows 0 when goal already reached
     sheet.getRange(`E${row}`).setFormula(
-      `=IFERROR(IF(D${row}<=0,"N/A",ABS(ROUNDUP(NPER($B$2/12,-D${row},-C${row},B${row}),0))),"Check inputs")`
+      `=IFERROR(IF(D${row}<=0,"N/A",IF(C${row}>=B${row},0,ABS(ROUNDUP(NPER($B$2/12,-D${row},-C${row},B${row}),0)))),"Check inputs")`
     ).setFontSize(10).setFontWeight("bold");
 
     // Progress (percentage formula)
@@ -1195,7 +1196,7 @@ function buildGoalsTab(sheet) {
 
     // Target date (EDATE formula) - shows "GOAL REACHED!" when progress is 100%
     sheet.getRange(`G${row}`).setFormula(
-      `=IFERROR(IF(F${row}>=1,"GOAL REACHED!",IF(F${row}="N/A","N/A",EDATE(TODAY(),E${row}))),"Check inputs")`
+      `=IFERROR(IF(F${row}>=1,"GOAL REACHED!",EDATE(TODAY(),E${row})),"Check inputs")`
     ).setFontSize(10).setFontWeight("bold");
   });
 
@@ -1775,42 +1776,42 @@ function addDebtPayoffValidation(sheet) {
 }
 
 function addScenarioEngineConditionalFormatting(sheet) {
-  // B16: Months < 12 = green, 12-36 = yellow, 36+ = red
+  // B18: Months < 12 = green, 12-36 = yellow, 36+ = red
   const monthsRule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberLessThan(12)
     .setBackground("#DCFCE7")
     .setFontColor("#0F973C")
-    .setRanges([sheet.getRange("B16")])
+    .setRanges([sheet.getRange("B18")])
     .build();
 
   const monthsRule2 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberBetween(12, 35)
     .setBackground("#FEF9C3")
     .setFontColor("#A16207")
-    .setRanges([sheet.getRange("B16")])
+    .setRanges([sheet.getRange("B18")])
     .build();
 
   const monthsRule3 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberGreaterThanOrEqualTo(36)
     .setBackground("#FEE2E2")
     .setFontColor("#DC2626")
-    .setRanges([sheet.getRange("B16")])
-    .build();
-
-  // B18: Interest saved > 0 = green
-  const interestRule = SpreadsheetApp.newConditionalFormatRule()
-    .whenNumberGreaterThan(0)
-    .setFontColor("#10B981")
     .setRanges([sheet.getRange("B18")])
     .build();
 
-  // B21: Emergency fund health score
+  // B20: Interest saved > 0 = green
+  const interestRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberGreaterThan(0)
+    .setFontColor("#10B981")
+    .setRanges([sheet.getRange("B20")])
+    .build();
+
+  // B23: Emergency fund health score
   // <1 = red bg
   const emergencyRule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberLessThan(1)
     .setBackground("#FEE2E2")
     .setFontColor("#DC2626")
-    .setRanges([sheet.getRange("B21")])
+    .setRanges([sheet.getRange("B23")])
     .build();
 
   // 1-3 = yellow bg
@@ -1818,7 +1819,7 @@ function addScenarioEngineConditionalFormatting(sheet) {
     .whenNumberBetween(1, 2.9)
     .setBackground("#FEF9C3")
     .setFontColor("#A16207")
-    .setRanges([sheet.getRange("B21")])
+    .setRanges([sheet.getRange("B23")])
     .build();
 
   // >3 = green bg
@@ -1826,7 +1827,7 @@ function addScenarioEngineConditionalFormatting(sheet) {
     .whenNumberGreaterThanOrEqualTo(3)
     .setBackground("#DCFCE7")
     .setFontColor("#0F973C")
-    .setRanges([sheet.getRange("B21")])
+    .setRanges([sheet.getRange("B23")])
     .build();
 
   sheet.setConditionalFormatRules([monthsRule1, monthsRule2, monthsRule3, interestRule, emergencyRule1, emergencyRule2, emergencyRule3]);
@@ -1921,19 +1922,20 @@ function recalculateDebtSimulation() {
     }
 
     // Read debt data from Debt Payoff tab (rows 5-8: B=balance, C=APR, D=min, E=extra)
+    // Pass ALL 4 debts to simulatePayoff (including zero-balance) so Engine rows 2-5
+    // stay aligned with Debt Payoff rows 5-8. simulatePayoff already handles zero balances.
     const debtRange = debtSheet.getRange("B5:E8").getValues();
     const debts = debtRange
-      .filter(row => row[0] && row[0] > 0) // skip empty/zero debts
-      .map(row => ({
+      .map((row, i) => ({
         name: "",
-        balance: row[0],
-        apr: row[1],
-        minPayment: row[2],
+        balance: row[0] || 0,
+        apr: row[1] || 0,
+        minPayment: row[2] || 0,
         extraPayment: row[3] || 0
       }));
 
-    if (debts.length === 0) {
-      Logger.log("No debts found — setting simulation to 0");
+    if (debts.every(d => d.balance <= 0)) {
+      Logger.log("No debts with balance — setting simulation to 0");
       engineSheet.getRange("B20").setValue(0);
       engineSheet.getRange("B21").setValue(0);
       engineSheet.getRange("B22").setValue(0);
@@ -1942,6 +1944,11 @@ function recalculateDebtSimulation() {
       engineSheet.getRange("B25").setValue(0);
       engineSheet.getRange("I20").setValue(1); // trivially converged
       engineSheet.getRange("J20").setValue(1);
+      // Clear per-debt convergence flags
+      for (let i = 2; i <= 5; i++) {
+        engineSheet.getRange(`I${i}`).setValue(0);
+        engineSheet.getRange(`J${i}`).setValue(0);
+      }
       return;
     }
 
