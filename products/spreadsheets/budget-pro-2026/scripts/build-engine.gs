@@ -38,13 +38,13 @@ function onOpen() {
  */
 function showAbout() {
   SpreadsheetApp.getUi().alert(
-    "Budget Pro 2026 — by your buddy who knows about money",
+    "Budget Pro 2026 — by Just Money",
     "Version 2.0.0\n\n" +
     "Premium financial tools you own once.\n" +
     "No subscriptions, no guilt, no BS.\n\n" +
     "Features: NPER scenario planning, amortization simulation, " +
     "inflation modeling, and spendable budgeting.\n\n" +
-    "Built with love by your buddy who knows about money.",
+    "Built with love by Just Money.",
     SpreadsheetApp.getUi().ButtonSet.OK
   );
 }
@@ -163,7 +163,7 @@ function buildStartHereTab(sheet) {
   const lightBg = "#E8F5E9";       // Light Sage
 
   // BRAND
-  sheet.getRange("A1").setValue("YOUR BUDDY WHO KNOWS ABOUT MONEY")
+  sheet.getRange("A1").setValue("JUST MONEY")
     .setFontSize(10).setFontWeight("bold").setFontColor(accentColor)
     .setLetterSpacing(2);
 
@@ -216,7 +216,7 @@ function buildStartHereTab(sheet) {
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
 
   // FOOTER
-  sheet.getRange("A23").setValue("Built with love by your buddy who knows about money")
+  sheet.getRange("A23").setValue("Built with love by Just Money")
     .setFontSize(9).setFontStyle("italic").setFontColor(SECONDARY_COLOR);
 
   // FORMATTING
