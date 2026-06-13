@@ -1019,8 +1019,8 @@ function buildDebtPayoffTab(sheet) {
     const row = 20 + i;
     const engineRow = i + 2;
     sheet.getRange(`A${row}`).setValue(debt.name).setFontSize(10);
-    sheet.getRange(`B${row}`).setFormula(`=IF(Engine!C${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!C${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
-    sheet.getRange(`C${row}`).setFormula(`=IF(Engine!D${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!D${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
+    sheet.getRange(`B${row}`).setFormula(`=IF(Engine!I${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!C${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
+    sheet.getRange(`C${row}`).setFormula(`=IF(Engine!J${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!D${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
   });
 
   // DISCLAIMER
