@@ -808,14 +808,14 @@ function buildScenarioEngineTab(sheet) {
 
   // Sensitivity rows — reference Engine tab sensitivity formulas
   const sensitivityData = [
-    { row: 44, label: "$0/month", engineMonths: 38, engineInterest: 39, engineDate: 40 },
-    { row: 45, label: "$100/month", engineMonths: 41, engineInterest: 42, engineDate: 43 },
-    { row: 46, label: "$200/month", engineMonths: 44, engineInterest: 45, engineDate: 46 },
-    { row: 47, label: "$300/month", engineMonths: 47, engineInterest: 48, engineDate: 49 },
-    { row: 48, label: "$400/month", engineMonths: 50, engineInterest: 51, engineDate: 52 },
-    { row: 49, label: "$500/month", engineMonths: 53, engineInterest: 54, engineDate: 55 },
-    { row: 50, label: "$750/month", engineMonths: 56, engineInterest: 57, engineDate: 58 },
-    { row: 51, label: "$1,000/month", engineMonths: 59, engineInterest: 60, engineDate: 61 }
+    { row: 44, label: "$0/month", engineMonths: 32, engineInterest: 33, engineDate: 34 },
+    { row: 45, label: "$100/month", engineMonths: 35, engineInterest: 36, engineDate: 37 },
+    { row: 46, label: "$200/month", engineMonths: 38, engineInterest: 39, engineDate: 40 },
+    { row: 47, label: "$300/month", engineMonths: 41, engineInterest: 42, engineDate: 43 },
+    { row: 48, label: "$400/month", engineMonths: 44, engineInterest: 45, engineDate: 46 },
+    { row: 49, label: "$500/month", engineMonths: 47, engineInterest: 48, engineDate: 49 },
+    { row: 50, label: "$750/month", engineMonths: 50, engineInterest: 51, engineDate: 52 },
+    { row: 51, label: "$1,000/month", engineMonths: 53, engineInterest: 54, engineDate: 55 }
   ];
 
   sensitivityData.forEach(s => {
