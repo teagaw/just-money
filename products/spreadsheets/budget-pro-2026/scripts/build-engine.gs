@@ -880,7 +880,7 @@ function buildScenarioEngineTab(sheet) {
   addScenarioEngineConditionalFormatting(sheet);
 
   // Protection
-  protectRange(sheet, "B16:B18", "Results — auto-calculated");
+  protectRange(sheet, "B16:B20", "Results — auto-calculated");
   protectRange(sheet, "B35:D39", "Comparison table — auto-calculated");
 }
 
@@ -1653,8 +1653,8 @@ function buildSpendableTab(sheet) {
 }
 
 function addScenarioEngineValidation(sheet) {
-  // B4: Income > 0
-  sheet.getRange("B4").setDataValidation(
+  // B6: Income > 0
+  sheet.getRange("B6").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThan(0)
       .setAllowInvalid(false)
@@ -1662,8 +1662,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B5: Expenses > 0
-  sheet.getRange("B5").setDataValidation(
+  // B7: Expenses > 0
+  sheet.getRange("B7").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThan(0)
       .setAllowInvalid(false)
@@ -1671,8 +1671,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B6: Savings >= 0
-  sheet.getRange("B6").setDataValidation(
+  // B8: Savings >= 0
+  sheet.getRange("B8").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1680,8 +1680,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B7: APR 0-50%
-  sheet.getRange("B7").setDataValidation(
+  // B9: APR 0-50%
+  sheet.getRange("B9").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberBetween(0, 0.5)
       .setAllowInvalid(false)
@@ -1689,8 +1689,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B8: Debt >= 0
-  sheet.getRange("B8").setDataValidation(
+  // B10: Debt >= 0
+  sheet.getRange("B10").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1698,8 +1698,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B9: Payment >= 0
-  sheet.getRange("B9").setDataValidation(
+  // B11: Payment >= 0
+  sheet.getRange("B11").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1707,8 +1707,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B10: Inflation 0-15%
-  sheet.getRange("B10").setDataValidation(
+  // B12: Inflation 0-15%
+  sheet.getRange("B12").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberBetween(0, 0.15)
       .setAllowInvalid(false)
@@ -1716,8 +1716,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B11: Custom comparison #1 >= 0
-  sheet.getRange("B11").setDataValidation(
+  // B13: Custom comparison #1 >= 0
+  sheet.getRange("B13").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1725,8 +1725,8 @@ function addScenarioEngineValidation(sheet) {
       .build()
   );
 
-  // B12: Custom comparison #2 >= 0
-  sheet.getRange("B12").setDataValidation(
+  // B14: Custom comparison #2 >= 0
+  sheet.getRange("B14").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
