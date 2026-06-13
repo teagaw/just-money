@@ -906,15 +906,13 @@ function buildBudgetTrackerTab(sheet) {
   });
 
   // Expense categories
-  const expenseCategories = ["Housing", "Utilities", "Food", "Transport", "Entertainment", "Savings", "Debt payments", "Other"];
+  const expenseCategories = ["Housing", "Utilities", "Food", "Transport", "Entertainment", "Other"];
   const sampleExpenses = {
     "Housing": [1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800],
     "Utilities": [280, 310, 260, 290, 270, 300, 320, 310, 280, 260, 290, 300],
     "Food": [450, 520, 480, 500, 470, 510, 490, 460, 530, 480, 500, 520],
     "Transport": [160, 140, 180, 150, 170, 160, 140, 180, 150, 170, 160, 140],
     "Entertainment": [200, 150, 250, 180, 220, 190, 210, 160, 240, 200, 180, 220],
-    "Savings": [500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500, 500],
-    "Debt payments": [490, 490, 490, 490, 490, 490, 490, 490, 490, 490, 490, 490],
     "Other": [100, 80, 120, 90, 110, 100, 80, 120, 90, 110, 100, 80]
   };
 
@@ -931,7 +929,7 @@ function buildBudgetTrackerTab(sheet) {
   sheet.getRange("A22").setValue("Total expenses").setFontWeight("bold").setFontSize(10);
   months.forEach((_, i) => {
     const col = i + 2;
-    sheet.getRange(22, col).setFormula(`=SUM(${sheet.getRange(13, col).getA1Notation()}:${sheet.getRange(20, col).getA1Notation()})`)
+    sheet.getRange(22, col).setFormula(`=SUM(${sheet.getRange(13, col).getA1Notation()}:${sheet.getRange(18, col).getA1Notation()})`)
       .setNumberFormat("$#,##0").setFontWeight("bold")
       .setBorder(true, false, false, false, false, false);
   });
@@ -1381,7 +1379,7 @@ function buildInstructionsTab(sheet) {
     "How to use it:",
     "- Fill in each month's columns (B through M)",
     "- Enter your income in rows 5-7",
-    "- Enter your expenses in rows 13-20",
+    "- Enter your expenses in rows 13-18",
     "- Totals and savings rate auto-calculate",
     "",
     "Tips:",
