@@ -66,6 +66,12 @@ function buildBudgetPro2026() {
     return;
   }
 
+  // Clean up ghost tabs left behind by previous failed builds
+  const ghostsCleaned = cleanGhostTabs(ss);
+  if (ghostsCleaned > 0) {
+    Logger.log("Cleaned " + ghostsCleaned + " ghost tab(s) from previous build");
+  }
+
   ss.rename("Budget Pro 2026");
 
   // ── IDEMPOTENCY GUARD ──
@@ -263,6 +269,33 @@ function createTabs(ss) {
   return { startHere, scenario, budget, goals, debt, instructions, spendable, engine };
 }
 
+/**
+ * Removes leftover ghost tabs from previous failed builds.
+ * safeReplace() creates _TEMP_ prefixed sheets; if the script errors mid-rebuild,
+ * those sheets persist permanently and confuse buyers.  This function cleans them up
+ * at the start of each build.
+ *
+ * @param {GoogleAppsScript.Spreadsheet.Spreadsheet} ss - The active spreadsheet
+ * @returns {number} Count of deleted ghost tabs
+ */
+function cleanGhostTabs(ss) {
+  const sheets = ss.getSheets();
+  let cleaned = 0;
+  for (const sheet of sheets) {
+    const name = sheet.getName();
+    if (name.startsWith('_TEMP_') || name.startsWith('_DEL_')) {
+      try {
+        ss.deleteSheet(sheet);
+        Logger.log('Cleaned ghost tab: ' + name);
+        cleaned++;
+      } catch (e) {
+        Logger.log('Could not delete ghost tab: ' + name + ' — ' + e.message);
+      }
+    }
+  }
+  return cleaned;
+}
+
 // Helper constants and functions
 const INPUT_BG = "#DCFCE7";
 const INPUT_BORDER = "#0D7C5F";  // Money Green
@@ -414,7 +447,7 @@ function buildEngineTab(sheet) {
   // B2: Months to debt-free (NPER for debt payoff)
   sheet.getRange("A4").setValue("Months to freedom");
   sheet.getRange("B2").setFormula(
-    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B7-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
+    '=IF(\'Scenario Engine\'!B4<=\'Scenario Engine\'!B5,"⚠ N/A — Income must exceed expenses",IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER((\'Scenario Engine\'!B7-\'Scenario Engine\'!B10)/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"Check inputs")))'
   );
 
   // B3: Freedom date
@@ -541,10 +574,11 @@ function buildEngineTab(sheet) {
 
   sheet.getRange("A32").setValue("── INFLATION-ADJUSTED ──").setFontWeight("bold");
 
-  // B32: Nominal rate (no inflation) — same surplus + net position as B2
+  // B32: Months to debt-free using nominal APR (B7) instead of real rate (B7-B10).
+  // Same surplus and net position as B2 — only the rate differs.
   sheet.getRange("A33").setValue("Nominal rate (no inflation)");
   sheet.getRange("B32").setFormula(
-    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
+    '=IF(\'Scenario Engine\'!B8<=0,"Already free!",IFERROR(ROUNDUP(NPER(\'Scenario Engine\'!B7/12,-(\'Scenario Engine\'!B4-\'Scenario Engine\'!B5-\'Scenario Engine\'!B9),(\'Scenario Engine\'!B6-\'Scenario Engine\'!B8)),0),"N/A"))'
   );
 
   // B33: Inflation-adjusted interest (real-rate payment × months − debt)
@@ -561,7 +595,7 @@ function buildEngineTab(sheet) {
 
   // Nominal rate comparison note
   sheet.getRange("A36").setValue("⚠ Note:").setFontWeight("bold").setFontColor("#666666").setFontSize(9);
-  sheet.getRange("B36").setValue("Nominal rate (no inflation) — same surplus + net position as B2")
+  sheet.getRange("B36").setValue("Nominal APR (no inflation adjustment) — same surplus & net position as B2; only the rate differs")
     .setFontStyle("italic")
     .setFontColor("#666666")
     .setFontSize(9);
@@ -569,7 +603,7 @@ function buildEngineTab(sheet) {
   sheet.getRange("B2").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B24").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B25").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
-  sheet.getRange("B32").setComment("Nominal rate (no inflation) — same surplus + net position as B2");
+  sheet.getRange("B32").setComment("Months to freedom using nominal APR (B7/12) instead of real rate ((B7-B10)/12). Same surplus & net position as B2 — only the rate differs.");
   sheet.getRange("B33").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
 
   sheet.getRange("A37").setValue("── SENSITIVITY TABLE ──").setFontWeight("bold");
@@ -1070,17 +1104,25 @@ function buildGoalsTab(sheet) {
   sheet.getRange("A1:G1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
+  // GROWTH RATE INPUT
+  sheet.getRange("A2").setValue("Assumed growth rate")
+    .setFontSize(10).setFontWeight("bold").setFontColor(HEADER_COLOR);
+  const growthRateCell = sheet.getRange("B2");
+  styleInputCell(growthRateCell, 0.03, "0.00%");
+  sheet.getRange("C2").setValue("← Annual growth rate for savings (used in Months formula)")
+    .setFontSize(9).setFontStyle("italic").setFontColor(SECONDARY_COLOR);
+
   // SECTION HEADER
-  sheet.getRange("A3").setValue("── SAVINGS GOALS ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
+  sheet.getRange("A4").setValue("── SAVINGS GOALS ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   // COLUMN HEADERS
-  sheet.getRange("A4").setValue("Goal Name").setFontWeight("bold");
-  sheet.getRange("B4").setValue("Target").setFontWeight("bold");
-  sheet.getRange("C4").setValue("Current").setFontWeight("bold");
-  sheet.getRange("D4").setValue("Monthly").setFontWeight("bold");
-  sheet.getRange("E4").setValue("Months").setFontWeight("bold");
-  sheet.getRange("F4").setValue("Progress").setFontWeight("bold");
-  sheet.getRange("G4").setValue("Target Date").setFontWeight("bold");
+  sheet.getRange("A5").setValue("Goal Name").setFontWeight("bold");
+  sheet.getRange("B5").setValue("Target").setFontWeight("bold");
+  sheet.getRange("C5").setValue("Current").setFontWeight("bold");
+  sheet.getRange("D5").setValue("Monthly").setFontWeight("bold");
+  sheet.getRange("E5").setValue("Months").setFontWeight("bold");
+  sheet.getRange("F5").setValue("Progress").setFontWeight("bold");
+  sheet.getRange("G5").setValue("Target Date").setFontWeight("bold");
 
   // SAMPLE GOALS
   const goals = [
@@ -1092,7 +1134,7 @@ function buildGoalsTab(sheet) {
   ];
 
   goals.forEach((goal, i) => {
-    const row = 5 + i;
+    const row = 6 + i;
 
     // Goal name
     sheet.getRange(`A${row}`).setValue(goal.name).setFontSize(10);
@@ -1111,7 +1153,7 @@ function buildGoalsTab(sheet) {
 
     // Months to goal (NPER formula)
     sheet.getRange(`E${row}`).setFormula(
-      `=IFERROR(IF(D${row}<=0,"N/A",ROUNDUP(NPER(0.03/12,-D${row},-C${row},B${row}),0)),"Check inputs")`
+      `=IFERROR(IF(D${row}<=0,"N/A",ROUNDUP(NPER($B$2/12,-D${row},-C${row},B${row}),0)),"Check inputs")`
     ).setFontSize(10).setFontWeight("bold");
 
     // Progress (percentage formula)
@@ -1126,13 +1168,13 @@ function buildGoalsTab(sheet) {
   });
 
   // SEPARATOR
-  sheet.getRange("A10").setValue("──").setFontColor(SECONDARY_COLOR);
+  sheet.getRange("A11").setValue("──").setFontColor(SECONDARY_COLOR);
 
   // TOTALS ROW
-  sheet.getRange("A11").setValue("TOTALS").setFontWeight("bold").setFontSize(10);
-  sheet.getRange("B11").setFormula("=SUM(B5:B9)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
-  sheet.getRange("C11").setFormula("=SUM(C5:C9)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
-  sheet.getRange("D11").setFormula("=SUM(D5:D9)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("A12").setValue("TOTALS").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("B12").setFormula("=SUM(B6:B10)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("C12").setFormula("=SUM(C6:C10)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("D12").setFormula("=SUM(D6:D10)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
 
   // FORMATTING
   sheet.setColumnWidth(1, 180);
@@ -1144,7 +1186,7 @@ function buildGoalsTab(sheet) {
   sheet.setColumnWidth(7, 120);
 
   // Freeze panes
-  sheet.setFrozenRows(1);
+  sheet.setFrozenRows(2);
   sheet.setFrozenColumns(1);
 
   // CONDITIONAL FORMATTING
@@ -1154,33 +1196,42 @@ function buildGoalsTab(sheet) {
   addGoalsValidation(sheet);
 
   // Protection
-  protectRange(sheet, "E5:G9", "Formula columns — auto-calculated");
-  protectRange(sheet, "A11:G11", "Totals row");
+  protectRange(sheet, "E6:G10", "Formula columns — auto-calculated");
+  protectRange(sheet, "A12:G12", "Totals row");
 }
 
 function addGoalsConditionalFormatting(sheet) {
-  // F5:F9: Progress >= 100% = green
+  // F6:F10: Progress >= 100% = green
   const progressCompleteRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberGreaterThanOrEqualTo(1)
     .setBackground("#DCFCE7")
     .setFontColor("#0F973C")
-    .setRanges([sheet.getRange("F5:F9")])
+    .setRanges([sheet.getRange("F6:F10")])
     .build();
 
-  // F5:F9: Progress 50-99% = yellow
+  // F6:F10: Progress 50-99% = yellow
   const progressHalfRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberBetween(0.5, 0.99)
     .setBackground("#FEF9C3")
     .setFontColor("#A16207")
-    .setRanges([sheet.getRange("F5:F9")])
+    .setRanges([sheet.getRange("F6:F10")])
     .build();
 
   sheet.setConditionalFormatRules([progressCompleteRule, progressHalfRule]);
 }
 
 function addGoalsValidation(sheet) {
-  // B5:B9: Target > 0
-  sheet.getRange("B5:B9").setDataValidation(
+  // B2: Growth rate 0-25%
+  sheet.getRange("B2").setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireNumberBetween(0, 0.25)
+      .setAllowInvalid(false)
+      .setHelpText("Growth rate must be between 0% and 25%")
+      .build()
+  );
+
+  // B6:B10: Target > 0
+  sheet.getRange("B6:B10").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThan(0)
       .setAllowInvalid(false)
@@ -1188,8 +1239,8 @@ function addGoalsValidation(sheet) {
       .build()
   );
 
-  // C5:C9: Current >= 0
-  sheet.getRange("C5:C9").setDataValidation(
+  // C6:C10: Current >= 0
+  sheet.getRange("C6:C10").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1197,8 +1248,8 @@ function addGoalsValidation(sheet) {
       .build()
   );
 
-  // D5:D9: Monthly >= 0
-  sheet.getRange("D5:D9").setDataValidation(
+  // D6:D10: Monthly >= 0
+  sheet.getRange("D6:D10").setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
