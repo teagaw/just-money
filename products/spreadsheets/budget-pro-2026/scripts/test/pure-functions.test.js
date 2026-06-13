@@ -53,6 +53,15 @@ assertEqual(singleResult.totalPaid, 1000 + singleResult.totalInterest,
 assertEqual(singleResult.payoffMonths[0], singleResult.totalMonths,
   'payoff month matches total months');
 
+// ─── Convergence: normal payoff ───
+
+console.log('\nsimulatePayoff — convergence flag (normal payoff)');
+
+assertEqual(singleResult.converged, true,
+  'normal payoff: converged is true');
+assertEqual(singleResult.convergedPerDebt[0], true,
+  'normal payoff: per-debt converged is true');
+
 // ─── simulatePayoff — snowball vs avalanche ordering ───
 
 console.log('\nsimulatePayoff — snowball vs avalanche ordering');
@@ -113,6 +122,28 @@ assert(threeResult.payoffMonths[0] > 0 && threeResult.payoffMonths[0] <= threeRe
 assert(threeResult.payoffMonths[1] <= threeResult.payoffMonths[2],
   'Medium payoff ≤ Large payoff');
 
+// ─── Convergence: mixed (some debts pay off, some don't within MAX_MONTHS) ───
+
+console.log('\nsimulatePayoff — mixed convergence');
+
+// Debt 1: small, pays off quickly. Debt 2: negative amortization, never pays off.
+const mixedDebts = [
+  { name: 'QuickPay', balance: 500, apr: 0.10, minPayment: 100, extraPayment: 0 },
+  { name: 'NegativeAmort', balance: 10000, apr: 0.24, minPayment: 100, extraPayment: 0 }
+];
+const mixedResult = simulatePayoff(mixedDebts, 'snowball');
+
+assertEqual(mixedResult.converged, false,
+  'mixed: overall converged is false (one debt remains)');
+assertEqual(mixedResult.convergedPerDebt[0], true,
+  'mixed: quick-pay debt converged is true');
+assertEqual(mixedResult.convergedPerDebt[1], false,
+  'mixed: negative-amort debt converged is false');
+assert(mixedResult.payoffMonths[0] > 0,
+  'mixed: quick-pay debt has a payoff month');
+assertEqual(mixedResult.payoffMonths[1], 0,
+  'mixed: negative-amort debt payoff month is 0');
+
 // ─── simulatePayoff — zero balance debts ───
 
 console.log('\nsimulatePayoff — zero balance debts');
@@ -135,6 +166,13 @@ const emptyResult = simulatePayoff([], 'snowball');
 assertEqual(emptyResult.totalMonths, 0, 'empty input → 0 months');
 assertEqual(emptyResult.totalInterest, 0, 'empty input → 0 interest');
 assertEqual(emptyResult.totalPaid, 0, 'empty input → 0 paid');
+
+// ─── Convergence: empty input ───
+
+console.log('\nsimulatePayoff — convergence flag (empty input)');
+
+assertEqual(emptyResult.converged, true,
+  'empty input: converged is true (trivially)');
 
 // ─── simulatePayoff — math sanity checks ───
 
@@ -472,6 +510,15 @@ assertEqual(negAmortResult.payoffMonths[0], 0,
 assert(negAmortResult.totalPaid < negAmortResult.totalInterest,
   `totalPaid ($${negAmortResult.totalPaid}) < totalInterest ($${negAmortResult.totalInterest}) — balance grew`);
 
+// ─── H7 convergence: negative amortization ───
+
+console.log('\nsimulatePayoff — convergence flag (H7 update)');
+
+assertEqual(negAmortResult.converged, false,
+  'negative amortization: converged is false');
+assertEqual(negAmortResult.convergedPerDebt[0], false,
+  'negative amortization: per-debt converged is false');
+
 // ─── H8: MAX_MONTHS boundary ───
 
 console.log('\nsimulatePayoff — MAX_MONTHS boundary (H8)');
@@ -490,6 +537,15 @@ assertEqual(maxMonthsResult.totalPaid, 11901,
   'MAX_MONTHS boundary: totalPaid equals principal');
 assertEqual(maxMonthsResult.payoffMonths[0], 120,
   'MAX_MONTHS boundary: payoff month is 120');
+
+// ─── H8 convergence: MAX_MONTHS boundary ───
+
+console.log('\nsimulatePayoff — convergence flag (H8 update)');
+
+assertEqual(maxMonthsResult.converged, true,
+  'MAX_MONTHS boundary: converged is true (debt paid off)');
+assertEqual(maxMonthsResult.convergedPerDebt[0], true,
+  'MAX_MONTHS boundary: per-debt converged is true');
 
 // ─── Summary ───
 
