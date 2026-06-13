@@ -250,25 +250,246 @@ assert(posSaved >= 0,
 assert(posWithExtra.totalMonths <= posMinOnly.totalMonths,
   'extra payments reduce or maintain payoff months');
 
-// ─── Test 5: zero extra means zero interest saved ───
+// ─── Test 5: snowball vs avalanche interest-saved comparison ───
 
-console.log('\nsimulatePayoff — zero extra means zero interest saved (Bug 1)');
+console.log('\nsimulatePayoff — snowball vs avalanche interest-saved with extra payments (Bug 1)');
 
-const noExtraDebts = [
-  { name: 'A', balance: 4000, apr: 0.12, minPayment: 100, extraPayment: 0 },
-  { name: 'B', balance: 2000, apr: 0.06, minPayment: 50, extraPayment: 0 }
+// Two debts with meaningfully different APRs and balances
+const compareDebts = [
+  { name: 'High APR', balance: 8000, apr: 0.22, minPayment: 160, extraPayment: 0 },
+  { name: 'Low APR', balance: 3000, apr: 0.06, minPayment: 60, extraPayment: 0 }
 ];
 
-const noExtraMin = simulatePayoff(noExtraDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
-const noExtraStrat = simulatePayoff(noExtraDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
-const noExtraSaved = noExtraMin.totalInterest - noExtraStrat.totalInterest;
+// Run with extraPayment: 0 to get min-only interest
+const compareMinOnly = simulatePayoff(compareDebts.map(d => ({ ...d, extraPayment: 0 })), 'snowball');
 
-assertEqual(noExtraSaved, 0,
-  'interest saved is 0 when both runs use extraPayment: 0');
-assertEqual(noExtraMin.totalMonths, noExtraStrat.totalMonths,
-  'identical inputs produce identical months');
-assertEqual(noExtraMin.totalInterest, noExtraStrat.totalInterest,
-  'identical inputs produce identical interest');
+// Run with extraPayment: 500 to get strategy interest
+const snowballExtra5 = simulatePayoff(compareDebts.map(d => ({ ...d, extraPayment: 500 })), 'snowball');
+const avalancheExtra5 = simulatePayoff(compareDebts.map(d => ({ ...d, extraPayment: 500 })), 'avalanche');
+
+// Interest saved = min-only - strategy
+const snowballSaved5 = compareMinOnly.totalInterest - snowballExtra5.totalInterest;
+const avalancheSaved5 = compareMinOnly.totalInterest - avalancheExtra5.totalInterest;
+
+// Interest saved > 0 (extra payments always save interest)
+assert(snowballSaved5 > 0,
+  `snowball interest saved > 0 with extra payments (got ${snowballSaved5})`);
+assert(avalancheSaved5 > 0,
+  `avalanche interest saved > 0 with extra payments (got ${avalancheSaved5})`);
+
+// Assert that interest saved = min-only - strategy (arithmetic check)
+assertEqual(snowballExtra5.totalInterest + snowballSaved5, compareMinOnly.totalInterest,
+  'snowball: strategy interest + saved = min-only interest');
+assertEqual(avalancheExtra5.totalInterest + avalancheSaved5, compareMinOnly.totalInterest,
+  'avalanche: strategy interest + saved = min-only interest');
+
+// Avalanche saves MORE interest than snowball (higher APR paid first)
+assert(avalancheSaved5 > snowballSaved5,
+  `avalanche saves more interest than snowball (${avalancheSaved5} > ${snowballSaved5})`);
+
+// ─── recalculateDebtSimulation() logic tests ───
+// recalculateDebtSimulation() depends on Google Sheets API and cannot be unit
+// tested directly. However, it contains testable logic: input filtering, empty
+// debt handling, data mapping, and interest-saved calculation. These tests
+// verify that logic by replicating the same operations.
+
+console.log('\nrecalculateDebtSimulation logic — input filtering');
+
+// Simulate the filtering logic from recalculateDebtSimulation (line 1835)
+const rawDebtData = [
+  [2800, 0.2499, 85, 200],   // Chase Visa
+  [0, 0.0675, 225, 0],       // Car Loan — zero balance (should be filtered out)
+  [15800, 0.055, 180, 0],    // Student Loan
+  [0, 0.0, 100, 100],        // Medical Bill — zero balance (should be filtered out)
+];
+
+const filteredDebts = rawDebtData
+  .filter(row => row[0] && row[0] > 0)
+  .map(row => ({
+    name: "",
+    balance: row[0],
+    apr: row[1],
+    minPayment: row[2],
+    extraPayment: row[3] || 0
+  }));
+
+assertEqual(filteredDebts.length, 2, 'filters out zero-balance debts (2 of 4 remain)');
+assertEqual(filteredDebts[0].balance, 2800, 'first filtered debt has correct balance');
+assertEqual(filteredDebts[1].balance, 15800, 'second filtered debt has correct balance');
+assertEqual(filteredDebts[0].extraPayment, 200, 'extraPayment preserved from raw data');
+assertEqual(filteredDebts[1].extraPayment, 0, 'missing extraPayment defaults to 0');
+
+// ─── recalculateDebtSimulation logic — empty debts ───
+
+console.log('\nrecalculateDebtSimulation logic — empty debt array');
+
+const emptyFiltered = []
+  .filter(row => row[0] && row[0] > 0)
+  .map(row => ({
+    name: "",
+    balance: row[0],
+    apr: row[1],
+    minPayment: row[2],
+    extraPayment: row[3] || 0
+  }));
+
+assertEqual(emptyFiltered.length, 0, 'empty input produces empty filtered array');
+
+// When no debts exist, recalculateDebtSimulation sets B20-B25 to 0
+// Verify that simulatePayoff with empty array returns zeroed result
+const emptySimResult = simulatePayoff([], 'snowball');
+assertEqual(emptySimResult.totalMonths, 0, 'empty debts → 0 months');
+assertEqual(emptySimResult.totalInterest, 0, 'empty debts → 0 interest');
+assertEqual(emptySimResult.totalPaid, 0, 'empty debts → 0 paid');
+
+// ─── recalculateDebtSimulation logic — data mapping ───
+
+console.log('\nrecalculateDebtSimulation logic — data mapping to simulatePayoff');
+
+const sheetData = [
+  [5000, 0.18, 100, 200],
+  [1000, 0.06, 25, 0],
+];
+
+const mappedDebts = sheetData
+  .filter(row => row[0] && row[0] > 0)
+  .map(row => ({
+    name: "",
+    balance: row[0],
+    apr: row[1],
+    minPayment: row[2],
+    extraPayment: row[3] || 0
+  }));
+
+// Verify the mapped data produces valid simulation results
+const mappedResult = simulatePayoff(mappedDebts, 'snowball');
+assert(mappedResult.totalMonths > 0, 'mapped debts produce valid simulation');
+assert(mappedResult.totalInterest > 0, 'mapped debts produce positive interest');
+assertEqual(mappedResult.payoffMonths.length, 2, 'payoff months array matches debt count');
+
+// ─── recalculateDebtSimulation logic — interest saved calculation ───
+
+console.log('\nrecalculateDebtSimulation logic — interest saved calculation');
+
+// Recalculate the interest-saved logic from lines 1864-1866
+const savedDebts2 = [
+  { name: "", balance: 5000, apr: 0.18, minPayment: 100, extraPayment: 200 },
+  { name: "", balance: 1000, apr: 0.06, minPayment: 25, extraPayment: 0 },
+];
+
+const snowballResult = simulatePayoff(savedDebts2, 'snowball');
+const avalancheResult = simulatePayoff(savedDebts2, 'avalanche');
+const minOnly = simulatePayoff(savedDebts2.map(d => ({...d, extraPayment: 0})), 'snowball');
+
+const snowballSaved = Math.max(0, minOnly.totalInterest - snowballResult.totalInterest);
+const avalancheSaved = Math.max(0, minOnly.totalInterest - avalancheResult.totalInterest);
+
+assert(snowballSaved >= 0, 'snowball interest saved is non-negative');
+assert(avalancheSaved >= 0, 'avalanche interest saved is non-negative');
+assertEqual(typeof snowballSaved, 'number', 'interest saved is a number');
+assert(!isNaN(snowballSaved), 'interest saved is not NaN');
+
+// ─── recalculateDebtSimulation logic — extraPayment defaulting ───
+
+console.log('\nrecalculateDebtSimulation logic — extraPayment defaulting');
+
+// Rows with undefined extraPayment should default to 0
+const dataWithUndefined = [
+  [2000, 0.10, 100, undefined],
+  [3000, 0.12, 150, null],
+  [1000, 0.08, 50, 0],
+];
+
+const defaultedDebts = dataWithUndefined
+  .filter(row => row[0] && row[0] > 0)
+  .map(row => ({
+    name: "",
+    balance: row[0],
+    apr: row[1],
+    minPayment: row[2],
+    extraPayment: row[3] || 0
+  }));
+
+assertEqual(defaultedDebts[0].extraPayment, 0, 'undefined extraPayment defaults to 0');
+assertEqual(defaultedDebts[1].extraPayment, 0, 'null extraPayment defaults to 0');
+assertEqual(defaultedDebts[2].extraPayment, 0, 'explicit 0 extraPayment stays 0');
+
+// ─── H5: Snowball tiebreaker with different APRs ───
+
+console.log('\nsimulatePayoff — snowball tiebreaker with different APRs (H5)');
+
+// Two debts with SAME balance but DIFFERENT APRs
+const tieDebtsH5 = [
+  { name: 'High', balance: 3000, apr: 0.18, minPayment: 50, extraPayment: 0 },
+  { name: 'Low', balance: 3000, apr: 0.06, minPayment: 50, extraPayment: 0 }
+];
+
+// Run twice to verify deterministic behavior
+const tieResultH5a = simulatePayoff(tieDebtsH5, 'snowball');
+const tieResultH5b = simulatePayoff(tieDebtsH5, 'snowball');
+
+assert(tieResultH5a.totalMonths > 0, 'snowball tie completes');
+assertEqual(tieResultH5a.totalMonths, tieResultH5b.totalMonths,
+  'snowball tie is deterministic (same total months across runs)');
+assertEqual(tieResultH5a.totalInterest, tieResultH5b.totalInterest,
+  'snowball tie is deterministic (same interest across runs)');
+assertEqual(tieResultH5a.payoffMonths[0], tieResultH5b.payoffMonths[0],
+  'snowball tie: debt 0 payoff month deterministic');
+assertEqual(tieResultH5a.payoffMonths[1], tieResultH5b.payoffMonths[1],
+  'snowball tie: debt 1 payoff month deterministic');
+
+// ─── H6: 0% APR debt ───
+
+console.log('\nsimulatePayoff — 0% APR debt (H6)');
+
+// Single debt with 0% APR — should pay off in exactly ceil(balance / minPayment) months
+const zeroAprDebt = [{ name: 'Zero APR', balance: 5000, apr: 0, minPayment: 120, extraPayment: 0 }];
+const zeroAprResult = simulatePayoff(zeroAprDebt, 'snowball');
+
+const expectedZeroAprMonths = Math.ceil(5000 / 120); // 42
+assertEqual(zeroAprResult.totalMonths, expectedZeroAprMonths,
+  `0% APR debt pays off in ${expectedZeroAprMonths} months (ceil(5000/120))`);
+assertEqual(zeroAprResult.totalInterest, 0,
+  '0% APR debt has zero interest');
+assertEqual(zeroAprResult.totalPaid, 5000,
+  '0% APR debt: totalPaid equals principal');
+
+// ─── H7: Minimum payment less than monthly interest ───
+
+console.log('\nsimulatePayoff — negative amortization (H7)');
+
+// minPayment ($100) < monthly interest ($200 at 24% APR on $10k) → balance grows
+const negAmortDebt = [{ name: 'NegAmort', balance: 10000, apr: 0.24, minPayment: 100, extraPayment: 0 }];
+const negAmortResult = simulatePayoff(negAmortDebt, 'snowball');
+
+// Should hit MAX_MONTHS without paying off
+assertEqual(negAmortResult.totalMonths, 120,
+  'negative amortization hits MAX_MONTHS (120)');
+assertEqual(negAmortResult.payoffMonths[0], 0,
+  'negative amortization debt never pays off');
+
+// Payments are less than interest → totalPaid < totalInterest (balance grew)
+assert(negAmortResult.totalPaid < negAmortResult.totalInterest,
+  `totalPaid ($${negAmortResult.totalPaid}) < totalInterest ($${negAmortResult.totalInterest}) — balance grew`);
+
+// ─── H8: MAX_MONTHS boundary ───
+
+console.log('\nsimulatePayoff — MAX_MONTHS boundary (H8)');
+
+// 0% APR debt that takes exactly 120 months: balance = 119*100 + 1 = 11901
+// Month 119: balance = 11901 - 11900 = 1 (still > 0)
+// Month 120: payment = min(100, 1) = 1, balance = 0 (pays off)
+const maxMonthsDebt = [{ name: 'Boundary', balance: 11901, apr: 0, minPayment: 100, extraPayment: 0 }];
+const maxMonthsResult = simulatePayoff(maxMonthsDebt, 'snowball');
+
+assertEqual(maxMonthsResult.totalMonths, 120,
+  'MAX_MONTHS boundary debt pays off in exactly 120 months');
+assertEqual(maxMonthsResult.totalInterest, 0,
+  'MAX_MONTHS boundary: zero interest (0% APR)');
+assertEqual(maxMonthsResult.totalPaid, 11901,
+  'MAX_MONTHS boundary: totalPaid equals principal');
+assertEqual(maxMonthsResult.payoffMonths[0], 120,
+  'MAX_MONTHS boundary: payoff month is 120');
 
 // ─── Summary ───
 

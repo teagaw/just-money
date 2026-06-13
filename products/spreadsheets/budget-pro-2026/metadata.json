@@ -2,7 +2,7 @@
   "slug": "spreadsheets/budget-pro-2026",
   "line": "spreadsheets",
   "name": "Budget Pro 2026 — Scenario Engine + Budget Tracker + Goals + Spendable",
-  "price": 14.99,
+  "price": 7.99,
   "currency": "USD",
   "status": "ready",
   "build_date": "2026-06-07",
@@ -13,6 +13,7 @@
   "sample_data_months": 3,
   "target_buyer": "25-40yo professional, post-Mint/YNAB, wants ownership and customization",
   "channels": [
+    "Gumroad",
     "Etsy"
   ],
   "primary_keywords": [
@@ -47,12 +48,13 @@
   "binary_assets_present": false,
   "v1_remaining_work": [
     "Share as Google Sheets template link (NOT script delivery)",
-    "Launch on Etsy at $14.99"
+    "Launch on Gumroad at $7.99",
+    "Launch on Etsy at $7.99"
   ],
   "build_to_revenue_path": {
     "eta_hours": 4,
     "blockers": [],
-    "first_listing_marketplace": "etsy",
-    "shipping_tip": "Ship the Google Sheets link via Etsy digital download. Include quick-start guide as PDF bonus."
+    "first_listing_marketplace": "gumroad",
+    "shipping_tip": "Ship the Google Sheets link via Gumroad/Etsy digital download. Include quick-start guide as PDF bonus."
   }
 }

@@ -151,8 +151,8 @@ function buildBudgetPro2026() {
 function buildStartHereTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#1A1A2E";   // Deep Charcoal
-  const secondaryColor = "#6B7280"; // Warm Gray
+  const HEADER_COLOR = "#1A1A2E";   // Deep Charcoal
+  const SECONDARY_COLOR = "#6B7280"; // Warm Gray
   const accentColor = "#0D7C5F";   // Money Green
   const lightBg = "#E8F5E9";       // Light Sage
 
@@ -163,41 +163,41 @@ function buildStartHereTab(sheet) {
 
   // TITLE
   sheet.getRange("A3").setValue("Welcome to Budget Pro 2026")
-    .setFontSize(24).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(24).setFontWeight("bold").setFontColor(HEADER_COLOR);
 
   // SUBTITLE
   sheet.getRange("A4").setValue("Premium financial tools you own once. No subscriptions, no guilt, no BS.")
-    .setFontSize(12).setFontStyle("italic").setFontColor(secondaryColor);
+    .setFontSize(12).setFontStyle("italic").setFontColor(SECONDARY_COLOR);
 
   // SEPARATOR
   sheet.getRange("A6").setValue("───")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // GETTING STARTED SECTION
   sheet.getRange("A8").setValue("GETTING STARTED")
-    .setFontSize(14).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(14).setFontWeight("bold").setFontColor(HEADER_COLOR);
 
   // STEP 1
   sheet.getRange("A9").setValue("Step 1: Open the Scenario Engine tab")
-    .setFontSize(12).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(12).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A10").setValue("Enter your 9 numbers in the green cells. That's it.")
-    .setFontSize(10).setFontColor(secondaryColor);
+    .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // STEP 2
   sheet.getRange("A11").setValue("Step 2: Check your results")
-    .setFontSize(12).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(12).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A12").setValue("See when you'll be debt-free and how much interest you'll save.")
-    .setFontSize(10).setFontColor(secondaryColor);
+    .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // STEP 3
   sheet.getRange("A13").setValue("Step 3: Try different scenarios")
-    .setFontSize(12).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(12).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A14").setValue("Change the numbers. See what happens. Find your best plan.")
-    .setFontSize(10).setFontColor(secondaryColor);
+    .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // SEPARATOR
   sheet.getRange("A16").setValue("───")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // MOTIVATIONAL MESSAGE
   sheet.getRange("A18").setValue("You don't need to be perfect. You just need to start.")
@@ -205,13 +205,13 @@ function buildStartHereTab(sheet) {
 
   // HELPFUL NOTES
   sheet.getRange("A20").setValue("Green cells = edit these. Blue cells = results (don't edit).")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
   sheet.getRange("A21").setValue("If you get stuck, check the Instructions tab.")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
 
   // FOOTER
   sheet.getRange("A23").setValue("Built with love by Just Money")
-    .setFontSize(9).setFontStyle("italic").setFontColor(secondaryColor);
+    .setFontSize(9).setFontStyle("italic").setFontColor(SECONDARY_COLOR);
 
   // FORMATTING
   sheet.setColumnWidth(1, 500);
@@ -266,6 +266,8 @@ function createTabs(ss) {
 // Helper constants and functions
 const INPUT_BG = "#DCFCE7";
 const INPUT_BORDER = "#0D7C5F";  // Money Green
+const HEADER_COLOR = "#0F172A";
+const SECONDARY_COLOR = "#64748B";
 
 /**
  * Styles a cell as an editable input: green background, green border, number format.
@@ -291,6 +293,8 @@ function protectRange(sheet, range, description) {
   }
 }
 
+// SYNC: A test-only copy of this function exists in scripts/test/pure-functions.js.
+// When modifying simulatePayoff(), update both files to stay in sync.
 function simulatePayoff(debts, strategy) {
   // debts: array of {name, balance, apr, minPayment}
   // strategy: 'snowball' (smallest balance first) or 'avalanche' (highest APR first)
@@ -602,19 +606,17 @@ function buildEngineTab(sheet) {
 function buildScenarioEngineTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
   const resultBg = "#EFF6FF";
 
   // TITLE
   sheet.getRange("A1").setValue("SCENARIO ENGINE · \"When am I free?\"")
-    .setFontSize(16).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A1:F1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
   // INPUT SECTION
   sheet.getRange("A3").setValue("┌─ INPUT (edit these cells) ──────────────────────────────────┐")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // Input labels and values
   const inputs = [
@@ -630,7 +632,7 @@ function buildScenarioEngineTab(sheet) {
   ];
 
   inputs.forEach(input => {
-    sheet.getRange(`A${input.row}`).setValue(input.label).setFontSize(10).setFontColor(headerColor);
+    sheet.getRange(`A${input.row}`).setValue(input.label).setFontSize(10).setFontColor(HEADER_COLOR);
     const cell = sheet.getRange(`B${input.row}`);
 
     // Format as currency or percentage
@@ -639,21 +641,21 @@ function buildScenarioEngineTab(sheet) {
 
     // Add helper note
     sheet.getRange(`C${input.row}`).setValue(input.note)
-      .setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+      .setFontColor(SECONDARY_COLOR).setFontSize(9).setFontStyle("italic");
   });
 
   sheet.getRange("A13").setValue("└─────────────────────────────────────────────────────────────┘")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // ── INFORMATIONAL ROW ──
   // Net debt after savings — reference only, not used in calculations
-  sheet.getRange("A14").setValue("Net debt after savings").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("A14").setValue("Net debt after savings").setFontSize(10).setFontColor(HEADER_COLOR);
   sheet.getRange("B14").setFormula("=MAX(0,B8-B6)").setNumberFormat("$#,##0").setFontSize(10);
-  sheet.getRange("C14").setValue("← For reference only (not used in calculations)").setFontColor(secondaryColor).setFontSize(9).setFontStyle("italic");
+  sheet.getRange("C14").setValue("← For reference only (not used in calculations)").setFontColor(SECONDARY_COLOR).setFontSize(9).setFontStyle("italic");
 
   // RESULTS SECTION
   sheet.getRange("A15").setValue("┌─ RESULTS (auto-calculated) ─────────────────────────────────┐")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A16").setValue("Months to financial freedom").setFontSize(10).setFontWeight("bold");
   sheet.getRange("B16").setFormula("=Engine!B2")
@@ -671,25 +673,25 @@ function buildScenarioEngineTab(sheet) {
     .setNumberFormat("$#,##0");
 
   sheet.getRange("A19").setValue("└─────────────────────────────────────────────────────────────┘")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // EMERGENCY FUND SECTION
-  sheet.getRange("A20").setValue("── EMERGENCY FUND ──").setFontColor(secondaryColor);
+  sheet.getRange("A20").setValue("── EMERGENCY FUND ──").setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A21").setValue("Emergency fund health:").setFontSize(10).setFontWeight("bold");
   sheet.getRange("B21").setFormula("=IFERROR(IF('Scenario Engine'!B5=0,\"N/A\",ROUND('Scenario Engine'!B6/'Scenario Engine'!B5,1)),\"Enter expenses\")")
     .setNumberFormat("0.0").setFontSize(12).setFontWeight("bold").setBackground(resultBg);
   sheet.getRange("C21").setFormula("=IF(B21=\"N/A\",\"—\",IF(B21<1,\"⚠ Below 1 month\",IF(B21<3,\"✓ Getting there\",\"✓ Strong (3+ months)\")))")
-    .setFontSize(10).setFontColor(headerColor);
+    .setFontSize(10).setFontColor(HEADER_COLOR);
 
   // INTEREST THIS MONTH SECTION
-  sheet.getRange("A23").setValue("── INTEREST ──").setFontColor(secondaryColor);
+  sheet.getRange("A23").setValue("── INTEREST ──").setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A24").setValue("Interest this month:").setFontSize(10).setFontWeight("bold");
   sheet.getRange("B24").setFormula("=IFERROR('Scenario Engine'!B8*'Scenario Engine'!B7/12,0)")
     .setNumberFormat("$#,##0").setFontSize(12).setFontWeight("bold").setBackground(resultBg);
   sheet.getRange("C24").setFormula("=IFERROR(\"→ ~\"&TEXT(B24*12,\"$#,##0\")&\"/yr\",\"\")")
-    .setFontSize(10).setFontColor(secondaryColor);
+    .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // B9 DEPENDENCY GUARDRAIL
   sheet.getRange("A25").setFormula("=IF(AND('Scenario Engine'!B8>0,'Scenario Engine'!B9=0),\"⚠ You have debt but no payment entered. Go to B9 and enter your monthly debt payment.\",\"\")")
@@ -697,7 +699,7 @@ function buildScenarioEngineTab(sheet) {
 
   // CROSS-TAB CHECK
   sheet.getRange("A27").setValue("┌─ CROSS-TAB CHECK ───────────────────────────────────────────┐")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A28").setValue("Weighted APR from Debt Payoff tab:").setFontSize(9);
   sheet.getRange("B28").setFormula("=Engine!B28").setNumberFormat("0.00%").setFontSize(9);
@@ -709,11 +711,11 @@ function buildScenarioEngineTab(sheet) {
   sheet.getRange("B30").setFormula("=Engine!B30").setFontSize(9).setFontWeight("bold");
 
   sheet.getRange("A31").setValue("└─────────────────────────────────────────────────────────────┘")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // COMPARISON TABLE
   sheet.getRange("A33").setValue("┌─ COMPARISON ────────────────────────────────────────────────┐")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // Headers
   sheet.getRange("A34").setValue("Scenario").setFontWeight("bold").setFontSize(9);
@@ -743,11 +745,11 @@ function buildScenarioEngineTab(sheet) {
   });
 
   sheet.getRange("A40").setValue("└─────────────────────────────────────────────────────────────┘")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // SENSITIVITY TABLE
   sheet.getRange("A42").setValue("┌─ SENSITIVITY: Freedom Date at Different Savings Rates ──────┐")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // Headers
   sheet.getRange("A43").setValue("Extra $/month").setFontWeight("bold").setFontSize(9);
@@ -775,18 +777,18 @@ function buildScenarioEngineTab(sheet) {
   });
 
   sheet.getRange("A52").setValue("└─────────────────────────────────────────────────────────────┘")
-    .setFontColor(secondaryColor);
+    .setFontColor(SECONDARY_COLOR);
 
   // HOW TO READ
-  sheet.getRange("A54").setValue("── HOW TO READ THIS ──").setFontColor(secondaryColor).setFontSize(9);
+  sheet.getRange("A54").setValue("── HOW TO READ THIS ──").setFontColor(SECONDARY_COLOR).setFontSize(9);
   sheet.getRange("A55").setValue("Debt-free = when your debt balance reaches $0.")
-    .setFontColor(secondaryColor).setFontSize(9);
+    .setFontColor(SECONDARY_COLOR).setFontSize(9);
   sheet.getRange("A56").setValue("This calculator shows the month your debt will be")
-    .setFontColor(secondaryColor).setFontSize(9);
+    .setFontColor(SECONDARY_COLOR).setFontSize(9);
   sheet.getRange("A57").setValue("paid off, based on your income, expenses,")
-    .setFontColor(secondaryColor).setFontSize(9);
+    .setFontColor(SECONDARY_COLOR).setFontSize(9);
   sheet.getRange("A58").setValue("interest rate, and debt balance.")
-    .setFontColor(secondaryColor).setFontSize(9);
+    .setFontColor(SECONDARY_COLOR).setFontSize(9);
 
   // FORMATTING
   sheet.setColumnWidth(1, 380);
@@ -812,17 +814,15 @@ function buildBudgetTrackerTab(sheet) {
   sheet.clear();
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
 
   // TITLE
   sheet.getRange("A1").setValue("BUDGET TRACKER · " + new Date().getFullYear())
-    .setFontSize(16).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A1:M1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
   // INCOME SECTION
-  sheet.getRange("A3").setValue("── INCOME ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A3").setValue("── INCOME ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   // Month headers
   sheet.getRange("A4").setValue("Category").setFontWeight("bold");
@@ -857,7 +857,7 @@ function buildBudgetTrackerTab(sheet) {
   });
 
   // EXPENSES SECTION
-  sheet.getRange("A11").setValue("── EXPENSES ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A11").setValue("── EXPENSES ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   // Month headers
   sheet.getRange("A12").setValue("Category").setFontWeight("bold");
@@ -934,17 +934,14 @@ function buildBudgetTrackerTab(sheet) {
 function buildDebtPayoffTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
-
   // TITLE
   sheet.getRange("A1").setValue("DEBT PAYOFF · Snowball vs Avalanche")
-    .setFontSize(16).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A1:F1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
   // DEBT INPUT SECTION
-  sheet.getRange("A3").setValue("── YOUR DEBTS ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A3").setValue("── YOUR DEBTS ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   // Headers
   sheet.getRange("A4").setValue("Debt name").setFontWeight("bold");
@@ -979,13 +976,13 @@ function buildDebtPayoffTab(sheet) {
   });
 
   // Totals row
-  sheet.getRange("A9").setValue("──").setFontColor(secondaryColor);
+  sheet.getRange("A9").setValue("──").setFontColor(SECONDARY_COLOR);
   sheet.getRange("A10").setValue("Total").setFontWeight("bold").setFontSize(10);
   sheet.getRange("B10").setFormula("=SUM(B5:B8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
   sheet.getRange("E10").setFormula("=SUM(E5:E8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
 
   // PAYOFF COMPARISON
-  sheet.getRange("A12").setValue("── PAYOFF COMPARISON ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A12").setValue("── PAYOFF COMPARISON ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("B13").setValue("Snowball").setFontWeight("bold");
   sheet.getRange("C13").setValue("Avalanche").setFontWeight("bold");
@@ -1005,7 +1002,7 @@ function buildDebtPayoffTab(sheet) {
     .setFontColor("#10B981").setFontWeight("bold");
 
   // PAYOFF TIMELINE
-  sheet.getRange("A18").setValue("── PAYOFF TIMELINE ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A18").setValue("── PAYOFF TIMELINE ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A19").setValue("Debt").setFontWeight("bold");
   sheet.getRange("B19").setValue("Snowball payoff").setFontWeight("bold");
@@ -1021,19 +1018,19 @@ function buildDebtPayoffTab(sheet) {
   });
 
   // DISCLAIMER
-  sheet.getRange("A25").setValue("── IMPORTANT NOTES ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A25").setValue("── IMPORTANT NOTES ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
   sheet.getRange("A26").setValue("These estimates use month-by-month simulation")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
   sheet.getRange("A27").setValue("with your exact debts, rates, and payments.")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
   sheet.getRange("A28").setValue("Results assume consistent monthly payments")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
   sheet.getRange("A29").setValue("and no skipped payments.")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
   sheet.getRange("A30").setValue("For this specific debt profile, Snowball and Avalanche")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
   sheet.getRange("A31").setValue("produce similar results.")
-    .setFontSize(9).setFontColor(secondaryColor);
+    .setFontSize(9).setFontColor(SECONDARY_COLOR);
 
   // FORMATTING
   sheet.setColumnWidth(1, 180);
@@ -1061,17 +1058,14 @@ function buildDebtPayoffTab(sheet) {
 function buildGoalsTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
-
   // TITLE
   sheet.getRange("A1").setValue("SAVINGS GOALS · Track Your Progress")
-    .setFontSize(16).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A1:G1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
   // SECTION HEADER
-  sheet.getRange("A3").setValue("── SAVINGS GOALS ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A3").setValue("── SAVINGS GOALS ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   // COLUMN HEADERS
   sheet.getRange("A4").setValue("Goal Name").setFontWeight("bold");
@@ -1126,7 +1120,7 @@ function buildGoalsTab(sheet) {
   });
 
   // SEPARATOR
-  sheet.getRange("A10").setValue("──").setFontColor(secondaryColor);
+  sheet.getRange("A10").setValue("──").setFontColor(SECONDARY_COLOR);
 
   // TOTALS ROW
   sheet.getRange("A11").setValue("TOTALS").setFontWeight("bold").setFontSize(10);
@@ -1210,21 +1204,18 @@ function addGoalsValidation(sheet) {
 function buildInstructionsTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
-
   // TITLE
   sheet.getRange("A1").setValue("How to Use Budget Pro 2026")
-    .setFontSize(16).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A1:B1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
   // WELCOME
   sheet.getRange("A3").setValue("Hey! Welcome. This spreadsheet is designed to be simple. Here's everything you need to know.")
-    .setFontSize(11).setFontStyle("italic").setFontColor(headerColor);
+    .setFontSize(11).setFontStyle("italic").setFontColor(HEADER_COLOR);
 
   // QUICK START
-  sheet.getRange("A5").setValue("── QUICK START (5 minutes) ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A5").setValue("── QUICK START (5 minutes) ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const quickStart = [
     "1. Open the \"Scenario Engine\" tab",
@@ -1238,7 +1229,7 @@ function buildInstructionsTab(sheet) {
   });
 
   // TAB 1: SCENARIO ENGINE
-  sheet.getRange("A11").setValue("── TAB 1: SCENARIO ENGINE ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A11").setValue("── TAB 1: SCENARIO ENGINE ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const tab1Instructions = [
     "What it does: Calculates when you'll be",
@@ -1267,7 +1258,7 @@ function buildInstructionsTab(sheet) {
 
   // WHY DATES DIFFER
   sheet.getRange("A31").setValue("── WHY TAB 1 AND TAB 3 SHOW DIFFERENT DATES ──")
-    .setFontWeight("bold").setFontColor(secondaryColor);
+    .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const whyDatesDiffer = [
     "Tab 1 (Scenario Engine) uses your weighted average",
@@ -1288,7 +1279,7 @@ function buildInstructionsTab(sheet) {
 
   // HOW THE SCENARIO ENGINE WORKS
   sheet.getRange("A43").setValue("── HOW THE SCENARIO ENGINE WORKS ──")
-    .setFontWeight("bold").setFontColor(secondaryColor);
+    .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const engineWorks = [
     "The Scenario Engine uses two powerful Google Sheets",
@@ -1324,7 +1315,7 @@ function buildInstructionsTab(sheet) {
 
   // TAB 2: BUDGET TRACKER
   sheet.getRange("A69").setValue("── TAB 2: BUDGET TRACKER ──")
-    .setFontWeight("bold").setFontColor(secondaryColor);
+    .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const tab2Instructions = [
     "What it does: Tracks your monthly income",
@@ -1349,7 +1340,7 @@ function buildInstructionsTab(sheet) {
 
   // TAB 3: DEBT PAYOFF
   sheet.getRange("A85").setValue("── TAB 3: DEBT PAYOFF ──")
-    .setFontWeight("bold").setFontColor(secondaryColor);
+    .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const tab3Instructions = [
     "What it does: Compares debt snowball vs",
@@ -1373,7 +1364,7 @@ function buildInstructionsTab(sheet) {
 
   // TAB 4: GOALS
   sheet.getRange("A101").setValue("── TAB 4: GOALS ──")
-    .setFontWeight("bold").setFontColor(secondaryColor);
+    .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const tab4Instructions = [
     "What it does: Tracks savings goals with progress",
@@ -1398,7 +1389,7 @@ function buildInstructionsTab(sheet) {
 
   // TAB 5: SPENDABLE
   sheet.getRange("A118").setValue("── TAB 5: SPENDABLE ──")
-    .setFontWeight("bold").setFontColor(secondaryColor);
+    .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const tab5Instructions = [
     "What it does: Shows how much guilt-free spending",
@@ -1425,7 +1416,7 @@ function buildInstructionsTab(sheet) {
   });
 
   // FAQ
-  sheet.getRange("A137").setValue("── FAQ ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A137").setValue("── FAQ ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   const faq = [
     "Q: Can I add more debts?",
@@ -1464,7 +1455,7 @@ function buildInstructionsTab(sheet) {
   });
 
   // NEED HELP
-  sheet.getRange("A179").setValue("── NEED HELP? ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A179").setValue("── NEED HELP? ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
   sheet.getRange("A180").setValue("Questions? Message me on Etsy. I respond within 48 hours.").setFontSize(10);
   sheet.getRange("A181").setValue("30-day money-back guarantee.").setFontSize(10);
 
@@ -1479,73 +1470,71 @@ function buildInstructionsTab(sheet) {
 function buildSpendableTab(sheet) {
   sheet.clear();
 
-  const headerColor = "#0F172A";
-  const secondaryColor = "#64748B";
   const accentColor = "#10B981";
 
   // TITLE
   sheet.getRange("A1").setValue("SPENDABLE · Your guilt-free spending money")
-    .setFontSize(16).setFontWeight("bold").setFontColor(headerColor);
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("A1:C1").setBackground("#F8FAFC");
   sheet.setRowHeight(1, 40);
 
   // BIG NUMBER: WEEKLY
   sheet.getRange("A3").setValue("── SPENDABLE ──").setFontWeight("bold").setFontColor(accentColor);
 
-  sheet.getRange("A4").setValue("You have").setFontSize(12).setFontColor(headerColor);
+  sheet.getRange("A4").setValue("You have").setFontSize(12).setFontColor(HEADER_COLOR);
   sheet.getRange("B4").setFormula("=IFERROR(MAX(0,('Scenario Engine'!B4-'Scenario Engine'!B5-'Scenario Engine'!B9)*12/52),0)")
     .setFontSize(18).setFontWeight("bold").setFontColor(accentColor)
     .setNumberFormat("$#,##0");
-  sheet.getRange("C4").setValue("this week").setFontSize(12).setFontColor(headerColor);
+  sheet.getRange("C4").setValue("this week").setFontSize(12).setFontColor(HEADER_COLOR);
 
   // BIG NUMBER: DAILY
-  sheet.getRange("A6").setValue("You have").setFontSize(12).setFontColor(headerColor);
+  sheet.getRange("A6").setValue("You have").setFontSize(12).setFontColor(HEADER_COLOR);
   sheet.getRange("B6").setFormula("=IFERROR(MAX(0,B4/7),0)")
     .setFontSize(18).setFontWeight("bold").setFontColor(accentColor)
     .setNumberFormat("$#,##0.00");
-  sheet.getRange("C6").setValue("this day").setFontSize(12).setFontColor(headerColor);
+  sheet.getRange("C6").setValue("this day").setFontSize(12).setFontColor(HEADER_COLOR);
 
   // BREAKDOWN
-  sheet.getRange("A8").setValue("── HOW IT'S CALCULATED ──").setFontWeight("bold").setFontColor(secondaryColor);
+  sheet.getRange("A8").setValue("── HOW IT'S CALCULATED ──").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
   // Monthly income
-  sheet.getRange("A9").setValue("Monthly income").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("A9").setValue("Monthly income").setFontSize(10).setFontColor(HEADER_COLOR);
   sheet.getRange("B9").setFormula("=MAX(0,'Scenario Engine'!B4)")
     .setNumberFormat("$#,##0").setFontSize(10).setFontWeight("bold");
 
   // Minus expenses
-  sheet.getRange("A10").setValue("Minus expenses").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("A10").setValue("Minus expenses").setFontSize(10).setFontColor(HEADER_COLOR);
   sheet.getRange("B10").setFormula("=MAX(0,'Scenario Engine'!B5)")
     .setNumberFormat("$#,##0").setFontSize(10);
 
   // Minus debt payment
-  sheet.getRange("A11").setValue("Minus debt payment").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("A11").setValue("Minus debt payment").setFontSize(10).setFontColor(HEADER_COLOR);
   sheet.getRange("B11").setFormula("=MAX(0,'Scenario Engine'!B9)")
     .setNumberFormat("$#,##0").setFontSize(10);
 
   // Equals monthly spendable
-  sheet.getRange("A12").setValue("Monthly spendable").setFontSize(10).setFontWeight("bold").setFontColor(headerColor);
+  sheet.getRange("A12").setValue("Monthly spendable").setFontSize(10).setFontWeight("bold").setFontColor(HEADER_COLOR);
   sheet.getRange("B12").setFormula("=IFERROR(MAX(0,B9-B10-B11),0)")
     .setNumberFormat("$#,##0").setFontSize(10).setFontWeight("bold")
     .setBorder(true, false, false, false, false, false);
 
   // Weekly spendable (monthly × 12 months ÷ 52 weeks)
-  sheet.getRange("A14").setValue("Monthly × 12 ÷ 52").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("A14").setValue("Monthly × 12 ÷ 52").setFontSize(10).setFontColor(HEADER_COLOR);
   sheet.getRange("B14").setFormula("=IFERROR(MAX(0,B12*12/52),0)")
     .setNumberFormat("$#,##0").setFontSize(10).setFontWeight("bold")
     .setBorder(true, false, false, false, false, false);
-  sheet.getRange("C14").setValue("weekly spendable").setFontSize(10).setFontColor(secondaryColor);
+  sheet.getRange("C14").setValue("weekly spendable").setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // Divided by 7 = daily spendable
-  sheet.getRange("A15").setValue("Divided by 7").setFontSize(10).setFontColor(headerColor);
+  sheet.getRange("A15").setValue("Divided by 7").setFontSize(10).setFontColor(HEADER_COLOR);
   sheet.getRange("B15").setFormula("=IFERROR(MAX(0,B14/7),0)")
     .setNumberFormat("$#,##0.00").setFontSize(10).setFontWeight("bold")
     .setBorder(true, false, false, false, false, false);
-  sheet.getRange("C15").setValue("daily spendable").setFontSize(10).setFontColor(secondaryColor);
+  sheet.getRange("C15").setValue("daily spendable").setFontSize(10).setFontColor(SECONDARY_COLOR);
 
   // NOTE
   sheet.getRange("A17").setValue("This is your guilt-free spending money after all obligations are met")
-    .setFontSize(10).setFontStyle("italic").setFontColor(secondaryColor);
+    .setFontSize(10).setFontStyle("italic").setFontColor(SECONDARY_COLOR);
 
   // FORMATTING
   sheet.setColumnWidth(1, 220);
@@ -1871,7 +1860,26 @@ function recalculateDebtSimulation() {
 
     Logger.log("Debt simulation recalculated: Snowball=" + snowball.totalMonths + "mo, Avalanche=" + avalanche.totalMonths + "mo");
   } catch (e) {
-    Logger.log("ERROR in recalculateDebtSimulation: " + e.message);
+    // ERROR HANDLING STRATEGY:
+    // - Sheets API errors (e.g., rate limits, network failures): log and fail silently
+    //   because the user can retry manually via menu or onEdit trigger.
+    // - Null sheet errors: already handled above with early return.
+    // - Data corruption / unexpected errors: re-throw so the user sees the error
+    //   and can investigate. Silent failures hide data integrity problems.
+    const isSheetsApiError = e.message &&
+      (e.message.includes("Service Spreadsheets") ||
+       e.message.includes("Rate Limit") ||
+       e.message.includes("network") ||
+       e.message.includes("timeout") ||
+       e.message.includes("internal error"));
+
+    if (isSheetsApiError) {
+      Logger.log("Sheets API error in recalculateDebtSimulation (retryable): " + e.message);
+    } else {
+      Logger.log("UNEXPECTED ERROR in recalculateDebtSimulation: " + e.message);
+      Logger.log(e.stack);
+      throw e;
+    }
   }
 }
 

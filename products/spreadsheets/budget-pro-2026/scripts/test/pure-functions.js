@@ -1,6 +1,11 @@
 /**
  * Pure functions extracted from build-engine.gs for testing.
  * These are the computation-only functions with no Sheets API dependency.
+ *
+ * SYNC: simulatePayoff() is a copy of the production version in
+ * scripts/build-engine.gs (C4 consolidation). When modifying
+ * simulatePayoff() in build-engine.gs, update this copy to match.
+ * GAS cannot use ES module imports, so both files must be kept in sync.
  */
 
 function simulatePayoff(debts, strategy) {
