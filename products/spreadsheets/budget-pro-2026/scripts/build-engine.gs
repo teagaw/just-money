@@ -597,42 +597,14 @@ function buildEngineTab(sheet) {
     '=IF(ABS(B28-B29)<0.0001,"✓ Match","⚠ Check APR — doesn\'t match Debt Payoff tab")'
   );
 
-  sheet.getRange("A32").setValue("✦ INFLATION-ADJUSTED").setFontWeight("bold");
-
-  // B32: Months to debt-free using nominal APR (B9) instead of real rate (B9-B12).
-  // Same surplus and net position as B2 — only the rate differs.
-  sheet.getRange("A33").setValue("Nominal rate (no inflation)");
-  sheet.getRange("B32").setFormula(
-    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP((\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)/(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),(\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)),0)),"N/A")))'
-  );
-
-  // B33: Interest at nominal rate (use same simulation as B18, just display months)
-  sheet.getRange("A34").setValue("Nominal rate months");
-  sheet.getRange("B33").setFormula("=B32");
-
-  // B34: Nominal rate freedom date
-  sheet.getRange("A35").setValue("Nominal rate freedom date");
-  sheet.getRange("B34").setFormula(
-    '=IF(B32="Already free!","Already free!",IF(B32="Check inputs","N/A",IF(B32=0,"120+ months",IFERROR(EDATE(TODAY(),B32),"N/A"))))'
-  );
-
-  // Nominal rate comparison note
-  sheet.getRange("A36").setValue("⚠ Note:").setFontWeight("bold").setFontColor("#666666").setFontSize(9);
-  sheet.getRange("B36").setValue("Nominal APR (no inflation adjustment) — same surplus & net position as B2; only the rate differs")
-    .setFontStyle("italic")
-    .setFontColor("#666666")
-    .setFontSize(9);
-
   sheet.getRange("B2").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B24").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
   sheet.getRange("B25").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
-  sheet.getRange("B32").setComment("Months to freedom using nominal APR (B9/12) instead of real rate ((B9-B12)/12). Same surplus & net position as B2 — only the rate differs.");
-  sheet.getRange("B33").setComment("Sample results — enter your debts in the Debt Payoff tab for your personalized plan");
 
-  sheet.getRange("A37").setValue("✦ SENSITIVITY TABLE").setFontWeight("bold");
+  sheet.getRange("A32").setValue("✦ SENSITIVITY TABLE").setFontWeight("bold");
 
   const extraPayments = [0, 100, 200, 300, 400, 500, 750, 1000];
-  const startRow = 38;
+  const startRow = 32;
 
   for (let i = 0; i < extraPayments.length; i++) {
     const row = startRow + (i * 3); // 3 rows per scenario (months, interest, date)
