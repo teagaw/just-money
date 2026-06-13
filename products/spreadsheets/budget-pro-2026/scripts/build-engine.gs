@@ -606,11 +606,9 @@ function buildEngineTab(sheet) {
     '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP((\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)/(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B6-\'Scenario Engine\'!B7-\'Scenario Engine\'!B11),(\'Scenario Engine\'!B8-\'Scenario Engine\'!B10)),0)),"N/A")))'
   );
 
-  // B33: Inflation-adjusted interest (real-rate payment × months − debt)
-  sheet.getRange("A34").setValue("Inflation-adjusted interest");
-  sheet.getRange("B33").setFormula(
-    '=IF(B32="Already free!",0,IF(B32="N/A","N/A",IFERROR(B32*\'Scenario Engine\'!B11-\'Scenario Engine\'!B10,0)))'
-  );
+  // B33: Interest at nominal rate (use same simulation as B18, just display months)
+  sheet.getRange("A34").setValue("Nominal rate months");
+  sheet.getRange("B33").setFormula("=B32");
 
   // B34: Nominal rate freedom date
   sheet.getRange("A35").setValue("Nominal rate freedom date");
@@ -808,8 +806,7 @@ function buildScenarioEngineTab(sheet) {
     { row: 35, label: "Minimum payments only", months: "=Engine!B6", interest: "=IFERROR(Engine!B6*B11-B10,0)", date: "=Engine!B8" },
     { row: 36, labelFormula: "=\"Extra $\"&B13&\"/month\"", label: "Extra $/month #1", months: "=Engine!B9", interest: "=IFERROR(Engine!B9*(B11+B13)-B10,0)", date: "=Engine!B11" },
     { row: 37, labelFormula: "=\"Extra $\"&B14&\"/month\"", label: "Extra $/month #2", months: "=Engine!B12", interest: "=IFERROR(Engine!B12*(B11+B14)-B10,0)", date: "=Engine!B14" },
-    { row: 38, label: "Match my scenario", months: "=B18", interest: "=IFERROR(Engine!B7-B20,0)", date: "=B19" },
-    { row: 39, label: "Nominal rate (no inflation)", months: "=Engine!B32", interest: "=Engine!B33", date: "=Engine!B34" }
+    { row: 38, label: "Match my scenario", months: "=B18", interest: "=IFERROR(Engine!B7-B20,0)", date: "=B19" }
   ];
 
   comparisons.forEach(c => {
@@ -1208,7 +1205,7 @@ function buildGoalsTab(sheet) {
       // Target date (EDATE formula) - shows "GOAL REACHED!" when progress is 100%
       sheet.getRange(`G${row}`).setFormula(
         `=IFERROR(IF(F${row}>=1,"GOAL REACHED!",EDATE(TODAY(),E${row})),"Check inputs")`
-      ).setFontSize(10).setFontWeight("bold");
+      ).setNumberFormat("MMM YYYY").setFontSize(10).setFontWeight("bold");
     } catch (e) {
       Logger.log("Error writing goal " + (i + 1) + ": " + e.message);
     }
