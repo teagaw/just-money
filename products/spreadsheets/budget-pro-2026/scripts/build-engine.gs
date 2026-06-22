@@ -322,20 +322,19 @@ function styleInputCell(cell, value, format, validation) {
   // doesn't prevent the value from being displayed
   if (validation) {
     try {
-      const rule = SpreadsheetApp.newDataValidation()
+      const builder = SpreadsheetApp.newDataValidation()
         .setAllowInvalid(false)
-        .setHelpText(validation.helpText)
-        .build();
+        .setHelpText(validation.helpText);
       
       if (validation.min !== undefined && validation.max !== undefined) {
-        rule.requireNumberBetween(validation.min, validation.max);
+        builder.requireNumberBetween(validation.min, validation.max);
       } else if (validation.min !== undefined) {
-        rule.requireNumberGreaterThan(validation.min - 1);
+        builder.requireNumberGreaterThanOrEqualTo(validation.min);
       } else if (validation.max !== undefined) {
-        rule.requireNumberLessThan(validation.max + 1);
+        builder.requireNumberLessThanOrEqualTo(validation.max);
       }
       
-      cell.setDataValidation(rule);
+      cell.setDataValidation(builder.build());
     } catch (e) {
       Logger.log("Data validation skipped for cell: " + e.message);
     }
@@ -775,13 +774,13 @@ function buildScenarioEngineTab(sheet) {
   sheet.getRange("A25").setValue("✦ INTEREST").setFontColor(SECONDARY_COLOR);
 
   sheet.getRange("A26").setValue("Interest this month:").setFontSize(10).setFontWeight("bold");
-  sheet.getRange("B24").setFormula("=IFERROR('Scenario Engine'!B10*'Scenario Engine'!B9/12,0)")
+  sheet.getRange("B26").setFormula("=IFERROR('Scenario Engine'!B10*'Scenario Engine'!B9/12,0)")
     .setNumberFormat("$#,##0").setFontSize(12).setFontWeight("bold").setBackground(resultBg);
-  sheet.getRange("C24").setFormula("=IFERROR(\"→ ~\"&TEXT(B24*12,\"$#,##0\")&\"/yr\",\"\")")
+  sheet.getRange("C26").setFormula("=IFERROR(\"→ ~\"&TEXT(B26*12,\"$#,##0\")&\"/yr\",\"\")")
     .setFontSize(10).setFontColor(SECONDARY_COLOR);
 
-  // B11 DEPENDENCY GUARDRAIL
-  sheet.getRange("A26").setFormula("=IF(AND('Scenario Engine'!B10>0,'Scenario Engine'!B11=0),\"⚠ You have debt but no payment entered. Go to B11 and enter your monthly debt payment.\",\"\")")
+  // B11 DEPENDENCY GUARDRAIL — moved to row 32 to avoid overwriting A26 label
+  sheet.getRange("A32").setFormula("=IF(AND('Scenario Engine'!B10>0,'Scenario Engine'!B11=0),\"⚠ You have debt but no payment entered. Go to B11 and enter your monthly debt payment.\",\"\")")
     .setFontSize(10).setFontColor("#DC2626").setFontWeight("bold");
 
   // CROSS-TAB CHECK
