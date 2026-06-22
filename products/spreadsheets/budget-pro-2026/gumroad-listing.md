@@ -60,8 +60,8 @@ Monthly income vs. expenses. Category-by-category. Year-over-year comparison.
 
 ### What's included
 
-- Google Apps Script file (paste into a blank Google Sheet)
-- Quick Setup Guide — step-by-step instructions (2 minutes to set up)
+- Google Sheets template link (click → Make a copy → done)
+- Quick Setup Guide — step-by-step instructions (30 seconds to set up)
 - 8 tabs: Start Here, Scenario Engine, Budget Tracker, Goals, Debt Payoff, Spendable, Instructions, Engine (hidden)
 - Pre-filled sample data so you see how it works
 - Works on phone, tablet, and computer
@@ -70,12 +70,11 @@ Monthly income vs. expenses. Category-by-category. Year-over-year comparison.
 
 ### How it works
 
-1. Purchase → download the script file + setup guide
-2. Open a blank Google Sheet → Extensions > Apps Script
-3. Paste the script → click Run → authorize
-4. Start entering your numbers in the green cells → see your debt-free date instantly
+1. Purchase → get the template link
+2. Click the link → File > Make a copy
+3. Start entering your numbers in the green cells → see your debt-free date instantly
 
-No apps to install. No account to create.
+No apps to install. No code to paste. No account to create.
 
 ---
 
