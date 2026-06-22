@@ -70,7 +70,7 @@ Monthly income vs. expenses. Category-by-category. Year-over-year comparison.
 
 ### How it works
 
-1. Purchase → get the template link
+1. Purchase → receive template link in your Gumroad download
 2. Click the link → File > Make a copy
 3. Start entering your numbers in the green cells → see your debt-free date instantly
 

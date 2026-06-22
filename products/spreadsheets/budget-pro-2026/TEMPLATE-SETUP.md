@@ -5,7 +5,7 @@
 - 30 seconds
 
 ## Step 1: Get Your Copy
-1. Click the **template link** provided in your purchase email
+1. Click this link: **https://docs.google.com/spreadsheets/d/1GgtRoP7rVVnW6dzSqa90iGpqT7TDZR1vPTzbFGGodqE/edit?usp=sharing**
 2. Click **File > Make a copy** (or press Ctrl+Shift+S)
 3. Name it "Budget Pro 2026" (or any name you prefer)
 4. Choose your Google Drive folder and click **Make a copy**
