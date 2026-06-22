@@ -18,7 +18,11 @@
  * CUSTOM MENU:
  * After pasting, refresh the spreadsheet. A "Budget Pro" menu will appear.
  * Use the menu to rebuild at any time.
+ * 
  */
+
+// Number of debts supported (must match Debt Payoff tab sample data)
+const NUM_DEBTS = 4;
 
 /**
  * Creates the custom menu when the spreadsheet opens.
@@ -353,6 +357,7 @@ function protectRange(sheet, range, description) {
 
 // SYNC: A test-only copy of this function exists in scripts/test/pure-functions.js.
 // When modifying simulatePayoff(), update both files to stay in sync.
+// GAS cannot use ES module imports, so both files must be kept in sync.
 function simulatePayoff(debts, strategy) {
   // debts: array of {name, balance, apr, minPayment}
   // strategy: 'snowball' (smallest balance first) or 'avalanche' (highest APR first)
@@ -364,8 +369,8 @@ function simulatePayoff(debts, strategy) {
   let balances = debts.map(d => d.balance);
   let rates = debts.map(d => d.apr / 12); // monthly rate
   let minimums = debts.map(d => d.minPayment);
-  let totalExtra = debts.reduce((sum, d) => sum + (d.extraPayment || 0), 0);
-  
+  let totalExtraBaseSnowball = debts.reduce((sum, d) => sum + (d.extraPayment || 0), 0);
+
   let totalPaid = 0;
   let totalInterest = 0;
   let months = 0;
@@ -373,12 +378,12 @@ function simulatePayoff(debts, strategy) {
   let perDebtMonths = new Array(debts.length).fill(0);
   let payoffMonths = new Array(debts.length).fill(0);
   let convergedPerDebt = new Array(debts.length).fill(false);
-  
-  for (let month = 1; month <= MAX_MONTHS; month++) {
-    // Find target debt (smallest balance for snowball, highest APR for avalanche)
+
+  // Helper: find next target debt index based on strategy
+  function findTargetDebt(balances, debts, strategy) {
     let targetIdx = -1;
     let bestValue = strategy === 'snowball' ? Infinity : -Infinity;
-    
+
     balances.forEach((b, i) => {
       if (b > 0) {
         if (strategy === 'snowball') {
@@ -398,53 +403,84 @@ function simulatePayoff(debts, strategy) {
         }
       }
     });
-    
-    // Available snowball = total extra payments
-    let availableSnowball = totalExtra;
-    
-    // Apply payments
+    return targetIdx;
+  }
+
+  for (let month = 1; month <= MAX_MONTHS; month++) {
+    // 1. Calculate monthly interest for all active debts
+    let monthlyInterest = [];
+    let totalMinimumsRequired = 0;
+
+    for (let i = 0; i < debts.length; i++) {
+      if (balances[i] > 0) {
+        monthlyInterest[i] = balances[i] * rates[i];
+        balances[i] += monthlyInterest[i]; // Add interest to balance first
+        totalMinimumsRequired += minimums[i];
+      } else {
+        monthlyInterest[i] = 0;
+      }
+    }
+
+    // 2. Establish total available cash pool for this month
+    let cashPool = totalExtraBaseSnowball + totalMinimumsRequired;
+
+    // 3. Pay minimums first to keep accounts in good standing
     for (let i = 0; i < debts.length; i++) {
       if (balances[i] <= 0) continue;
-      
-      // Calculate interest
-      let interest = balances[i] * rates[i];
-      perDebtInterest[i] += interest;
-      
-      // Determine payment
-      let payment = minimums[i];
-      if (i === targetIdx) {
-        payment += availableSnowball;
-      }
-      
-      // Don't overpay
-      payment = Math.min(payment, balances[i] + interest);
-      
-      // Apply payment
-      let principalPaid = payment - interest;
-      balances[i] -= principalPaid;
-      totalPaid += payment;
-      totalInterest += interest;
-      perDebtMonths[i] = month;
-      
-      // If debt paid off, record payoff month and redistribute minimum
+      let minPayment = Math.min(minimums[i], balances[i]);
+      balances[i] -= minPayment;
+      cashPool -= minPayment;
       if (balances[i] <= 0) {
         balances[i] = 0;
+        perDebtMonths[i] = month;
         if (payoffMonths[i] === 0) {
           payoffMonths[i] = month;
         }
         convergedPerDebt[i] = true;
-        totalExtra += minimums[i]; // freed-up minimum rolls into snowball
       }
     }
-    
+
+    // 4. Aggressively deploy remaining cash pool sequentially to priority targets
+    while (cashPool > 0 && balances.some(b => b > 0)) {
+      let targetIdx = findTargetDebt(balances, debts, strategy);
+      if (targetIdx === -1) break;
+
+      let extraPayment = Math.min(cashPool, balances[targetIdx]);
+      balances[targetIdx] -= extraPayment;
+      cashPool -= extraPayment;
+
+      if (balances[targetIdx] <= 0) {
+        balances[targetIdx] = 0;
+        perDebtMonths[targetIdx] = month;
+        if (payoffMonths[targetIdx] === 0) {
+          payoffMonths[targetIdx] = month;
+        }
+        convergedPerDebt[targetIdx] = true;
+      }
+    }
+
+    // Track interest for the month
+    for (let i = 0; i < debts.length; i++) {
+      if (monthlyInterest[i] > 0) {
+        perDebtInterest[i] += monthlyInterest[i];
+        totalInterest += monthlyInterest[i];
+      }
+    }
+
+    // Track payments for the month
+    // Total payment = minimums paid + extra paid from cash pool
+    // Since we drained cashPool, the amount used is totalExtraBaseSnowball + totalMinimumsRequired - cashPool
+    let paymentsThisMonth = totalExtraBaseSnowball + totalMinimumsRequired - cashPool;
+    totalPaid += paymentsThisMonth;
+
     months = month;
-    
+
     // Stop if all debts paid
     if (balances.every(b => b <= 0)) break;
   }
-  
+
   const converged = balances.every(b => b <= 0);
-  
+
   return {
     totalMonths: months,
     totalInterest: Math.round(totalInterest),
@@ -547,31 +583,32 @@ function buildEngineTab(sheet) {
 
   // PAYOFF ORDER HELPER COLUMNS (E=Snowball rank, F=Avalanche rank)
   // Snowball: rank by balance ASCENDING (smallest first)
-  for (let i = 0; i < 4; i++) {
+  const lastDebtRow = 4 + NUM_DEBTS; // e.g., 4+4=8 for 4 debts
+  for (let i = 0; i < NUM_DEBTS; i++) {
     const row = i + 2;
     const debtRow = i + 5;
     // E: Snowball rank (1=smallest balance)
     sheet.getRange(`E${row}`).setFormula(
-      `=RANK('Debt Payoff'!B${debtRow},'Debt Payoff'!B5:B8,1)`
+      `=RANK('Debt Payoff'!B${debtRow},'Debt Payoff'!B5:B${lastDebtRow},1)`
     );
     // F: Avalanche rank (1=highest APR)
     sheet.getRange(`F${row}`).setFormula(
-      `=RANK('Debt Payoff'!C${debtRow},'Debt Payoff'!C5:C8,0)`
+      `=RANK('Debt Payoff'!C${debtRow},'Debt Payoff'!C5:C${lastDebtRow},0)`
     );
   }
 
   // CASCADING PAYMENT COLUMNS (G=Snowball cascade, H=Avalanche cascade)
   // G: For each debt, sum payments from all debts with LOWER snowball rank (paid off earlier)
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < NUM_DEBTS; i++) {
     const row = i + 2;
     const debtRow = i + 5;
-    // G: Snowball cascading payment = this debt's min+extra + sum of payments from debts paid before it
+    // G: Snowball cascading cascading payment = this debt's min+extra + sum of payments from debts paid before it
     sheet.getRange(`G${row}`).setFormula(
-      `=('Debt Payoff'!D${debtRow}+'Debt Payoff'!E${debtRow})+SUMPRODUCT(('Debt Payoff'!D5:D8+'Debt Payoff'!E5:E8)*(E2:E5<E${row}))`
+      `=('Debt Payoff'!D${debtRow}+'Debt Payoff'!E${debtRow})+SUMPRODUCT(('Debt Payoff'!D5:D${lastDebtRow}+'Debt Payoff'!E5:E${lastDebtRow})*(E2:E${1+NUM_DEBTS}<E${row}))`
     );
     // H: Avalanche cascading payment = this debt's min+extra + sum of payments from debts paid before it
     sheet.getRange(`H${row}`).setFormula(
-      `=('Debt Payoff'!D${debtRow}+'Debt Payoff'!E${debtRow})+SUMPRODUCT(('Debt Payoff'!D5:D8+'Debt Payoff'!E5:E8)*(F2:F5<F${row}))`
+      `=('Debt Payoff'!D${debtRow}+'Debt Payoff'!E${debtRow})+SUMPRODUCT(('Debt Payoff'!D5:D${lastDebtRow}+'Debt Payoff'!E5:E${lastDebtRow})*(F2:F${1+NUM_DEBTS}<F${row}))`
     );
   }
 
@@ -584,7 +621,7 @@ function buildEngineTab(sheet) {
   // B28: Weighted APR from debts
   sheet.getRange("A28").setValue("Weighted APR from debts");
   sheet.getRange("B28").setFormula(
-    "=IF(SUM('Debt Payoff'!B5:B8)=0,0,SUMPRODUCT('Debt Payoff'!B5:B8,'Debt Payoff'!C5:C8)/SUM('Debt Payoff'!B5:B8))"
+    `=IF(SUM('Debt Payoff'!B5:B${lastDebtRow})=0,0,SUMPRODUCT('Debt Payoff'!B5:B${lastDebtRow},'Debt Payoff'!C5:C${lastDebtRow})/SUM('Debt Payoff'!B5:B${lastDebtRow}))`
   );
 
   // B29: User's entered APR
@@ -1027,11 +1064,12 @@ function buildDebtPayoffTab(sheet) {
   });
 
   // Totals row
+  const lastDebtRow = 4 + NUM_DEBTS;
   sheet.getRange("A9").setValue("—").setFontColor(SECONDARY_COLOR);
   sheet.getRange("A10").setValue("Total").setFontWeight("bold").setFontSize(10);
-  sheet.getRange("B10").setFormula("=SUM(B5:B8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
-  sheet.getRange("D10").setFormula("=SUM(D5:D8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
-  sheet.getRange("E10").setFormula("=SUM(E5:E8)").setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("B10").setFormula(`=SUM(B5:B${lastDebtRow})`).setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("D10").setFormula(`=SUM(D5:D${lastDebtRow})`).setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
+  sheet.getRange("E10").setFormula(`=SUM(E5:E${lastDebtRow})`).setNumberFormat("$#,##0").setFontWeight("bold").setFontSize(10);
 
   // PAYOFF COMPARISON
   sheet.getRange("A12").setValue("✦ PAYOFF COMPARISON").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
@@ -1721,8 +1759,11 @@ function addScenarioEngineValidation(sheet) {
 }
 
 function addDebtPayoffValidation(sheet) {
-  // B5:B8: Balance >= 0
-  sheet.getRange("B5:B8").setDataValidation(
+  const lastDebtRow = 4 + NUM_DEBTS;
+  const debtRange = `5:${lastDebtRow}`;
+
+  // B: Balance >= 0
+  sheet.getRange(`B${debtRange}`).setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1730,8 +1771,8 @@ function addDebtPayoffValidation(sheet) {
       .build()
   );
 
-  // C5:C8: APR 0-50%
-  sheet.getRange("C5:C8").setDataValidation(
+  // C: APR 0-50%
+  sheet.getRange(`C${debtRange}`).setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberBetween(0, 0.5)
       .setAllowInvalid(false)
@@ -1739,8 +1780,8 @@ function addDebtPayoffValidation(sheet) {
       .build()
   );
 
-  // D5:D8: Min payment >= 0
-  sheet.getRange("D5:D8").setDataValidation(
+  // D: Min payment >= 0
+  sheet.getRange(`D${debtRange}`).setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1748,8 +1789,8 @@ function addDebtPayoffValidation(sheet) {
       .build()
   );
 
-  // E5:E8: Extra payment >= 0
-  sheet.getRange("E5:E8").setDataValidation(
+  // E: Extra payment >= 0
+  sheet.getRange(`E${debtRange}`).setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireNumberGreaterThanOrEqualTo(0)
       .setAllowInvalid(false)
@@ -1849,19 +1890,22 @@ function addBudgetTrackerConditionalFormatting(sheet) {
 }
 
 function addDebtPayoffConditionalFormatting(sheet) {
-  // B5:B8: Balance = 0 = strikethrough
+  const lastDebtRow = 4 + NUM_DEBTS;
+  const debtRange = `5:${lastDebtRow}`;
+
+  // B: Balance = 0 = strikethrough
   const balanceZeroRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberEqualTo(0)
     .setStrikethrough(true)
     .setFontColor("#94A3B8")
-    .setRanges([sheet.getRange("B5:B8")])
+    .setRanges([sheet.getRange(`B${debtRange}`)])
     .build();
 
-  // C5:C8: APR >= 20% = red
+  // C: APR >= 20% = red
   const aprHighRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberGreaterThanOrEqualTo(0.2)
     .setFontColor("#DC2626")
-    .setRanges([sheet.getRange("C5:C8")])
+    .setRanges([sheet.getRange(`C${debtRange}`)])
     .build();
 
   // B16:C16: Interest saved > 0 = green bg
