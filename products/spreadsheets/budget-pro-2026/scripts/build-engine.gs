@@ -355,6 +355,71 @@ function protectRange(sheet, range, description) {
   }
 }
 
+/**
+ * Initializes a tab with title, background color, and row height.
+ * Common setup shared by most tab builders.
+ */
+function initTab(sheet, title, titleRange) {
+  sheet.clear();
+  sheet.getRange("A1").setValue(title)
+    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
+  sheet.getRange(titleRange).setBackground("#F8FAFC");
+  sheet.setRowHeight(1, 40);
+}
+
+/**
+ * Writes one scenario block (months, interest, freedom date) in the Engine sensitivity table.
+ */
+function writeSensitivityRow(sheet, row, extraAmount) {
+  // Months
+  sheet.getRange(`A${row}`).setValue(`Extra $${extraAmount}/month months`);
+  sheet.getRange(`B${row}`).setFormula(
+    `=IF('Scenario Engine'!B10<=0,"Already free!",IF('Scenario Engine'!B9=0,ROUNDUP('Scenario Engine'!B10/('Scenario Engine'!B11+${extraAmount}),0),IFERROR(ABS(ROUNDUP(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+${extraAmount}),'Scenario Engine'!B10),0)),"N/A")))`
+  );
+
+  // Interest
+  sheet.getRange(`A${row + 1}`).setValue(`Extra $${extraAmount}/month interest`);
+  sheet.getRange(`B${row + 1}`).setFormula(
+    `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IF('Scenario Engine'!B9=0,0,IFERROR(('Scenario Engine'!B11+${extraAmount})*ABS(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+${extraAmount}),'Scenario Engine'!B10))-'Scenario Engine'!B10,0))))`
+  );
+
+  // Freedom date
+  sheet.getRange(`A${row + 2}`).setValue(`Extra $${extraAmount}/month freedom date`);
+  sheet.getRange(`B${row + 2}`).setFormula(
+    `=IF(B${row}="Already free!","Already free!",IF(B${row}="Check inputs","N/A",IF(B${row}=0,"120+ months",IFERROR(EDATE(TODAY(),B${row}),"N/A"))))`
+  );
+}
+
+/**
+ * Writes a pair of custom extra payment rows (months, interest saved, freedom date)
+ * in the Engine tab. Used for Custom #1 and Custom #2.
+ */
+function writeCustomExtraRows(sheet, labelRow, valueRow, dateRow, customCellRef) {
+  sheet.getRange(`A${labelRow}`).setFormula(`="Extra $"&'Scenario Engine'!${customCellRef}&" months"`);
+  sheet.getRange(`B${valueRow}`).setFormula(
+    `=IF('Scenario Engine'!B10<=0,"Already free!",IF('Scenario Engine'!B9=0,ROUNDUP('Scenario Engine'!B10/('Scenario Engine'!B11+'Scenario Engine'!${customCellRef}),0),IFERROR(ABS(ROUNDUP(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+'Scenario Engine'!${customCellRef}),'Scenario Engine'!B10),0)),"Check inputs")))`
+  );
+
+  sheet.getRange(`A${labelRow + 1}`).setFormula(`="Extra $"&'Scenario Engine'!${customCellRef}&" saved"`);
+  sheet.getRange(`B${labelRow + 1}`).setFormula(
+    `=IF(B${valueRow}="Already free!",0,IF(B${valueRow}="Check inputs","N/A",IFERROR(B6*'Scenario Engine'!B11-B${valueRow}*('Scenario Engine'!B11+'Scenario Engine'!${customCellRef}),0)))`
+  );
+
+  sheet.getRange(`A${dateRow}`).setFormula(`="Extra $"&'Scenario Engine'!${customCellRef}&" freedom date"`);
+  sheet.getRange(`B${dateRow}`).setFormula(
+    `=IF(B${valueRow}="Already free!","Already free!",IF(B${valueRow}="Check inputs","N/A",IF(B${valueRow}=0,"120+ months",IFERROR(EDATE(TODAY(),B${valueRow}),"N/A"))))`
+  );
+}
+
+/**
+ * Writes a section of instruction text lines starting at a given row.
+ */
+function writeInstructionSection(sheet, startRow, lines) {
+  lines.forEach((line, i) => {
+    sheet.getRange(`A${startRow + i}`).setValue(line).setFontSize(10);
+  });
+}
+
 // SYNC: A test-only copy of this function exists in scripts/test/pure-functions.js.
 // When modifying simulatePayoff(), update both files to stay in sync.
 // GAS cannot use ES module imports, so both files must be kept in sync.
@@ -539,41 +604,10 @@ function buildEngineTab(sheet) {
     '=IF(B6="Already free!","Already free!",IF(B6="Check inputs","N/A",IF(B6=0,"120+ months",IFERROR(EDATE(TODAY(),B6),"N/A"))))'
   );
 
-  // B9: Extra custom #1 months (minimum payment + custom #1 extra)
-  sheet.getRange("A11").setFormula("=\"Extra $\"&'Scenario Engine'!B13&\" months\"");
-  sheet.getRange("B9").setFormula(
-    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP(\'Scenario Engine\'!B10/(\'Scenario Engine\'!B11+\'Scenario Engine\'!B13),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B11+\'Scenario Engine\'!B13),\'Scenario Engine\'!B10),0)),"Check inputs")))'
-  );
-
-  // B10: Extra custom #1 interest saved (vs min-only baseline)
-  sheet.getRange("A12").setFormula("=\"Extra $\"&'Scenario Engine'!B13&\" saved\"");
-  sheet.getRange("B10").setFormula(
-    '=IF(B9="Already free!",0,IF(B9="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B11-B9*(\'Scenario Engine\'!B11+\'Scenario Engine\'!B13),0)))'
-  );
-
-  // B11: Extra custom #1 freedom date
-  sheet.getRange("A13").setFormula("=\"Extra $\"&'Scenario Engine'!B13&\" freedom date\"");
-  sheet.getRange("B11").setFormula(
-    '=IF(B9="Already free!","Already free!",IF(B9="Check inputs","N/A",IF(B9=0,"120+ months",IFERROR(EDATE(TODAY(),B9),"N/A"))))'
-  );
-
-  // B12: Extra custom #2 months (minimum payment + custom #2 extra)
-  sheet.getRange("A14").setFormula("=\"Extra $\"&'Scenario Engine'!B14&\" months\"");
-  sheet.getRange("B12").setFormula(
-    '=IF(\'Scenario Engine\'!B10<=0,"Already free!",IF(\'Scenario Engine\'!B9=0,ROUNDUP(\'Scenario Engine\'!B10/(\'Scenario Engine\'!B11+\'Scenario Engine\'!B14),0),IFERROR(ABS(ROUNDUP(NPER(\'Scenario Engine\'!B9/12,-(\'Scenario Engine\'!B11+\'Scenario Engine\'!B14),\'Scenario Engine\'!B10),0)),"Check inputs")))'
-  );
-
-  // B13: Extra custom #2 interest saved (vs min-only baseline)
-  sheet.getRange("A15").setFormula("=\"Extra $\"&'Scenario Engine'!B14&\" saved\"");
-  sheet.getRange("B13").setFormula(
-    '=IF(B12="Already free!",0,IF(B12="Check inputs","N/A",IFERROR(B6*\'Scenario Engine\'!B11-B12*(\'Scenario Engine\'!B11+\'Scenario Engine\'!B14),0)))'
-  );
-
-  // B14: Extra custom #2 freedom date
-  sheet.getRange("A16").setFormula("=\"Extra $\"&'Scenario Engine'!B14&\" freedom date\"");
-  sheet.getRange("B14").setFormula(
-    '=IF(B12="Already free!","Already free!",IF(B12="Check inputs","N/A",IF(B12=0,"120+ months",IFERROR(EDATE(TODAY(),B12),"N/A"))))'
-  );
+  // Custom #1
+  writeCustomExtraRows(sheet, 11, 9, 13, 'Scenario Engine'!B13);
+  // Custom #2
+  writeCustomExtraRows(sheet, 14, 12, 16, 'Scenario Engine'!B14);
 
   sheet.getRange("A18").setValue("✦ DEBT PAYOFF FORMULAS").setFontWeight("bold");
 
@@ -638,30 +672,8 @@ function buildEngineTab(sheet) {
 
   const extraPayments = [0, 100, 200, 300, 400, 500, 750, 1000];
   const startRow = 32;
-
   for (let i = 0; i < extraPayments.length; i++) {
-    const row = startRow + (i * 3); // 3 rows per scenario (months, interest, date)
-    const extra = extraPayments[i];
-
-    // Months — debt payoff with minimum payment + extra
-    sheet.getRange(`A${row}`).setValue(`Extra $${extra}/month months`);
-    sheet.getRange(`B${row}`).setFormula(
-      `=IF('Scenario Engine'!B10<=0,"Already free!",IF('Scenario Engine'!B9=0,ROUNDUP('Scenario Engine'!B10/('Scenario Engine'!B11+${extra}),0),IFERROR(ABS(ROUNDUP(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+${extra}),'Scenario Engine'!B10),0)),"N/A")))`
-    );
-
-    // Interest — use EXACT NPER (not rounded) to ensure monotonicity.
-    // Rounded months cause non-monotonic results because ROUNDUP can push
-    // a higher-payment scenario into a worse total-payment bucket.
-    sheet.getRange(`A${row + 1}`).setValue(`Extra $${extra}/month interest`);
-    sheet.getRange(`B${row + 1}`).setFormula(
-      `=IF(B${row}="Already free!",0,IF(B${row}="Check inputs","N/A",IF('Scenario Engine'!B9=0,0,IFERROR(('Scenario Engine'!B11+${extra})*ABS(NPER('Scenario Engine'!B9/12,-('Scenario Engine'!B11+${extra}),'Scenario Engine'!B10))-'Scenario Engine'!B10,0))))`
-    );
-
-    // Freedom date
-    sheet.getRange(`A${row + 2}`).setValue(`Extra $${extra}/month freedom date`);
-    sheet.getRange(`B${row + 2}`).setFormula(
-      `=IF(B${row}="Already free!","Already free!",IF(B${row}="Check inputs","N/A",IF(B${row}=0,"120+ months",IFERROR(EDATE(TODAY(),B${row}),"N/A"))))`
-    );
+    writeSensitivityRow(sheet, startRow + (i * 3), extraPayments[i]);
   }
 
   // Format the Engine tab
@@ -672,15 +684,9 @@ function buildEngineTab(sheet) {
 }
 
 function buildScenarioEngineTab(sheet) {
-  sheet.clear();
+  initTab(sheet, "PAYOFF CALCULATOR · \"When am I free?\"", "A1:F1");
 
   const resultBg = "#EFF6FF";
-
-  // TITLE
-  sheet.getRange("A1").setValue("PAYOFF CALCULATOR · \"When am I free?\"")
-    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
-  sheet.getRange("A1:F1").setBackground("#F8FAFC");
-  sheet.setRowHeight(1, 40);
 
   // MOBILE QUICK VIEW - Key numbers at a glance
   sheet.getRange("A2").setValue("✦ QUICK VIEW").setFontWeight("bold").setFontColor(HEADER_COLOR);
@@ -893,15 +899,9 @@ function buildScenarioEngineTab(sheet) {
 }
 
 function buildBudgetTrackerTab(sheet) {
-  sheet.clear();
+  initTab(sheet, "BUDGET TRACKER · " + new Date().getFullYear(), "A1:M1");
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  // TITLE
-  sheet.getRange("A1").setValue("BUDGET TRACKER · " + new Date().getFullYear())
-    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
-  sheet.getRange("A1:M1").setBackground("#F8FAFC");
-  sheet.setRowHeight(1, 40);
 
   // INCOME SECTION
   sheet.getRange("A3").setValue("✦ INCOME").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
@@ -1012,13 +1012,7 @@ function buildBudgetTrackerTab(sheet) {
 }
 
 function buildDebtPayoffTab(sheet) {
-  sheet.clear();
-
-  // TITLE
-  sheet.getRange("A1").setValue("DEBT PAYOFF · Pay Off Debt Faster")
-    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
-  sheet.getRange("A1:F1").setBackground("#F8FAFC");
-  sheet.setRowHeight(1, 40);
+  initTab(sheet, "DEBT PAYOFF · Pay Off Debt Faster", "A1:F1");
 
   // DEBT INPUT SECTION
   sheet.getRange("A3").setValue("✦ YOUR DEBT LIST").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
@@ -1142,13 +1136,7 @@ function buildDebtPayoffTab(sheet) {
 }
 
 function buildGoalsTab(sheet) {
-  sheet.clear();
-
-  // TITLE
-  sheet.getRange("A1").setValue("SAVINGS GOALS · Track Your Progress")
-    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
-  sheet.getRange("A1:G1").setBackground("#F8FAFC");
-  sheet.setRowHeight(1, 40);
+  initTab(sheet, "SAVINGS GOALS · Track Your Progress", "A1:G1");
 
   // GROWTH RATE INPUT
   sheet.getRange("A2").setValue("Assumed growth rate")
@@ -1324,13 +1312,7 @@ function addGoalsValidation(sheet) {
 }
 
 function buildInstructionsTab(sheet) {
-  sheet.clear();
-
-  // TITLE
-  sheet.getRange("A1").setValue("How to Use Budget Pro 2026")
-    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
-  sheet.getRange("A1:B1").setBackground("#F8FAFC");
-  sheet.setRowHeight(1, 40);
+  initTab(sheet, "How to Use Budget Pro 2026", "A1:B1");
 
   // WELCOME
   sheet.getRange("A3").setValue("Hey! Welcome. This spreadsheet is designed to be simple. Here's everything you need to know.")
@@ -1346,9 +1328,7 @@ function buildInstructionsTab(sheet) {
     "4. Try different scenarios by changing inputs"
   ];
 
-  quickStart.forEach((line, i) => {
-    sheet.getRange(`A${6 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 6, quickStart);
 
   // TAB 1: SCENARIO ENGINE
   sheet.getRange("A11").setValue("✦ TAB 1: PAYOFF CALCULATOR").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
@@ -1374,9 +1354,7 @@ function buildInstructionsTab(sheet) {
     "  pay compared to minimum payments only"
   ];
 
-  tab1Instructions.forEach((line, i) => {
-    sheet.getRange(`A${12 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 12, tab1Instructions);
 
   // WHY DATES DIFFER
   sheet.getRange("A31").setValue("✦ WHY TAB 1 AND TAB 3 SHOW DIFFERENT DATES")
@@ -1395,11 +1373,9 @@ function buildInstructionsTab(sheet) {
     "Use Tab 3 for your actual payoff plan."
   ];
 
-  whyDatesDiffer.forEach((line, i) => {
-    sheet.getRange(`A${32 + i}`).setValue(line).setFontSize(10);
-  });
-  // HOW THE PAYOFF CALCULATOR WORKS
+  writeInstructionSection(sheet, 32, whyDatesDiffer);
 
+  // HOW THE PAYOFF CALCULATOR WORKS
   sheet.getRange("A43").setValue("✦ HOW THE PAYOFF CALCULATOR WORKS")
     .setFontWeight("bold").setFontColor(SECONDARY_COLOR);
 
@@ -1431,9 +1407,7 @@ function buildInstructionsTab(sheet) {
     "- This calculator is a conservative baseline"
   ];
 
-  engineWorks.forEach((line, i) => {
-    sheet.getRange(`A${44 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 44, engineWorks);
 
   // TAB 2: BUDGET TRACKER
   sheet.getRange("A69").setValue("✦ TAB 2: BUDGET TRACKER")
@@ -1456,9 +1430,7 @@ function buildInstructionsTab(sheet) {
     "  categories — that's where the leak is"
   ];
 
-  tab2Instructions.forEach((line, i) => {
-    sheet.getRange(`A${70 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 70, tab2Instructions);
 
   // TAB 3: DEBT PAYOFF
   sheet.getRange("A85").setValue("✦ TAB 3: DEBT PAYOFF")
@@ -1480,9 +1452,7 @@ function buildInstructionsTab(sheet) {
     "  (saves the most money)"
   ];
 
-  tab3Instructions.forEach((line, i) => {
-    sheet.getRange(`A${86 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 86, tab3Instructions);
 
   // TAB 4: GOALS
   sheet.getRange("A101").setValue("✦ TAB 4: GOALS")
@@ -1505,9 +1475,7 @@ function buildInstructionsTab(sheet) {
     "- Add more goals by inserting rows below row 9"
   ];
 
-  tab4Instructions.forEach((line, i) => {
-    sheet.getRange(`A${102 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 102, tab4Instructions);
 
   // TAB 5: SPENDABLE
   sheet.getRange("A118").setValue("✦ TAB 5: SPENDABLE")
@@ -1533,9 +1501,7 @@ function buildInstructionsTab(sheet) {
     "- Track actual spending against this number"
   ];
 
-  tab5Instructions.forEach((line, i) => {
-    sheet.getRange(`A${119 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 119, tab5Instructions);
 
   // FAQ
   sheet.getRange("A137").setValue("✦ FAQ").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
@@ -1572,9 +1538,7 @@ function buildInstructionsTab(sheet) {
     "   real cost of debt is 5.5%. Set to 0% for nominal."
   ];
 
-  faq.forEach((line, i) => {
-    sheet.getRange(`A${138 + i}`).setValue(line).setFontSize(10);
-  });
+  writeInstructionSection(sheet, 138, faq);
 
   // NEED HELP
   sheet.getRange("A179").setValue("✦ NEED HELP?").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
@@ -1590,15 +1554,9 @@ function buildInstructionsTab(sheet) {
 }
 
 function buildSpendableTab(sheet) {
-  sheet.clear();
+  initTab(sheet, "SPENDABLE · Your guilt-free spending money", "A1:C1");
 
   const accentColor = "#10B981";
-
-  // TITLE
-  sheet.getRange("A1").setValue("SPENDABLE · Your guilt-free spending money")
-    .setFontSize(16).setFontWeight("bold").setFontColor(HEADER_COLOR);
-  sheet.getRange("A1:C1").setBackground("#F8FAFC");
-  sheet.setRowHeight(1, 40);
 
   // BIG NUMBER: WEEKLY
   sheet.getRange("A3").setValue("✦ SPENDABLE").setFontWeight("bold").setFontColor(accentColor);

@@ -44,9 +44,6 @@ Enter different extra payment amounts and see your debt-free date shift. "What i
 **Snowball vs Avalanche — side by side**
 Both strategies, month by month, for your specific debts. You see the real dollar difference between the two. No more debating theory.
 
-**Nominal Rate Comparison**
-See exactly how different interest rates affect your payoff timeline — no guesswork, no theory.
-
 **Spendable Budget Calculator**
 See exactly how much money you have left to spend each week — after every bill, every debt payment, every obligation.
 
@@ -62,7 +59,7 @@ Monthly income vs. expenses. Category-by-category. Year-over-year comparison.
 
 - Google Sheets template link (click → Make a copy → done)
 - Quick Setup Guide — step-by-step instructions (30 seconds to set up)
-- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Goals, Debt Payoff, Spendable, Instructions, Engine (hidden)
+- 8 tabs: Start Here, Engine (hidden), Instructions, Spendable, Debt Payoff, Goals, Budget Tracker, Scenario Engine
 - Pre-filled sample data so you see how it works
 - Works on phone, tablet, and computer
 

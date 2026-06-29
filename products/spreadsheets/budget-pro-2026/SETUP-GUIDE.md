@@ -39,7 +39,7 @@ Find the **9 green cells**. These are YOUR numbers:
 | Current savings | $25,000 |
 | Weighted average APR | 7.5% |
 | Total debt balance | $28,200 |
-| Total monthly debt payment | $790 |
+| Total monthly debt payment | $590 |
 | Inflation adjustment | 3% |
 | Custom comparison #1 | $450 |
 | Custom comparison #2 | $800 |
@@ -70,7 +70,7 @@ Now that you've seen your freedom date, check out the other tabs:
 
 | Tab | What it does |
 |-----|-------------|
-| **Goals** | Set savings targets and watch your progress bars fill up |
+| **Goals** | Set savings targets and watch your progress percentages climb |
 | **Spendable** | See exactly how much you can spend each week and day |
 | **Budget Tracker** | Track income vs. expenses across 12 months |
 | **Debt Payoff** | Compare snowball vs. avalanche — which strategy saves more? |

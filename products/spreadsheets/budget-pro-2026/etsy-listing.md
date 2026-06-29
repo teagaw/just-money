@@ -103,13 +103,8 @@ That's it. That's the number that changes behavior. When you know your spending 
 
 **Snowball vs Avalanche Simulator**
 - Side-by-side month-by-month breakdown for both strategies
-- Full amortization schedule showing exactly where every dollar goes each month
+- Month-by-month payoff simulation for both strategies
 - Interest savings calculator: the real cost of choosing one strategy over the other
-
-**Nominal Rate Comparison**
-- See exactly how different interest rates affect your payoff timeline
-- Compare scenarios side by side with real numbers
-- No guesswork, no theory — just the math
 
 **Spendable Budget Calculator**
 - Weekly and daily spending money after all obligations
@@ -119,7 +114,7 @@ That's it. That's the number that changes behavior. When you know your spending 
 **Savings Goals Tracker**
 - Set goals, track progress, see milestones
 - Emergency fund, vacation, car, house — whatever matters to you
-- Progress bars and percentage trackers that make saving feel like winning
+- Percentage trackers with milestone celebrations at 50% and 100%
 
 **12-Month Budget Tracker**
 - Monthly income vs. expenses view
@@ -143,7 +138,7 @@ No apps to install. No code to paste. Works on phone, tablet, and computer.
 ### What's included
 
 - Google Sheets template (click link → Make a copy)
-- 8 tabs: Start Here, Scenario Engine, Budget Tracker, Goals, Debt Payoff, Spendable, Instructions, Engine (hidden)
+- 8 tabs: Start Here, Engine (hidden), Instructions, Spendable, Debt Payoff, Goals, Budget Tracker, Scenario Engine
 - Pre-filled sample data so you see how it works
 - Financial disclaimer
 - Setup guide (plain text)
@@ -184,7 +179,6 @@ When you see your debt-free date for the first time, you'll want to share it. Sc
 Free templates track your spending. This one tells you WHEN you'll be free.
 - Debt freedom calculator shows exact months to debt-free
 - Compare snowball vs avalanche side-by-side  
-- Nominal rate comparison table
 - 8 tabs that work together as one system
 
 YNAB costs $109/year. This costs $7.99 once.
