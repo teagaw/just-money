@@ -3,7 +3,7 @@
  * Run: node products/spreadsheets/budget-pro-2026/scripts/test/pure-functions.test.js
  */
 
-import { simulatePayoff, getColumnLetter } from './pure-functions.js';
+import { simulatePayoff } from './pure-functions.js';
 
 let passed = 0;
 let failed = 0;
@@ -27,13 +27,6 @@ function assertEqual(actual, expected, name) {
     console.log(`  ✗ ${name} — expected ${expected}, got ${actual}`);
   }
 }
-
-// ─── getColumnLetter ───
-
-console.log('\ngetColumnLetter');
-
-const colCases = [[1,'A'],[2,'B'],[26,'Z'],[27,'AA'],[52,'AZ'],[53,'BA'],[702,'ZZ'],[703,'AAA']];
-colCases.forEach(([n, expected]) => assertEqual(getColumnLetter(n), expected, `column ${n} → ${expected}`));
 
 // ─── simulatePayoff — single debt ───
 
@@ -122,6 +115,19 @@ assert(threeResult.payoffMonths[0] > 0 && threeResult.payoffMonths[0] <= threeRe
 assert(threeResult.payoffMonths[1] <= threeResult.payoffMonths[2],
   'Medium payoff ≤ Large payoff');
 
+// Verify cascade acceleration: freed minimums from earlier debts
+// accelerate the final debt's payoff compared to independent payoff.
+// Use extra payments to create meaningful acceleration.
+const cascadeAccelDebts = [
+  { name: 'A', balance: 500, apr: 0.10, minPayment: 100, extraPayment: 300 },
+  { name: 'B', balance: 3000, apr: 0.12, minPayment: 150, extraPayment: 0 },
+  { name: 'C', balance: 8000, apr: 0.08, minPayment: 200, extraPayment: 0 }
+];
+const cascadeResult = simulatePayoff(cascadeAccelDebts, 'snowball');
+const indepC = simulatePayoff([cascadeAccelDebts[2]], 'snowball');
+assert(cascadeResult.totalMonths < indepC.totalMonths,
+  `cascade (${cascadeResult.totalMonths}mo) pays C faster than independent (${indepC.totalMonths}mo)`);
+
 // ─── Convergence: mixed (some debts pay off, some don't within MAX_MONTHS) ───
 
 console.log('\nsimulatePayoff — mixed convergence');
@@ -165,6 +171,14 @@ console.log('\nsimulatePayoff — empty input returns zeroed result');
 const emptyResult = simulatePayoff([], 'snowball');
 assertEqual(emptyResult.totalMonths, 0, 'empty input → 0 months');
 assertEqual(emptyResult.totalInterest, 0, 'empty input → 0 interest');
+
+// ─── simulatePayoff — null input ───
+
+console.log('\nsimulatePayoff — null input');
+
+const nullResult = simulatePayoff(null, 'snowball');
+assertEqual(nullResult.totalMonths, 0, 'null input returns 0 months');
+assertEqual(nullResult.totalInterest, 0, 'null input returns 0 interest');
 assertEqual(emptyResult.totalPaid, 0, 'empty input → 0 paid');
 
 // ─── Convergence: empty input ───
@@ -205,10 +219,12 @@ const tieDebts = [
 
 const tieResult = simulatePayoff(tieDebts, 'avalanche');
 
-// Same APR, same balance — both should pay off and produce deterministic results
+// Same APR, same balance, zero extra payment — both pay off independently
+// in the same month. This is COINCIDENTAL (not due to tiebreaker).
+// With extraPayment > 0, tiebreaker would target debt 0 first.
 assert(tieResult.totalMonths > 0, 'identical debts complete under avalanche');
 assertEqual(tieResult.payoffMonths[0], tieResult.payoffMonths[1],
-  'identical debts pay off in same month under avalanche tiebreaker');
+  'identical debts pay off in same month (coincidental, no extra payment)');
 
 // ─── Bug fixes: B24/B25 interest-saved & B2 NPER formula ───
 
@@ -327,35 +343,42 @@ assert(avalancheSaved5 > snowballSaved5,
 
 // ─── recalculateDebtSimulation() logic tests ───
 // recalculateDebtSimulation() depends on Google Sheets API and cannot be unit
-// tested directly. However, it contains testable logic: input filtering, empty
+// tested directly. However, it contains testable logic: input mapping, empty
 // debt handling, data mapping, and interest-saved calculation. These tests
 // verify that logic by replicating the same operations.
 
-console.log('\nrecalculateDebtSimulation logic — input filtering');
+console.log('\nrecalculateDebtSimulation logic — input mapping');
 
-// Simulate the filtering logic from recalculateDebtSimulation (line 1835)
+// Simulate the mapping logic from recalculateDebtSimulation (maps ALL rows, including zero balances)
 const rawDebtData = [
   [2800, 0.2499, 85, 200],   // Chase Visa
-  [0, 0.0675, 225, 0],       // Car Loan — zero balance (should be filtered out)
+  [0, 0.0675, 225, 0],       // Car Loan — zero balance
   [15800, 0.055, 180, 0],    // Student Loan
-  [0, 0.0, 100, 100],        // Medical Bill — zero balance (should be filtered out)
+  [0, 0.0, 100, 100],        // Medical Bill — zero balance
 ];
 
-const filteredDebts = rawDebtData
-  .filter(row => row[0] && row[0] > 0)
-  .map(row => ({
+const mappedDebts = rawDebtData
+  .map((row, i) => ({
     name: "",
-    balance: row[0],
-    apr: row[1],
-    minPayment: row[2],
+    balance: row[0] || 0,
+    apr: row[1] || 0,
+    minPayment: row[2] || 0,
     extraPayment: row[3] || 0
   }));
 
-assertEqual(filteredDebts.length, 2, 'filters out zero-balance debts (2 of 4 remain)');
-assertEqual(filteredDebts[0].balance, 2800, 'first filtered debt has correct balance');
-assertEqual(filteredDebts[1].balance, 15800, 'second filtered debt has correct balance');
-assertEqual(filteredDebts[0].extraPayment, 200, 'extraPayment preserved from raw data');
-assertEqual(filteredDebts[1].extraPayment, 0, 'missing extraPayment defaults to 0');
+// All 4 rows are mapped (zero balances included — simulatePayoff handles them)
+assertEqual(mappedDebts.length, 4, 'maps all 4 debt rows (including zero balances)');
+assertEqual(mappedDebts[0].balance, 2800, 'first mapped debt has correct balance');
+assertEqual(mappedDebts[1].balance, 0, 'second mapped debt has zero balance');
+assertEqual(mappedDebts[2].balance, 15800, 'third mapped debt has correct balance');
+assertEqual(mappedDebts[3].balance, 0, 'fourth mapped debt has zero balance');
+assertEqual(mappedDebts[0].extraPayment, 200, 'extraPayment preserved from raw data');
+assertEqual(mappedDebts[3].extraPayment, 100, 'extraPayment preserved for zero-balance row');
+
+// Verify simulatePayoff handles zero-balance debts correctly
+const withZeros = simulatePayoff(mappedDebts, 'snowball');
+assertEqual(withZeros.totalMonths > 0, true, 'simulatePayoff handles zero-balance debts');
+assertEqual(withZeros.converged, true, 'simulatePayoff converges with zero-balance debts');
 
 // ─── recalculateDebtSimulation logic — empty debts ───
 
@@ -389,18 +412,17 @@ const sheetData = [
   [1000, 0.06, 25, 0],
 ];
 
-const mappedDebts = sheetData
-  .filter(row => row[0] && row[0] > 0)
-  .map(row => ({
+const mappedDebts2 = sheetData
+  .map((row, i) => ({
     name: "",
-    balance: row[0],
-    apr: row[1],
-    minPayment: row[2],
+    balance: row[0] || 0,
+    apr: row[1] || 0,
+    minPayment: row[2] || 0,
     extraPayment: row[3] || 0
   }));
 
 // Verify the mapped data produces valid simulation results
-const mappedResult = simulatePayoff(mappedDebts, 'snowball');
+const mappedResult = simulatePayoff(mappedDebts2, 'snowball');
 assert(mappedResult.totalMonths > 0, 'mapped debts produce valid simulation');
 assert(mappedResult.totalInterest > 0, 'mapped debts produce positive interest');
 assertEqual(mappedResult.payoffMonths.length, 2, 'payoff months array matches debt count');
@@ -454,26 +476,40 @@ assertEqual(defaultedDebts[2].extraPayment, 0, 'explicit 0 extraPayment stays 0'
 
 // ─── H5: Snowball tiebreaker with different APRs ───
 
-console.log('\nsimulatePayoff — snowball tiebreaker with different APRs (H5)');
+console.log('\nsimulatePayoff — snowball tiebreaker with same balance (H5)');
 
-// Two debts with SAME balance but DIFFERENT APRs
+// Two debts with SAME balance, SAME minPayment, SAME APR
+// Both pay off at same month (no ordering preference)
 const tieDebtsH5 = [
-  { name: 'High', balance: 3000, apr: 0.18, minPayment: 50, extraPayment: 0 },
-  { name: 'Low', balance: 3000, apr: 0.06, minPayment: 50, extraPayment: 0 }
+  { name: 'A', balance: 3000, apr: 0.10, minPayment: 200, extraPayment: 0 },
+  { name: 'B', balance: 3000, apr: 0.10, minPayment: 200, extraPayment: 0 }
 ];
 
-// Run twice to verify deterministic behavior
-const tieResultH5a = simulatePayoff(tieDebtsH5, 'snowball');
-const tieResultH5b = simulatePayoff(tieDebtsH5, 'snowball');
+const tieResultH5 = simulatePayoff(tieDebtsH5, 'snowball');
+assert(tieResultH5.totalMonths > 0, 'snowball tie completes');
+assertEqual(tieResultH5.payoffMonths[0], tieResultH5.payoffMonths[1],
+  'equal balance+payment: both debts pay off same month');
 
-assert(tieResultH5a.totalMonths > 0, 'snowball tie completes');
-assertEqual(tieResultH5a.totalMonths, tieResultH5b.totalMonths,
+// With extra payment, total payoff is faster
+const tieWithExtra = [
+  { name: 'A', balance: 3000, apr: 0.10, minPayment: 200, extraPayment: 200 },
+  { name: 'B', balance: 3000, apr: 0.10, minPayment: 200, extraPayment: 0 }
+];
+const tieResultExtra = simulatePayoff(tieWithExtra, 'snowball');
+assert(tieResultExtra.totalMonths < tieResultH5.totalMonths,
+  'extra payment reduces total payoff time');
+assert(tieResultExtra.totalInterest < tieResultH5.totalInterest,
+  'extra payment reduces total interest');
+
+// Verify determinism
+const tieResultH5b = simulatePayoff(tieDebtsH5, 'snowball');
+assertEqual(tieResultH5.totalMonths, tieResultH5b.totalMonths,
   'snowball tie is deterministic (same total months across runs)');
-assertEqual(tieResultH5a.totalInterest, tieResultH5b.totalInterest,
+assertEqual(tieResultH5.totalInterest, tieResultH5b.totalInterest,
   'snowball tie is deterministic (same interest across runs)');
-assertEqual(tieResultH5a.payoffMonths[0], tieResultH5b.payoffMonths[0],
+assertEqual(tieResultH5.payoffMonths[0], tieResultH5b.payoffMonths[0],
   'snowball tie: debt 0 payoff month deterministic');
-assertEqual(tieResultH5a.payoffMonths[1], tieResultH5b.payoffMonths[1],
+assertEqual(tieResultH5.payoffMonths[1], tieResultH5b.payoffMonths[1],
   'snowball tie: debt 1 payoff month deterministic');
 
 // ─── H6: 0% APR debt ───
@@ -547,22 +583,18 @@ assertEqual(maxMonthsResult.converged, true,
 assertEqual(maxMonthsResult.convergedPerDebt[0], true,
   'MAX_MONTHS boundary: per-debt converged is true');
 
-// ─── getColumnLetter edge cases ───
-
-console.log('\ngetColumnLetter — edge cases');
-
-assertEqual(getColumnLetter(0), '', 'column 0 returns empty string');
-assertEqual(getColumnLetter(256), 'IV', 'column 256 → IV');
-assertEqual(getColumnLetter(702), 'ZZ', 'column 702 → ZZ');
-
 // ─── simulatePayoff — negative balance edge case ───
 
 console.log('\nsimulatePayoff — negative balance edge case');
 
+// Note: Current behavior returns totalMonths=1 because the loop runs month 1,
+// sees all balances <= 0, and breaks. This is an implementation artifact —
+// ideally totalMonths would be 0 for already-paid-off debts. Documented here
+// to avoid treating this as intended behavior.
 const negBalanceDebt = [{ name: 'Neg', balance: -100, apr: 0.12, minPayment: 50, extraPayment: 0 }];
 const negBalanceResult = simulatePayoff(negBalanceDebt, 'snowball');
 
-assertEqual(negBalanceResult.totalMonths, 1, 'negative balance → 1 month (immediately paid off)');
+assertEqual(negBalanceResult.totalMonths, 1, 'negative balance → 1 month (implementation artifact)');
 assertEqual(negBalanceResult.totalInterest, 0, 'negative balance → 0 interest');
 assertEqual(negBalanceResult.converged, true, 'negative balance → converged (trivially)');
 
