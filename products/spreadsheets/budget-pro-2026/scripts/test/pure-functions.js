@@ -12,12 +12,12 @@ function simulatePayoff(debts, strategy) {
   // debts: array of {name, balance, apr, minPayment}
   // strategy: 'snowball' (smallest balance first) or 'avalanche' (highest APR first)
   if (!debts || debts.length === 0) {
-    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], perDebtMonths: [], payoffMonths: [], converged: true, convergedPerDebt: [] };
+    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], payoffMonths: [], converged: true, convergedPerDebt: [] };
   }
 
-  const MAX_MONTHS = 120; // 10 year cap
+  const MAX_MONTHS = 120;
   let balances = debts.map(d => d.balance);
-  let rates = debts.map(d => d.apr / 12); // monthly rate
+  let rates = debts.map(d => d.apr / 12);
   let minimums = debts.map(d => d.minPayment);
   let totalExtraBaseSnowball = debts.reduce((sum, d) => sum + (d.extraPayment || 0), 0);
 
@@ -25,7 +25,6 @@ function simulatePayoff(debts, strategy) {
   let totalInterest = 0;
   let months = 0;
   let perDebtInterest = new Array(debts.length).fill(0);
-  let perDebtMonths = new Array(debts.length).fill(0);
   let payoffMonths = new Array(debts.length).fill(0);
   let convergedPerDebt = new Array(debts.length).fill(false);
 
@@ -82,7 +81,6 @@ function simulatePayoff(debts, strategy) {
       cashPool -= minPayment;
       if (balances[i] <= 0) {
         balances[i] = 0;
-        perDebtMonths[i] = month;
         if (payoffMonths[i] === 0) {
           payoffMonths[i] = month;
         }
@@ -101,7 +99,6 @@ function simulatePayoff(debts, strategy) {
 
       if (balances[targetIdx] <= 0) {
         balances[targetIdx] = 0;
-        perDebtMonths[targetIdx] = month;
         if (payoffMonths[targetIdx] === 0) {
           payoffMonths[targetIdx] = month;
         }
@@ -136,21 +133,10 @@ function simulatePayoff(debts, strategy) {
     totalInterest: Math.round(totalInterest),
     totalPaid: Math.round(totalPaid),
     perDebtInterest: perDebtInterest.map(i => Math.round(i)),
-    perDebtMonths: perDebtMonths,
     payoffMonths: payoffMonths,
     converged: converged,
     convergedPerDebt: convergedPerDebt
   };
 }
 
-function getColumnLetter(col) {
-  let letter = "";
-  while (col > 0) {
-    const mod = (col - 1) % 26;
-    letter = String.fromCharCode(65 + mod) + letter;
-    col = Math.floor((col - mod - 1) / 26);
-  }
-  return letter;
-}
-
-export { simulatePayoff, getColumnLetter };
+export { simulatePayoff };

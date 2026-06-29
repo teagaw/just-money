@@ -103,6 +103,7 @@ function buildBudgetPro2026() {
     { name: "Instructions", fn: () => buildInstructionsTab(tabs.instructions) }
   ];
 
+  const CRITICAL_TABS = ["Engine", "Scenario Engine"];
   const failures = [];
   for (const tab of tabBuilders) {
     try {
@@ -111,6 +112,9 @@ function buildBudgetPro2026() {
     } catch (e) {
       Logger.log("ERROR building " + tab.name + " tab: " + e.message);
       Logger.log(e.stack);
+      if (CRITICAL_TABS.includes(tab.name)) {
+        throw new Error("Critical tab '" + tab.name + "' failed: " + e.message);
+      }
       failures.push(tab.name);
     }
   }
@@ -161,10 +165,7 @@ function buildBudgetPro2026() {
 function buildStartHereTab(sheet) {
   sheet.clear();
 
-  const HEADER_COLOR = "#1A1A2E";   // Deep Charcoal
-  const SECONDARY_COLOR = "#6B7280"; // Warm Gray
   const accentColor = "#0D7C5F";   // Money Green
-  const lightBg = "#E8F5E9";       // Light Sage
 
   // BRAND
   sheet.getRange("A1").setValue("JUST MONEY")
@@ -361,7 +362,7 @@ function simulatePayoff(debts, strategy) {
   // debts: array of {name, balance, apr, minPayment}
   // strategy: 'snowball' (smallest balance first) or 'avalanche' (highest APR first)
   if (!debts || debts.length === 0) {
-    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], perDebtMonths: [], payoffMonths: [], converged: true, convergedPerDebt: [] };
+    return { totalMonths: 0, totalInterest: 0, totalPaid: 0, perDebtInterest: [], payoffMonths: [], converged: true, convergedPerDebt: [] };
   }
 
   const MAX_MONTHS = 120; // 10 year cap
@@ -374,7 +375,6 @@ function simulatePayoff(debts, strategy) {
   let totalInterest = 0;
   let months = 0;
   let perDebtInterest = new Array(debts.length).fill(0);
-  let perDebtMonths = new Array(debts.length).fill(0);
   let payoffMonths = new Array(debts.length).fill(0);
   let convergedPerDebt = new Array(debts.length).fill(false);
 
@@ -431,7 +431,6 @@ function simulatePayoff(debts, strategy) {
       cashPool -= minPayment;
       if (balances[i] <= 0) {
         balances[i] = 0;
-        perDebtMonths[i] = month;
         if (payoffMonths[i] === 0) {
           payoffMonths[i] = month;
         }
@@ -450,7 +449,6 @@ function simulatePayoff(debts, strategy) {
 
       if (balances[targetIdx] <= 0) {
         balances[targetIdx] = 0;
-        perDebtMonths[targetIdx] = month;
         if (payoffMonths[targetIdx] === 0) {
           payoffMonths[targetIdx] = month;
         }
@@ -485,7 +483,6 @@ function simulatePayoff(debts, strategy) {
     totalInterest: Math.round(totalInterest),
     totalPaid: Math.round(totalPaid),
     perDebtInterest: perDebtInterest.map(i => Math.round(i)),
-    perDebtMonths: perDebtMonths,
     payoffMonths: payoffMonths,
     converged: converged,
     convergedPerDebt: convergedPerDebt
@@ -601,7 +598,7 @@ function buildEngineTab(sheet) {
   for (let i = 0; i < NUM_DEBTS; i++) {
     const row = i + 2;
     const debtRow = i + 5;
-    // G: Snowball cascading cascading payment = this debt's min+extra + sum of payments from debts paid before it
+    // G: Snowball cascading payment = this debt's min+extra + sum of payments from debts paid before it
     sheet.getRange(`G${row}`).setFormula(
       `=('Debt Payoff'!D${debtRow}+'Debt Payoff'!E${debtRow})+SUMPRODUCT(('Debt Payoff'!D5:D${lastDebtRow}+'Debt Payoff'!E5:E${lastDebtRow})*(E2:E${1+NUM_DEBTS}<E${row}))`
     );
