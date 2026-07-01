@@ -1097,19 +1097,25 @@ function buildDebtPayoffTab(sheet) {
     sheet.getRange(`C${row}`).setFormula(`=IF(Engine!J${engineRow}=0,"120+ months",IFERROR(EDATE(TODAY(),Engine!D${engineRow}),"N/A"))`).setNumberFormat("MMM YYYY").setFontSize(10);
   });
 
+  // CONVERGENCE WARNING — per-strategy, reads overall flags from Engine!I20/J20
+  const convergenceRow = 20 + debts.length;
+  sheet.getRange(`A${convergenceRow}`).setFormula(
+    '=IF(OR(Engine!I20=0,Engine!J20=0),"⚠ WARNING: At least one debt won\'t pay off within 10 years at current payment levels. Raise minimums or add extra payments to clear debt faster.","")'
+  ).setFontSize(9).setFontColor("#DC2626").setFontWeight("bold");
+
   // DISCLAIMER
-  sheet.getRange("A25").setValue("✦ IMPORTANT NOTES").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A26").setValue("These estimates use month-by-month simulation")
+  sheet.getRange("A26").setValue("✦ IMPORTANT NOTES").setFontWeight("bold").setFontColor(SECONDARY_COLOR);
+  sheet.getRange("A27").setValue("These estimates use month-by-month simulation")
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A27").setValue("with your exact debts, rates, and payments.")
+  sheet.getRange("A28").setValue("with your exact debts, rates, and payments.")
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A28").setValue("Results assume consistent monthly payments")
+  sheet.getRange("A29").setValue("Results assume consistent monthly payments")
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A29").setValue("and no skipped payments.")
+  sheet.getRange("A30").setValue("and no skipped payments.")
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A30").setValue("For this specific debt profile, Snowball and Avalanche")
+  sheet.getRange("A31").setValue("For this specific debt profile, Snowball and Avalanche")
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
-  sheet.getRange("A31").setValue("produce similar results.")
+  sheet.getRange("A32").setValue("produce similar results.")
     .setFontSize(9).setFontColor(SECONDARY_COLOR);
 
   // FORMATTING
