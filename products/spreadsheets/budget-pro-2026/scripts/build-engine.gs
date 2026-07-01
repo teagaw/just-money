@@ -605,9 +605,9 @@ function buildEngineTab(sheet) {
   );
 
   // Custom #1
-  writeCustomExtraRows(sheet, 11, 9, 13, 'Scenario Engine'!B13);
+  writeCustomExtraRows(sheet, 11, 9, 13, "B13");
   // Custom #2
-  writeCustomExtraRows(sheet, 14, 12, 16, 'Scenario Engine'!B14);
+  writeCustomExtraRows(sheet, 14, 12, 16, "B14");
 
   sheet.getRange("A18").setValue("✦ DEBT PAYOFF FORMULAS").setFontWeight("bold");
 
