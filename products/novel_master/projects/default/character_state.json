@@ -1,0 +1,30 @@
+{
+  "c1": {
+    "location": "rope-seller's stall, harbor market row",
+    "inventory": [
+      "sealed writ (council stock, red wax wren seal)"
+    ],
+    "relationships": {
+      "c2": "commands him to stay and count",
+      "c3": "Sable claims a second page bears Maren's name"
+    },
+    "status": "marked (unlicensed caster); left hand has fish scale residue"
+  },
+  "c2": {
+    "location": "rope-seller's stall, harbor market row",
+    "inventory": [],
+    "relationships": {
+      "c1": "disclosed the green-shawl woman encounter to Sable",
+      "c3": "answered her questions about the job"
+    },
+    "status": "told to stay; anxious; owes ten marks, has six and a half"
+  },
+  "c3": {
+    "location": "departing the row with constable",
+    "inventory": [],
+    "relationships": {
+      "c1": "asserts knowledge of a second document naming Maren"
+    },
+    "status": "knows Maren declined offered work; references a second page"
+  }
+}

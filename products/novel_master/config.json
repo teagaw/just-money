@@ -1,0 +1,14 @@
+{
+  "openrouter_base_url": "https://openrouter.ai/api/v1",
+  "showrunner_model": "baidu/ernie-5.5-flash-preview:free",
+  "auditor_model": "inclusionai/ling-3.2-flash:free",
+  "max_tokens_showrunner": 8000,
+  "max_tokens_auditor": 4000,
+  "temperature": 0.8,
+  "scene_word_target": "600-800 words (soft target, dramatic purpose decides)",
+  "pricing_per_1m_tokens": {
+    "baidu/ernie-5.5-flash-preview:free": {"input": 0.0, "output": 0.0},
+    "inclusionai/ling-3.2-flash:free": {"input": 0.0, "output": 0.0}
+  },
+  "key_fallbacks": []
+}

@@ -1,0 +1,98 @@
+{
+  "scene": 3,
+  "hash": "633eb8a4af770ebec08bd754c8543ba595917f28dc65c0be6851e2c6b320b7f6",
+  "status": "accepted",
+  "characters_present": [
+    "c1",
+    "c2",
+    "c3",
+    "constable_pell"
+  ],
+  "location": "open fish market, docks district, during rain",
+  "events": [
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable opens ledger, reads from it, asks Maren (Vosk) arrival hour at market; Maren answers 'before the gulls'; Sable records 'second tide bell'.",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable orders Maren to present at barracks on Warden Row at second tide bell, ask for Sable personally, and bring 'what you declined to carry'.",
+      "target": "c1",
+      "uncertain": true
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable states writ will be served by other means if they do not comply, and she will not be the one serving it.",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c3",
+      "summary": "Sable reveals Constable Pell gave an account of Maren's morning with 'holes in it'.",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "injury",
+      "actor": "c2",
+      "summary": "Sable assesses Tovin ten silver marks and three days in the barracks for a false account; collection deferred.",
+      "target": "c2",
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c2",
+      "summary": "Tovin admits Sable questioned him earlier by the ice house with the ledger open; he told her Maren was sleeping at the Anchor, which was true but incomplete.",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren notes her left hand has gone numb again, as since the night in the cooper's cellar; she paid for it, costing a morning and most of a day's strength; copper taste when rain comes fast. Unknown to others present.",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c1",
+      "summary": "Maren's sister wrote three words on oilcloth three weeks ago and has not been heard from since.",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "location_change",
+      "actor": "c3",
+      "summary": "Sable and Constable Pell leave the market into rain; crowd closes behind them.",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c1",
+      "summary": "Maren counts to twenty; one tide bell has gone; second bell approximately two hours out; water already turning; ferry from the Reach sailed back at half ebb.",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren tells Tovin to get up; they are not standing there.",
+      "target": "c2",
+      "uncertain": false
+    }
+  ],
+  "choices": [
+    "Go to the barracks on Warden Row before second bell, and ask for Sable by name.",
+    "Go to the harbor and find Halloran. Take the Tide Isles boat tonight.",
+    "Go home first. Burn the ledger of your own \u2014 the oilcloth, the ash, anything with your sister's hand on it.",
+    "Find the young constable alone. Find out what he almost said.",
+    "Put the writ question to Tovin directly. Ask him what else Sable asked by the ice house."
+  ]
+}

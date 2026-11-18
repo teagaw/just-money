@@ -1,0 +1,33 @@
+{"ts": "2026-11-15T22:49:54.819932+00:00", "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", "prompt_tokens": 1006, "completion_tokens": 1200, "total_tokens": 2206}
+{"ts": "2026-11-15T22:50:18.157020+00:00", "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", "prompt_tokens": 1001, "completion_tokens": 1200, "total_tokens": 2201}
+{"ts": "2026-11-15T22:51:15.460636+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1006, "completion_tokens": 2000, "total_tokens": 3006}
+{"ts": "2026-11-15T22:51:20.289060+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1307, "completion_tokens": 1000, "total_tokens": 2307}
+{"ts": "2026-11-15T22:51:30.034134+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1375, "completion_tokens": 1000, "total_tokens": 2375}
+{"ts": "2026-11-15T22:51:37.377593+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1375, "completion_tokens": 1000, "total_tokens": 2375}
+{"ts": "2026-11-15T22:51:46.114841+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1375, "completion_tokens": 1000, "total_tokens": 2375}
+{"ts": "2026-11-15T22:51:55.841434+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1375, "completion_tokens": 1000, "total_tokens": 2375}
+{"ts": "2026-11-15T22:53:21.760239+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1006, "completion_tokens": 2000, "total_tokens": 3006}
+{"ts": "2026-11-15T22:53:26.149626+00:00", "model": "inclusionai/ling-3.2-flash:free", "prompt_tokens": 562, "completion_tokens": 59, "total_tokens": 621}
+{"ts": "2026-11-15T22:53:43.014049+00:00", "model": "nvidia/nemotron-3.5-lightning:free", "prompt_tokens": 1001, "completion_tokens": 2000, "total_tokens": 3001}
+{"ts": "2026-11-15T22:55:37.280827+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 955, "completion_tokens": 1500, "total_tokens": 2455}
+{"ts": "2026-11-15T22:56:25.094508+00:00", "model": "inclusionai/ling-3.2-flash:free", "prompt_tokens": 562, "completion_tokens": 178, "total_tokens": 740}
+{"ts": "2026-11-15T22:56:37.970469+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 955, "completion_tokens": 1500, "total_tokens": 2455}
+{"ts": "2026-11-15T22:58:11.444038+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 960, "completion_tokens": 5941, "total_tokens": 6901}
+{"ts": "2026-11-15T22:59:07.664552+00:00", "model": "inclusionai/ling-3.2-flash:free", "prompt_tokens": 1606, "completion_tokens": 1498, "total_tokens": 3104}
+{"ts": "2026-11-15T23:09:01.809918+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1479, "completion_tokens": 2739, "total_tokens": 4218}
+{"ts": "2026-11-15T23:15:52.331897+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1486, "completion_tokens": 1897, "total_tokens": 3383}
+{"ts": "2026-11-15T23:16:41.640378+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1487, "completion_tokens": 2170, "total_tokens": 3657}
+{"ts": "2026-11-15T23:18:44.733395+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1487, "completion_tokens": 2207, "total_tokens": 3694}
+{"ts": "2026-11-15T23:19:43.636143+00:00", "model": "inclusionai/ling-3.2-flash:free", "prompt_tokens": 1674, "completion_tokens": 1490, "total_tokens": 3164}
+{"ts": "2026-11-15T23:41:17.139597+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1887, "completion_tokens": 2534, "total_tokens": 4421}
+{"ts": "2026-11-15T23:50:04.970595+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1894, "completion_tokens": 3462, "total_tokens": 5356}
+{"ts": "2026-11-15T23:53:30.983609+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1879, "completion_tokens": 3720, "total_tokens": 5599}
+{"ts": "2026-11-15T23:55:27.854718+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "prompt_tokens": 1879, "completion_tokens": 2606, "total_tokens": 4485}
+{"ts": "2026-11-15T23:56:34.394392+00:00", "model": "inclusionai/ling-3.2-flash:free", "prompt_tokens": 1644, "completion_tokens": 1451, "total_tokens": 3095}
+{"ts": "2026-11-16T21:20:12.814282+00:00", "model": "inclusionai/ling-3.2-flash:free", "scene_ref": null, "prompt_tokens": 3823, "completion_tokens": 1719, "total_tokens": 5542, "cost_usd": 0.0}
+{"ts": "2026-11-16T21:24:10.248302+00:00", "model": "inclusionai/ling-3.2-flash:free", "scene_ref": null, "prompt_tokens": 3823, "completion_tokens": 2053, "total_tokens": 5876, "cost_usd": 0.0}
+{"ts": "2026-11-16T21:39:08.081808+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "scene_ref": 4, "prompt_tokens": 2037, "completion_tokens": 7372, "total_tokens": 9409, "cost_usd": 0.0}
+{"ts": "2026-11-16T21:39:28.564912+00:00", "model": "baidu/ernie-5.5-flash-preview:free", "scene_ref": 4, "prompt_tokens": 2037, "completion_tokens": 4882, "total_tokens": 6919, "cost_usd": 0.0}
+{"ts": "2026-11-16T21:40:49.258304+00:00", "model": "inclusionai/ling-3.2-flash:free", "scene_ref": 4, "prompt_tokens": 1773, "completion_tokens": 1884, "total_tokens": 3657, "cost_usd": 0.0}
+{"ts": "2026-11-16T21:56:32.435154+00:00", "model": "inclusionai/ling-3.2-flash:free", "scene_ref": null, "prompt_tokens": 3301, "completion_tokens": 724, "total_tokens": 4025, "cost_usd": 0.0}
+{"ts": "2026-11-16T21:57:53.046762+00:00", "model": "inclusionai/ling-3.2-flash:free", "scene_ref": null, "prompt_tokens": 3301, "completion_tokens": 450, "total_tokens": 3751, "cost_usd": 0.0}

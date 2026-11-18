@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novel Studio</title>
+<style>
+  /* ── Design tokens ── */
+  :root {
+    --bg-chrome: oklch(0.13 0.005 60);
+    --bg-chrome-fallback: #1e1e1e;
+    --bg-page: oklch(0.16 0.005 60);
+    --bg-page-fallback: #252525;
+    --bg-card: oklch(0.14 0.005 60);
+    --bg-card-fallback: #222;
+    --bg-input: oklch(0.12 0.005 60);
+    --bg-input-fallback: #1a1a1a;
+    --border: oklch(0.25 0.005 60);
+    --border-fallback: #3a3a3a;
+    --text: oklch(0.90 0.005 60);
+    --text-fallback: #e8e8e8;
+    --text-muted: oklch(0.62 0.005 60);
+    --text-muted-fallback: #9a9a9a;
+    --accent: oklch(0.72 0.12 70);
+    --accent-fallback: #c9a227;
+    --accent-text: oklch(0.15 0.005 60);
+    --accent-text-fallback: #1a1a1a;
+    --danger: oklch(0.65 0.15 25);
+    --danger-fallback: #c0392b;
+    --success: oklch(0.70 0.12 145);
+    --success-fallback: #27ae60;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
+    --font-prose: Georgia, "Times New Roman", serif;
+    --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  }
+
+  /* Fallbacks for older browsers */
+  @supports not (color: oklch(0 0 0)) {
+    :root {
+      --bg-chrome: var(--bg-chrome-fallback);
+      --bg-page: var(--bg-page-fallback);
+      --bg-card: var(--bg-card-fallback);
+      --bg-input: var(--bg-input-fallback);
+      --border: var(--border-fallback);
+      --text: var(--text-fallback);
+      --text-muted: var(--text-muted-fallback);
+      --accent: var(--accent-fallback);
+      --accent-text: var(--accent-text-fallback);
+      --danger: var(--danger-fallback);
+      --success: var(--success-fallback);
+    }
+  }
+
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 16px;
+  }
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg-chrome);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+  }
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 0 var(--space-lg);
+    height: 48px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-chrome);
+    flex-shrink: 0;
+  }
+  .topbar .wordmark {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .topbar .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex: 1;
+    justify-content: center;
+  }
+  .topbar .nav button {
+    padding: 4px 10px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    transition: color 100ms ease-out, border-color 100ms ease-out, background-color 100ms ease-out;
+  }
+  .topbar .nav button:hover:not(:disabled) {
+    color: var(--text);
+    border-color: var(--accent);
+  }
+  .topbar .nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .topbar .nav select {
+    padding: 4px 8px;
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .topbar .nav-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .topbar .status {
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .left {
+    padding: var(--space-lg) var(--space-xl);
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    background: var(--bg-chrome);
+  }
+  .right {
+    padding: var(--space-md);
+    overflow-y: auto;
+    background: var(--bg-card);
+    font-size: 13px;
+  }
+
+  /* ── Page (scene prose) ── */
+  .page {
+    background: var(--bg-page);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl) var(--space-2xl);
+    margin-bottom: var(--space-lg);
+    border-left: 1px solid var(--border);
+    max-width: 65ch;
+    margin-inline: auto;
+  }
+  .scene {
+    font-family: var(--font-prose);
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .scene:empty::before {
+    content: "No scenes yet. Type a direction below and click Generate to write your first scene.";
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+    display: none;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 300ms ease-out;
+  }
+  .loading {
+    font-size: 13px;
+    color: var(--accent);
+    font-style: italic;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    display: none;
+  }
+
+  /* ── Choices ── */
+  .choices { margin: var(--space-md) 0; }
+  .choice-btn {
+    display: block;
+    width: 100%;
+    text-align: start;
+    margin: var(--space-xs) 0;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.4;
+    transition: background-color 100ms ease-out, border-color 100ms ease-out, transform 80ms ease-out;
+  }
+  .choice-btn:hover {
+    background: var(--bg-page);
+    border-color: var(--accent);
+  }
+  .choice-btn:active { transform: scale(0.97); }
+  .choice-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ── Input row ── */
+  .input-area { margin-top: var(--space-md); }
+  .brief {
+    width: 100%;
+    padding: var(--space-sm);
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    resize: vertical;
+    min-height: 40px;
+    margin-bottom: var(--space-sm);
+    transition: border-color 100ms ease-out;
+  }
+  .brief:focus { border-color: var(--accent); outline: none; }
+  .input-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .input-row input {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    transition: border-color 100ms ease-out;
+  }
+  .input-row input:focus { border-color: var(--accent); outline: none; }
+  .input-row button {
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 40px;
+    transition: opacity 100ms ease-out, transform 80ms ease-out;
+  }
+  .input-row button:hover:not(:disabled) { opacity: 0.9; }
+  .input-row button:active:not(:disabled) { transform: scale(0.97); }
+  .input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .input-row button:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+
+  /* ── Feedback row ── */
+  .feedback-row {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .feedback-row .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .feedback-row .rating-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+  .feedback-row input[type="number"] {
+    width: 56px;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    text-align: center;
+  }
+  .feedback-row .submit-btn {
+    padding: var(--space-xs) var(--space-md);
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: opacity 100ms ease-out;
+  }
+  .feedback-row .submit-btn:hover { opacity: 0.9; }
+  .feedback-row textarea {
+    width: 100%;
+    padding: var(--space-sm);
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    resize: vertical;
+    min-height: 48px;
+  }
+  .feedback-row textarea:focus { border-color: var(--accent); outline: none; }
+
+  /* ── Recon panel ── */
+  .recon {
+    margin-bottom: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-card);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--danger);
+  }
+  .recon h3 {
+    font-size: 13px;
+    color: var(--danger);
+    margin-bottom: var(--space-sm);
+    font-weight: 600;
+  }
+  .recon .summary { font-size: 14px; margin-bottom: var(--space-sm); }
+  .recon .passage { font-size: 12px; color: var(--text-muted); margin: var(--space-xs) 0; }
+  .recon label {
+    display: block;
+    margin: var(--space-xs) 0;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .recon .downstream {
+    font-size: 12px;
+    color: oklch(0.70 0.12 50);
+    margin-top: var(--space-sm);
+  }
+  .recon .btn-row {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+  }
+  .recon .btn-row button {
+    padding: var(--space-xs) var(--space-md);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: opacity 100ms ease-out;
+  }
+  .recon .btn-row button:hover { opacity: 0.9; }
+  .recon .apply-btn { background: var(--success); color: var(--accent-text); }
+  .recon .discard-btn { background: var(--border); color: var(--text); }
+
+  /* ── Right pane (inspector) ── */
+  .section {
+    margin-bottom: var(--space-lg);
+  }
+  .section h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+    padding-bottom: var(--space-xs);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .char {
+    margin-bottom: var(--space-md);
+  }
+  .char-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .char-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .state-row {
+    font-size: 12px;
+    margin-bottom: var(--space-sm);
+    line-height: 1.5;
+  }
+  .state-row .label {
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ev {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 2px 0;
+    padding: 2px 0;
+    border-bottom: 1px solid oklch(0.20 0.005 60);
+    font-family: var(--font-mono);
+    line-height: 1.4;
+  }
+  .ev:last-child { border-bottom: none; }
+  .scene-list li {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 3px 0;
+    cursor: pointer;
+    transition: color 100ms ease-out;
+    list-style: none;
+  }
+  .scene-list li:hover { color: var(--text); }
+  .scene-list li.active {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .empty-state {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: var(--space-md) 0;
+  }
+  .offline-msg {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr;
+    }
+    .topbar { grid-column: 1; }
+    .left { border-right: none; border-bottom: 1px solid var(--border); }
+    .page { max-width: 100%; }
+    .scene { font-size: 17px; }
+  }
+  @media (max-width: 600px) {
+    .scene { font-size: 16px; line-height: 1.6; }
+    .topbar { flex-wrap: wrap; height: auto; padding: var(--space-sm); gap: var(--space-sm); }
+    .topbar .nav { order: 3; width: 100%; justify-content: center; }
+    .choice-btn { font-size: 13px; }
+    .input-row { flex-direction: column; }
+    .input-row button { width: 100%; }
+  }
+
+  /* ── Utility ── */
+  .hidden { display: none !important; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); border: 0;
+  }
+</style>
+</head>
+<body>
+<a href="#main" class="sr-only" style="position:absolute;left:-9999px;">Skip to main content</a>
+<div class="layout">
+  <header class="topbar">
+    <span class="wordmark">Novel Studio</span>
+    <select id="projectSelect" onchange="switchProject(this.value)" aria-label="Select novel project" style="padding:4px 8px;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;max-width:180px;"></select>
+    <button onclick="newProject()" style="padding:4px 8px;background:transparent;color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:12px;" aria-label="New project">+ New</button>
+    <div class="nav">
+      <button id="prevBtn" onclick="prevScene()" aria-label="Previous scene">◀ Prev</button>
+      <select id="sceneSelect" onchange="viewScene(parseInt(this.value))" aria-label="Select scene"></select>
+      <button id="nextBtn" onclick="nextScene()" aria-label="Next scene">Next ▶</button>
+      <span class="nav-label" id="navLabel"></span>
+    </div>
+    <span class="status" id="status" aria-live="polite">Loading...</span>
+  </header>
+
+  <main class="left" id="main">
+    <div id="loading" class="loading" role="status" aria-live="polite"></div>
+    <div class="progress-wrap" id="pwrap"><div class="progress-bar" id="pbar"></div></div>
+
+    <div id="recon" class="recon hidden">
+      <h3>⚠ Edit detected</h3>
+      <div id="reconBody"></div>
+      <div class="btn-row">
+        <button class="apply-btn" onclick="applyProposals()">Apply accepted</button>
+        <button class="discard-btn" onclick="discardRecon()">Discard all</button>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="scene" id="scene"></div>
+    </div>
+
+    <div class="choices" id="choices"></div>
+
+    <div class="input-area">
+      <textarea class="brief" id="brief" rows="2" placeholder="Scene brief (optional): must-include, must-avoid, constraints..."></textarea>
+      <div class="input-row">
+        <input id="direction" placeholder="Director direction for next scene (or pick a choice above)" aria-label="Director direction" />
+        <button onclick="generate()" id="genBtn">Generate</button>
+      </div>
+    </div>
+
+    <div class="feedback-row" id="feedbackRow" style="display:none;">
+      <div class="label">Rate this scene</div>
+      <div class="rating-row">
+        <input id="rating" type="number" min="1" max="10" value="7" aria-label="Rating 1 to 10" />
+        <button class="submit-btn" onclick="submitFeedback()">Submit feedback</button>
+      </div>
+      <textarea id="fbText" rows="2" placeholder="What worked? What didn't? Voice, pacing, continuity..."></textarea>
+    </div>
+  </main>
+
+  <aside class="right">
+    <div class="section">
+      <h3>Characters</h3>
+      <div id="chars"><div class="empty-state">No characters defined.</div></div>
+    </div>
+    <div class="section">
+      <h3>State</h3>
+      <div id="state"><div class="empty-state">No state yet.</div></div>
+    </div>
+    <div class="section">
+      <h3>Recent Events</h3>
+      <div id="events"><div class="empty-state">No events recorded yet.</div></div>
+    </div>
+    <div class="section">
+      <h3>Scenes</h3>
+      <ul class="scene-list" id="scenes"></ul>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* ── Utilities ── */
+function esc(v){ const d=document.createElement('div'); d.textContent=(v==null?'':String(v)); return d.innerHTML; }
+
+/* ── State ── */
+let lastChoices = [];
+let timerInterval = null;
+let startTime = 0;
+let currentScene = 0;
+let totalScenes = 0;
+let feedbackScene = 0;
+let genAbort = null;
+
+/* ── Renderers ── */
+function renderStatus(d){
+  document.getElementById('status').textContent = `Scene ${d.scene_count}/? accepted`.replace('?', d.scene_count);
+}
+function renderScene(text){
+  const el = document.getElementById('scene');
+  el.textContent = text || '';
+}
+function renderChoices(choices){
+  lastChoices = choices || [];
+  const el = document.getElementById('choices');
+  el.innerHTML = '';
+  lastChoices.forEach((c,i)=>{
+    const b = document.createElement('button');
+    b.className = 'choice-btn';
+    b.textContent = (i+1)+'. '+c;
+    b.onclick = ()=>{ document.getElementById('direction').value = c; };
+    el.appendChild(b);
+  });
+}
+function renderChars(chars){
+  const el = document.getElementById('chars');
+  el.innerHTML = '';
+  if(!chars || !chars.length){ el.innerHTML = '<div class="empty-state">No characters defined.</div>'; return; }
+  chars.forEach(c=>{
+    const d = document.createElement('div');
+    d.className = 'char';
+    d.innerHTML = `<div class="char-name">${esc(c.name)}</div><div class="char-detail">${esc(c.role)} — ${esc(c.voice)}</div>`;
+    el.appendChild(d);
+  });
+}
+function renderState(state){
+  const el = document.getElementById('state');
+  el.innerHTML = '';
+  if(!state){ el.innerHTML = '<div class="empty-state">No state yet.</div>'; return; }
+  for(const [id,s] of Object.entries(state)){
+    const d = document.createElement('div');
+    d.className = 'char';
+    d.innerHTML = `<div class="char-name">${esc(id)}</div>
+      <div class="state-row"><span class="label">Location</span> ${esc(s.location||'—')}</div>
+      <div class="state-row"><span class="label">Inventory</span> ${esc((s.inventory||[]).join(', ')||'—')}</div>
+      <div class="state-row"><span class="label">Status</span> ${esc(s.status||'—')}</div>`;
+    el.appendChild(d);
+  }
+}
+function renderEvents(events){
+  const el = document.getElementById('events');
+  el.innerHTML = '';
+  if(!events || !events.length){ el.innerHTML = '<div class="empty-state">No events recorded yet.</div>'; return; }
+  events.slice(-12).reverse().forEach(e=>{
+    const d = document.createElement('div');
+    d.className = 'ev';
+    d.textContent = `[${e.type}] ${e.summary}`;
+    el.appendChild(d);
+  });
+}
+function renderScenes(list){
+  const el = document.getElementById('scenes');
+  el.innerHTML = '';
+  if(!list || !list.length){ el.innerHTML = '<li class="empty-state">No scenes yet.</li>'; return; }
+  list.forEach((s,i)=>{
+    const li = document.createElement('li');
+    li.textContent = s.replace('.md','');
+    li.onclick = ()=> viewScene(i+1);
+    if(i+1 === currentScene) li.classList.add('active');
+    el.appendChild(li);
+  });
+}
+
+/* ── Scene navigation ── */
+async function viewScene(n){
+  if(n < 1 || n > totalScenes) return;
+  currentScene = n;
+  const r = await fetch('/api/scene/'+n);
+  const d = await r.json();
+  if(d.error){ alert(d.error); return; }
+  renderScene(d.scene);
+  renderChoices(d.choices || []);
+  document.getElementById('sceneSelect').value = String(n);
+  document.getElementById('navLabel').textContent = `Scene ${n} of ${totalScenes}`;
+  document.getElementById('prevBtn').disabled = (n <= 1);
+  document.getElementById('nextBtn').disabled = (n >= totalScenes);
+  showFeedback(n);
+}
+function prevScene(){ if(currentScene>1) viewScene(currentScene-1); }
+function nextScene(){ if(currentScene<totalScenes) viewScene(currentScene+1); }
+
+/* ── Feedback ── */
+function showFeedback(n){ feedbackScene=n; document.getElementById('feedbackRow').style.display='block'; }
+function submitFeedback(){
+  const rating = parseInt(document.getElementById('rating').value) || 7;
+  const text = document.getElementById('fbText').value.trim();
+  fetch('/api/feedback', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:feedbackScene, rating, text})})
+    .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Feedback saved for scene '+feedbackScene); document.getElementById('fbText').value=''; } else { alert('Error saving feedback'); } })
+    .catch(e=>alert('Request failed: '+e));
+}
+
+/* ── Reconciliation ── */
+let currentRecon = null;
+async function checkEdits(){
+  const r = await fetch('/api/detect_edits');
+  const d = await r.json();
+  if(d.dirty && d.dirty.length){
+    const r2 = await fetch('/api/reconcile', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:d.dirty[0]})});
+    const prop = await r2.json();
+    if(prop.none){ document.getElementById('recon').classList.add('hidden'); return; }
+    if(prop.error){ alert('Reconcile error: '+prop.error); return; }
+    currentRecon = prop;
+    showRecon(prop);
+  } else {
+    document.getElementById('recon').classList.add('hidden');
+    currentRecon = null;
+  }
+}
+function showRecon(prop){
+  const el = document.getElementById('reconBody');
+  let html = `<div class="summary"><b>${esc(prop.summary||'')}</b></div>`;
+  if(prop.passages_changed && prop.passages_changed.length){
+    html += '<div class="passage">Changed: '+esc(prop.passages_changed.join('; '))+'</div>';
+  }
+  if(prop.proposals && prop.proposals.length){
+    html += '<div style="margin-top:8px;">';
+    prop.proposals.forEach((p,i)=>{
+      html += `<label style="display:block;margin:4px 0;"><input type="checkbox" class="propcb" data-idx="${i}" ${p.auto_safe?'checked':''}> ${esc(p.description||p.op)} (conf ${esc(p.confidence||'?')})</label>`;
+    });
+    html += '</div>';
+  }
+  if(prop.downstream_scenes && prop.downstream_scenes.length){
+    html += '<div class="downstream">May affect later scenes: '+esc(prop.downstream_scenes.join(', '))+'</div>';
+  }
+  el.innerHTML = html;
+  document.getElementById('recon').classList.remove('hidden');
+}
+async function applyProposals(){
+  if(!currentRecon) return;
+  const proposals = currentRecon.proposals.map((p,i)=>{
+    const cb = document.querySelector('.propcb[data-idx="'+i+'"]');
+    return Object.assign({}, p, {accepted: cb ? cb.checked : false});
+  }).filter(p=>p.accepted);
+  if(!proposals.length){ alert('No proposals selected.'); return; }
+  const r = await fetch('/api/apply_proposals', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentRecon.scene, proposals, downstream_entities: currentRecon.downstream_entities||[]})});
+  const d = await r.json();
+  let msg = 'Applied '+d.applied+' retcon(s). State rebuilt.';
+  if(d.flagged_scenes && d.flagged_scenes.length){ msg += ' May affect: '+d.flagged_scenes.join(', '); }
+  alert(msg);
+  currentRecon = null;
+  document.getElementById('recon').classList.add('hidden');
+  await loadStatus();
+}
+function discardRecon(){
+  currentRecon = null;
+  document.getElementById('recon').classList.add('hidden');
+}
+
+/* ── Generation ── */
+async function generate(){
+  const dir = document.getElementById('direction').value.trim();
+  if(!dir){ alert('Type a direction or pick a choice.'); return; }
+  const brief = document.getElementById('brief').value.trim();
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  document.getElementById('choices').innerHTML = '';
+  startTimer();
+  genAbort = new AbortController();
+  try {
+    const res = await fetch('/api/generate', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({direction:dir, brief}),
+      signal: genAbort.signal
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while(true){
+      const {done, value} = await reader.read();
+      if(done) break;
+      buffer += decoder.decode(value, {stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for(const line of lines){
+        if(!line.startsWith('data:')) continue;
+        let obj;
+        try { obj = JSON.parse(line.slice(5).trim()); } catch(e){ continue; }
+        if(obj.type === 'stage'){
+          document.getElementById('loading').textContent = `${obj.message} (${Math.round((Date.now()-startTime)/1000)}s elapsed)`;
+          if(obj.progress) document.getElementById('pbar').style.width = obj.progress+'%';
+        } else if(obj.type === 'done'){
+          renderScene(obj.scene);
+          renderChoices(obj.choices);
+          renderState(obj.state);
+          renderEvents(obj.events);
+          const st = await (await fetch('/api/status')).json();
+          renderStatus(st); renderScenes(st.scenes);
+          totalScenes = st.scene_count;
+          const sel = document.getElementById('sceneSelect');
+          sel.innerHTML = '';
+          for(let i=1;i<=totalScenes;i++){ const o=document.createElement('option'); o.value=i; o.textContent='Scene '+i; sel.appendChild(o); }
+          currentScene = totalScenes;
+          document.getElementById('sceneSelect').value = String(totalScenes);
+          document.getElementById('navLabel').textContent = `Scene ${totalScenes} of ${totalScenes}`;
+          showFeedback(totalScenes);
+          document.getElementById('direction').value = '';
+          document.getElementById('brief').value = '';
+        } else if(obj.type === 'error'){
+          alert('Error: '+obj.error);
+        }
+      }
+    }
+  } catch(e){
+    if(e.name !== 'AbortError') alert('Request failed: '+e);
+  }
+  finally {
+    stopTimer();
+    btn.disabled = false; btn.textContent = 'Generate';
+    genAbort = null;
+  }
+}
+function cancelGen(){ if(genAbort) genAbort.abort(); }
+
+/* ── Timer ── */
+function startTimer(){
+  startTime = Date.now();
+  const loading = document.getElementById('loading');
+  const pwrap = document.getElementById('pwrap');
+  const pbar = document.getElementById('pbar');
+  loading.style.display = 'block';
+  pwrap.style.display = 'block';
+  pbar.style.width = '0%';
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(()=>{
+    const elapsed = (Date.now()-startTime)/1000;
+    loading.textContent = `Generating scene... ${Math.round(elapsed)}s elapsed. Please wait, do not click again.`;
+    const pct = Math.min(95, (elapsed/90)*100);
+    pbar.style.width = pct+'%';
+  }, 1000);
+}
+function stopTimer(){
+  if(timerInterval){ clearInterval(timerInterval); timerInterval=null; }
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('pwrap').style.display = 'none';
+  document.getElementById('pbar').style.width = '0%';
+}
+
+/* ── Init ── */
+async function loadProjects(){
+  const r = await fetch('/api/projects');
+  const d = await r.json();
+  const sel = document.getElementById('projectSelect');
+  sel.innerHTML = '';
+  (d.projects||[]).forEach(p=>{
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if(p === d.active) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+async function switchProject(name){
+  const r = await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+  const d = await r.json();
+  if(d.ok){ await loadStatus(); }
+  else { alert('Switch failed: '+(d.error||'unknown')); await loadProjects(); }
+}
+async function newProject(){
+  const name = prompt('New novel name:');
+  if(!name) return;
+  const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+  const d = await r.json();
+  if(d.ok){ await loadProjects(); await loadStatus(); }
+  else { alert('Create failed: '+(d.error||'unknown')); }
+}
+async function loadStatus(){
+  const r = await fetch('/api/status');
+  const d = await r.json();
+  renderStatus(d);
+  renderChars(d.characters);
+  renderState(d.state);
+  renderScenes(d.scenes);
+  totalScenes = d.scene_count;
+  const sel = document.getElementById('sceneSelect');
+  sel.innerHTML = '';
+  for(let i=1;i<=totalScenes;i++){ const o=document.createElement('option'); o.value=i; o.textContent='Scene '+i; sel.appendChild(o); }
+  if(totalScenes>0){ currentScene = totalScenes; viewScene(totalScenes); }
+  checkEdits();
+}
+loadProjects().then(()=>loadStatus());
+</script>
+</body>
+</html>

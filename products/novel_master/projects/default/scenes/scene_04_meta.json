@@ -1,0 +1,94 @@
+{
+  "scene": 4,
+  "hash": "2d6ec1a922bb1be185344a5813cbb7ef922bca617be0554d0a28aacadf8c8b6e",
+  "status": "accepted",
+  "characters_present": [
+    "c1",
+    "c2",
+    "c3",
+    "constable",
+    "rope-seller",
+    "woman in green shawl"
+  ],
+  "location": "harbor market row, near rope-seller's stall, by the harbor steps",
+  "events": [
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "target": "c1",
+      "summary": "Sable orders Maren to Warden Row, second tide bell, ask for her",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "target": "c1",
+      "summary": "Sable states a second page exists with Maren's name; wants to discuss it in a room with a door",
+      "uncertain": false
+    },
+    {
+      "type": "action",
+      "actor": null,
+      "summary": "Constable notes the hour and the weather",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c2",
+      "target": "c3",
+      "summary": "Tovin tells Sable a woman in a green shawl offered Maren work and Maren said no; he does not know what the work was",
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c1",
+      "summary": "Maren notices the woman in the green shawl was at the third stall the whole time and watched the encounter",
+      "uncertain": false
+    },
+    {
+      "type": "action",
+      "actor": null,
+      "summary": "Green shawl woman sets an object on the rope-seller's table and walks toward the harbor steps",
+      "target": null,
+      "uncertain": true
+    },
+    {
+      "type": "item_loss",
+      "actor": "c1",
+      "summary": "Maren pays one silver mark to the rope-seller",
+      "uncertain": false
+    },
+    {
+      "type": "item_gain",
+      "actor": "c1",
+      "summary": "Maren takes a sealed writ, council stock, red wax seal with a wren",
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c1",
+      "summary": "Maren recognizes the wren seal from a door in the old quarter the night her sister did not come home",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "target": "c2",
+      "summary": "Maren orders Tovin to stay, count to two hundred, go to his cousin if they are not back",
+      "uncertain": false
+    },
+    {
+      "type": "location_change",
+      "actor": "c1",
+      "summary": "Maren leaves the stall; direction between harbor steps and Warden Row unresolved",
+      "uncertain": true
+    }
+  ],
+  "choices": [
+    "Break the seal. Read what the Council wrote before anyone else does.",
+    "Go after the woman in the green shawl, down the harbor steps.",
+    "Take the writ to Warden Row and ask Sable about the second page.",
+    "Go back to Tovin. Put him on his cousin's boat. Go alone.",
+    "Ask the rope-seller about the door with the wren on it."
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "scene": 2,
+  "hash": "85e45375fc81a658c39dd56151de7735ee97d8b094a722ecf9911e06c2dbc16c",
+  "status": "accepted",
+  "characters_present": [
+    "c1",
+    "c2",
+    "c3",
+    "young_warden"
+  ],
+  "location": "fish market, Duskport, rain",
+  "events": [
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable orders Tovin silent or he will be silent in a cell; Tovin complies",
+      "target": "c2",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable states Vosk declines the writ on grounds of ignorance; says it will not protect her",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable refuses to read sealed writ contents aloud, citing Council seal and 'market ears'",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren refuses to carry unspecified writ; speculates it could be a bill with her sister's name misspelled",
+      "target": "c3",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable cites obstruction; sets terms: ten silver marks and three days in barracks for Pell, based on his false account of Maren's morning",
+      "target": "c2",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c2",
+      "summary": "Tovin admits his account was an approximation, not exactly false",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c1",
+      "summary": "Maren concludes Sable's ledger is a book of names, not laws, and that her name is in it",
+      "target": "c3",
+      "uncertain": true
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable says a name is on the writ but refuses to speak it in the fish market",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "action",
+      "actor": "c1",
+      "summary": "Maren considers using unlicensed power on Sable and the ledger, then suppresses it; nosebleed/shakes/warden exposure cited as cost",
+      "target": "c3",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c3",
+      "summary": "Sable sets deadline: bring writ to barracks door by second tide bell, into her hand, or both arrested publicly on market stones",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "location_change",
+      "actor": "c3",
+      "summary": "Sable and young Warden leave into rain; gray cloaks close around them",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c2",
+      "summary": "Tovin confirms they do not have the writ",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren states someone else has the writ",
+      "target": null,
+      "uncertain": false
+    }
+  ],
+  "choices": [
+    "Go straight to the ferry office and find out who came off the Reach boat with the Council's seal on their papers.",
+    "Search your sister's room at home before the second tide, and take Tovin with you.",
+    "Tell Tovin the truth about the mark and ask him to steal the ledger at the barracks door.",
+    "Sell the writ's existence to the Salt Market fence who buys Council gossip, and buy information with the last of your coin.",
+    "Wait under the awning until the second tide, empty-handed, and see whether Sable comes alone."
+  ]
+}

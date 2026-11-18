@@ -1,0 +1,83 @@
+{
+  "scene": 1,
+  "hash": "b4787792f7642814e4d825bd71878b765737d72c92b19b4a593f52a0e2c878ae",
+  "status": "accepted",
+  "characters_present": [
+    "c1",
+    "c2",
+    "c3"
+  ],
+  "location": "Salt Market, Duskport",
+  "events": [
+    {
+      "type": "dialogue",
+      "actor": "c2",
+      "summary": "Tovin reports ferry from the Reach docked an hour ago; whether Maren's sister took it is unknown",
+      "target": "c1",
+      "uncertain": true
+    },
+    {
+      "type": "discovery",
+      "actor": "c3",
+      "summary": "A courier's body was found in the north quarter; a sealed writ from the Merchant Council is missing",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c3",
+      "summary": "The courier was seen entering Salt Market before dawn asking for a woman named Maren",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren denies meeting the courier",
+      "target": "c3",
+      "uncertain": false
+    },
+    {
+      "type": "dialogue",
+      "actor": "c2",
+      "summary": "Tovin gives a false alibi claiming he was with Maren since dawn buying eels",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "action",
+      "actor": "c3",
+      "summary": "Sable states harboring a courier's secret is theft and lying is obstruction, fine of ten silver marks or three days in barracks",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "action",
+      "actor": "c3",
+      "summary": "Sable demands the writ or Maren come with her",
+      "target": "c1",
+      "uncertain": false
+    },
+    {
+      "type": "discovery",
+      "actor": "c1",
+      "summary": "Maren has the key to her sister's old room in her pocket; it has been there since morning",
+      "target": null,
+      "uncertain": false
+    },
+    {
+      "type": "item_loss",
+      "actor": "c1",
+      "summary": "The oilcloth message scrap was burned to ash at home",
+      "target": null,
+      "uncertain": false
+    }
+  ],
+  "choices": [
+    "Hand over the key and claim it belonged to the dead courier.",
+    "Refuse, and demand Sable explain what the missing writ says.",
+    "Signal Tovin to create a distraction in the crowd.",
+    "Follow Sable quietly, but keep the key hidden.",
+    "Custom: write your own action."
+  ]
+}
