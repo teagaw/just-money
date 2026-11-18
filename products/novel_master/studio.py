@@ -59,6 +59,60 @@ def list_projects() -> list[str]:
     return sorted(p.name for p in pd.iterdir() if p.is_dir())
 
 
+def project_language() -> str:
+    # Return the language code for the active project (default en).
+    base = project_base()
+    cfg_path = base / "project_config.json"
+    if cfg_path.exists():
+        try:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            return cfg.get("language", "en")
+        except Exception:
+            pass
+    return "en"
+
+
+def project_genre() -> str:
+    base = project_base()
+    cfg_path = base / "project_config.json"
+    if cfg_path.exists():
+        try:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            return cfg.get("genre", "")
+        except Exception:
+            pass
+    return ""
+
+
+def project_subgenre() -> str:
+    base = project_base()
+    cfg_path = base / "project_config.json"
+    if cfg_path.exists():
+        try:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            return cfg.get("subgenre", "")
+        except Exception:
+            pass
+    return ""
+
+
+def genre_style_rules(genre: str, subgenre: str = "") -> str:
+    genres_path = BASE / "genres.json"
+    if not genres_path.exists():
+        return ""
+    try:
+        genres = json.loads(genres_path.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    g = genres.get(genre)
+    if not g:
+        return ""
+    rules = g.get("style_rules", "")
+    if subgenre:
+        rules = rules + " (Subgenre: " + subgenre + ")"
+    return rules
+
+
 def active_project_name() -> str:
     apf = _active_project_file()
     pd = _projects_dir()
@@ -79,7 +133,7 @@ def switch_project(name: str) -> bool:
     return True
 
 
-def create_project(name: str) -> bool:
+def create_project(name: str, language: str = "en", genre: str = "", subgenre: str = "") -> bool:
     name = name.strip()
     if not name or "/" in name or "\\" in name or ".." in name:
         return False
@@ -97,7 +151,32 @@ def create_project(name: str) -> bool:
     (p / "npc_registry.json").write_text("{}", encoding="utf-8")
     (p / "plot_threads.json").write_text("[]", encoding="utf-8")
     (p / "timeline.json").write_text("[]", encoding="utf-8")
+    (p / "project_config.json").write_text(json.dumps({"language": language, "genre": genre, "subgenre": subgenre}, indent=2), encoding="utf-8")
     return True
+
+def delete_project(name: str) -> bool:
+    """Delete a novel project (cannot delete the last/active one without switching first)."""
+    name = name.strip()
+    if not name or "/" in name or "\\" in name or ".." in name:
+        return False
+    pd = _projects_dir()
+    p = pd / name
+    if not p.exists() or not p.is_dir():
+        return False
+    # don't delete if it's the only project
+    projects = [d for d in pd.iterdir() if d.is_dir()]
+    if len(projects) <= 1:
+        return False
+    import shutil
+    shutil.rmtree(p)
+    # if deleted the active project, switch to first remaining
+    if active_project_name() == name:
+        remaining = sorted(d.name for d in pd.iterdir() if d.is_dir())
+        if remaining:
+            switch_project(remaining[0])
+    return True
+
+
 
 
 load_dotenv(BASE / ".env")
@@ -479,7 +558,8 @@ def apply_audit_extras(audit: dict):
 
 def showrunner_prompt(lore: str, chars: list, state: dict, history: str, direction: str, brief: str = "",
                       feedback: str = "", npc_registry: dict = None, plot_threads: list = None,
-                      timeline: list = None) -> list:
+                      timeline: list = None, language: str = "en", genre: str = "",
+                      subgenre: str = "") -> list:
     # Strip private fields (secrets) so character knowledge stays isolated (§7.1/§10).
     safe_chars = [{k: v for k, v in c.items() if k not in ("secrets",)} for c in chars]
     char_block = json.dumps(safe_chars, indent=2)
@@ -487,7 +567,21 @@ def showrunner_prompt(lore: str, chars: list, state: dict, history: str, directi
     npc_block = json.dumps(npc_registry or {}, indent=2) if npc_registry else "(none)"
     threads_block = json.dumps(plot_threads or [], indent=2) if plot_threads else "(none)"
     timeline_block = json.dumps((timeline or [])[-5:], indent=2) if timeline else "(none)"
+    if language == "ar-eg":
+        lang_directive = ("LANGUAGE: Write ALL prose, dialogue, choices, and summaries in Egyptian Arabic (عامية مصرية). "
+                          "Use colloquial Egyptian dialect, NOT formal Arabic (فصحى). "
+                          "Characters speak naturally in Egyptian vernacular. "
+                          "Narration can be slightly more formal but still accessible. "
+                          "Do NOT use Gulf, Levantine, or Maghrebi dialect. Egyptian only.")
+    else:
+        lang_directive = "LANGUAGE: Write in English."
+    style_rules = genre_style_rules(genre, subgenre)
+    style_block = f"GENRE STYLE RULES ({genre}" + (f" / {subgenre}" if subgenre else "") + "):\n" + style_rules if style_rules else ""
     system = f"""You are the Showrunner of a novel. You write ONE scene at a time.
+
+{lang_directive}
+
+{style_block}
 
 WORLD LORE:
 {lore}
@@ -536,22 +630,25 @@ Write the scene now."""
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-def auditor_prompt(scene_text: str, chars: list) -> list:
+def auditor_prompt(scene_text: str, chars: list, language: str = "en") -> list:
     safe_chars = [{k: v for k, v in c.items() if k not in ("secrets",)} for c in chars]
-    system = """You are a data extraction engine. Read the scene. Extract ONLY hard factual state changes.
-If a change is ambiguous, flag it as UNCERTAIN. Do not infer. Do not interpret metaphor.
-Output strict JSON only, no markdown fences, matching this schema:
-{
-  "events": [{"type": "action|dialogue|discovery|injury|item_gain|item_loss|relationship_change|location_change", "actor": "char_id or null", "summary": "short factual", "target": "char_id or null", "uncertain": false, "state_updates": {"char_id": {"location": "str or null", "inventory_add": [], "inventory_remove": [], "status": "str or null", "relationships": {"other_char_id": "str"}}}}],
-  "characters_present": ["char_id"],
-  "location": "str",
-  "plot_threads": [{"id": "thread_id", "type": "mystery|promise|foreshadowing|conflict|object", "description": "short", "status": "open|resolved", "characters": ["char_id"], "introduced_scene": 1}],
-  "timeline_entry": {"scene": 1, "date": "day 3", "duration": "1 hour", "location": "Salt Market", "characters_present": ["c1"]},
-  "npc_updates": [{"name": "NPC Name", "voice_tags": ["gruff", "merchant"], "faction": "Merchant Council", "grudge": "none", "last_interaction_scene": 1}],
-  "knowledge_updates": {"char_id": {"learned": ["fact the character now knows"], "suspected": ["fact they now suspect"]}}
-}
-
-Put state_updates INSIDE each event (per-event deltas). If an event has no state change, set "state_updates": {}. Do NOT use a top-level state_updates field."""
+    if language == "ar-eg":
+        lang_note = "The scene is in Egyptian Arabic. Extract facts in Egyptian Arabic where applicable."
+    else:
+        lang_note = "The scene is in English."
+    system = ("You are a data extraction engine. " + lang_note + " Read the scene. Extract ONLY hard factual state changes.\n" +
+              'If a change is ambiguous, flag it as UNCERTAIN. Do not infer. Do not interpret metaphor.\n' +
+              'Output strict JSON only, no markdown fences, matching this schema:\n' +
+              '{\n' +
+              '  "events": [{"type": "action|dialogue|discovery|injury|item_gain|item_loss|relationship_change|location_change", "actor": "char_id or null", "summary": "short factual", "target": "char_id or null", "uncertain": false, "state_updates": {"char_id": {"location": "str or null", "inventory_add": [], "inventory_remove": [], "status": "str or null", "relationships": {"other_char_id": "str"}}}}],\n' +
+              '  "characters_present": ["char_id"],\n' +
+              '  "location": "str",\n' +
+              '  "plot_threads": [{"id": "thread_id", "type": "mystery|promise|foreshadowing|conflict|object", "description": "short", "status": "open|resolved", "characters": ["char_id"], "introduced_scene": 1}],\n' +
+              '  "timeline_entry": {"scene": 1, "date": "day 3", "duration": "1 hour", "location": "Salt Market", "characters_present": ["c1"]},\n' +
+              '  "npc_updates": [{"name": "NPC Name", "voice_tags": ["gruff", "merchant"], "faction": "Merchant Council", "grudge": "none", "last_interaction_scene": 1}],\n' +
+              '  "knowledge_updates": {"char_id": {"learned": ["fact the character now knows"], "suspected": ["fact they now suspect"]}}\n' +
+              '}\n\n' +
+              'Put state_updates INSIDE each event (per-event deltas). If an event has no state change, set "state_updates": {}. Do NOT use a top-level state_updates field.')
     user = f"CHARACTERS: {json.dumps(safe_chars)}\n\nSCENE:\n{scene_text}\n\nExtract now."
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
@@ -720,7 +817,7 @@ def append_event(record: dict):
 
 
 def rebuild_state_from_events() -> dict:
-    """Rebuild character_state.json from the append-only event log (§6.1/§9.3).
+    """Rebuild character_state.json from the append-only event log (sec 6.1/9.3).
 
     Seeds state from characters.json, then applies events in event_id order,
     skipping any event whose event_id is in the nullified set (retcons).
@@ -804,10 +901,13 @@ def main():
         npc_registry = json.loads((project_base() / "npc_registry.json").read_text(encoding="utf-8")) if (project_base() / "npc_registry.json").exists() else {}
         plot_threads = json.loads((project_base() / "plot_threads.json").read_text(encoding="utf-8")) if (project_base() / "plot_threads.json").exists() else []
         timeline = json.loads((project_base() / "timeline.json").read_text(encoding="utf-8")) if (project_base() / "timeline.json").exists() else []
+        language = project_language()
+        genre = project_genre()
+        subgenre = project_subgenre()
 
         history = retrieve_relevant_scenes(direction, chars, 5)
         msgs = showrunner_prompt(lore, chars, state, history, direction, brief, recent_feedback(5),
-                                 npc_registry, plot_threads, timeline)
+                                 npc_registry, plot_threads, timeline, language, genre, subgenre)
         print("Calling Showrunner...")
         try:
             raw = llm_call(CONFIG["showrunner_model"], msgs, CONFIG["max_tokens_showrunner"], CONFIG["temperature"], scene_ref=n)
@@ -824,7 +924,7 @@ def main():
         print("\nRunning State Auditor...")
         audit = None
         try:
-            a_raw = llm_call(CONFIG["auditor_model"], auditor_prompt(scene, chars), CONFIG["max_tokens_auditor"], 0.2, scene_ref=n, json_mode=True)
+            a_raw = llm_call(CONFIG["auditor_model"], auditor_prompt(scene, chars, language), CONFIG["max_tokens_auditor"], 0.2, scene_ref=n, json_mode=True)
             audit = parse_json_robust(a_raw)
         except Exception as e:  # broad: auditor/parse failure -> skip state update
             print(f"Auditor failed: {e}. State not updated this scene.")

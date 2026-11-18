@@ -26,6 +26,7 @@
     --r-sm: 4px; --r-md: 6px; --r-lg: 8px;
     /* Typography */
     --font-prose: Georgia, "Times New Roman", serif;
+    --font-prose-ar: "Noto Naskh Arabic", "Amiri", "Traditional Arabic", serif;
     --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
   }
@@ -131,6 +132,8 @@
     font-family: var(--font-prose); font-size: 18px; line-height: 1.75;
     color: var(--text); white-space: pre-wrap; word-wrap: break-word;
   }
+  [dir="rtl"] .scene { font-family: var(--font-prose-ar); }
+  [dir="rtl"] .page { border-inline-start: none; border-inline-end: 1px solid var(--border); }
   .scene:empty::before {
     content: "No scenes yet. Type a direction below and click Generate to write your first scene.";
     color: var(--text-muted); font-style: italic;
@@ -339,8 +342,10 @@
   <header class="topbar">
     <span class="wordmark">Novel Studio</span>
     <span id="novelTitle" style="font-size:13px; color:var(--text-muted); margin-inline-start:var(--sp-2);"></span>
+    <span id="genreLabel" style="font-size:11px; color:var(--text-muted); margin-inline-start:var(--sp-1); opacity:0.7;"></span>
     <select id="projectSelect" onchange="switchProject(this.value)" aria-label="Select novel project" class="project-select"></select>
     <button onclick="newProject()" class="new-btn" aria-label="New project">+ New</button>
+    <button onclick="deleteProject()" class="new-btn" aria-label="Delete project" style="color:var(--danger); border-color:var(--danger);">Delete</button>
     <select id="branchSelect" onchange="switchBranch(this.value)" aria-label="Select branch" class="project-select" style="max-width:140px;"></select>
     <button onclick="newBranch()" class="new-btn" aria-label="New branch">Branch</button>
     <div class="nav">
@@ -398,8 +403,22 @@
 
   <aside class="right">
     <div class="section">
-      <h3>Characters</h3>
+      <h3>World Lore <button onclick="toggleLoreEdit()">Edit</button></h3>
+      <div id="loreView" style="font-size:12px; color:var(--text-muted); white-space:pre-wrap; max-height:200px; overflow:auto;"></div>
+      <textarea id="loreEdit" style="display:none; width:100%; min-height:150px; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--accent); border-radius:var(--r-sm); font-family:var(--font-ui); font-size:12px; resize:vertical;"></textarea>
+      <div id="loreBtns" style="display:none; gap:6px; margin-top:6px;">
+        <button onclick="saveLore()" style="padding:3px 8px; background:var(--accent); color:var(--accent-text); border:none; border-radius:3px; cursor:pointer; font-size:11px; font-weight:600;">Save</button>
+        <button onclick="cancelLoreEdit()" style="padding:3px 8px; background:transparent; color:var(--text-muted); border:1px solid var(--border); border-radius:3px; cursor:pointer; font-size:11px;">Cancel</button>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Characters <button onclick="toggleCharsEdit()">Edit JSON</button></h3>
       <div id="chars"><div class="empty-state">No characters defined.</div></div>
+      <textarea id="charsEdit" style="display:none; width:100%; min-height:150px; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--accent); border-radius:var(--r-sm); font-family:var(--font-mono); font-size:11px; resize:vertical;"></textarea>
+      <div id="charsBtns" style="display:none; gap:6px; margin-top:6px;">
+        <button onclick="saveChars()" style="padding:3px 8px; background:var(--accent); color:var(--accent-text); border:none; border-radius:3px; cursor:pointer; font-size:11px; font-weight:600;">Save</button>
+        <button onclick="cancelCharsEdit()" style="padding:3px 8px; background:transparent; color:var(--text-muted); border:1px solid var(--border); border-radius:3px; cursor:pointer; font-size:11px;">Cancel</button>
+      </div>
     </div>
     <div class="section">
       <h3>State <button onclick="rebuildState()">Rebuild</button></h3>
@@ -753,10 +772,22 @@ async function switchProject(name){
 async function newProject(){
   const name = prompt('New novel name:');
   if(!name) return;
-  const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+  const lang = prompt('Language? (en = English, ar-eg = Arabic Egyptian dialect)', 'en');
+  if(lang === null) return;
+  const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, language: lang.trim()||'en'})});
   const d = await r.json();
   if(d.ok){ await loadProjects(); await loadStatus(); }
   else { alert('Create failed: '+(d.error||'unknown')); }
+}
+async function deleteProject(){
+  const sel = document.getElementById('projectSelect');
+  const name = sel.value;
+  if(!name){ alert('No project selected.'); return; }
+  if(!confirm('Delete novel "'+name+'"? This cannot be undone.')) return;
+  const r = await fetch('/api/delete_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+  const d = await r.json();
+  if(d.ok){ await loadProjects(); await loadStatus(); alert('Deleted "'+name+'".'); }
+  else { alert('Delete failed: '+(d.error||'unknown')); }
 }
 async function loadBranches(){
   const r = await fetch('/api/branches');
@@ -786,11 +817,63 @@ async function newBranch(){
 }
 
 /* ── Init ── */
+async function loadLore(){
+  const r = await fetch('/api/lore'); const d = await r.json();
+  document.getElementById('loreView').textContent = d.content || '(no lore yet)';
+}
+async function toggleLoreEdit(){
+  const view = document.getElementById('loreView');
+  const edit = document.getElementById('loreEdit');
+  const btns = document.getElementById('loreBtns');
+  if(edit.style.display === 'block'){ cancelLoreEdit(); return; }
+  const r = await fetch('/api/lore'); const d = await r.json();
+  edit.value = d.content || '';
+  view.style.display = 'none'; edit.style.display = 'block'; btns.style.display = 'flex';
+}
+function cancelLoreEdit(){
+  document.getElementById('loreView').style.display = 'block';
+  document.getElementById('loreEdit').style.display = 'none';
+  document.getElementById('loreBtns').style.display = 'none';
+}
+async function saveLore(){
+  const text = document.getElementById('loreEdit').value;
+  const r = await fetch('/api/save_lore', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+  const d = await r.json();
+  if(d.ok){ cancelLoreEdit(); loadLore(); alert('Lore saved.'); }
+  else { alert('Save failed: '+(d.error||'unknown')); }
+}
+async function toggleCharsEdit(){
+  const view = document.getElementById('chars');
+  const edit = document.getElementById('charsEdit');
+  const btns = document.getElementById('charsBtns');
+  if(edit.style.display === 'block'){ cancelCharsEdit(); return; }
+  const r = await fetch('/api/characters'); const d = await r.json();
+  edit.value = d.content || '[]';
+  view.style.display = 'none'; edit.style.display = 'block'; btns.style.display = 'flex';
+}
+function cancelCharsEdit(){
+  document.getElementById('chars').style.display = 'block';
+  document.getElementById('charsEdit').style.display = 'none';
+  document.getElementById('charsBtns').style.display = 'none';
+  loadStatus();
+}
+async function saveChars(){
+  const text = document.getElementById('charsEdit').value;
+  const r = await fetch('/api/save_characters', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+  const d = await r.json();
+  if(d.ok){ cancelCharsEdit(); loadStatus(); alert('Characters saved.'); }
+  else { alert('Save failed: '+(d.error||'unknown')); }
+}
 async function loadStatus(){
   const r = await fetch('/api/status');
   const d = await r.json();
   renderStatus(d);
   document.getElementById('novelTitle').textContent = d.project || '';
+  const genreText = [d.genre, d.subgenre].filter(Boolean).join(' / ');
+  document.getElementById('genreLabel').textContent = genreText ? '('+genreText+')' : '';
+  if(d.language === 'ar-eg'){ document.documentElement.setAttribute('dir','rtl'); document.documentElement.setAttribute('lang','ar'); }
+  else { document.documentElement.setAttribute('dir','ltr'); document.documentElement.setAttribute('lang','en'); }
+  loadLore();
   renderChars(d.characters);
   renderState(d.state);
   renderScenes(d.scenes);

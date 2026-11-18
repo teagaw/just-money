@@ -36,10 +36,13 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
     npc_registry = json.loads((studio.project_base() / "npc_registry.json").read_text(encoding="utf-8")) if (studio.project_base() / "npc_registry.json").exists() else {}
     plot_threads = json.loads((studio.project_base() / "plot_threads.json").read_text(encoding="utf-8")) if (studio.project_base() / "plot_threads.json").exists() else []
     timeline = json.loads((studio.project_base() / "timeline.json").read_text(encoding="utf-8")) if (studio.project_base() / "timeline.json").exists() else []
+    language = studio.project_language()
+    genre = studio.project_genre()
+    subgenre = studio.project_subgenre()
 
     history = studio.retrieve_relevant_scenes(direction, chars, 5)
     msgs = studio.showrunner_prompt(lore, chars, state, history, direction, brief, feedback,
-                                    npc_registry, plot_threads, timeline)
+                                    npc_registry, plot_threads, timeline, language, genre, subgenre)
 
     yield ("stage", {"message": "Calling Showrunner (writing the scene)...", "progress": 5})
     _check_timeout()
@@ -52,7 +55,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
     audit = None
     try:
         a_raw = studio.llm_call(studio.CONFIG["auditor_model"],
-                                studio.auditor_prompt(scene, chars),
+                                studio.auditor_prompt(scene, chars, language),
                                 studio.CONFIG["max_tokens_auditor"], 0.2, scene_ref=n, json_mode=True)
         audit = studio.parse_json_robust(a_raw)
     except Exception:  # broad: auditor/parse failure -> skip state update
@@ -146,6 +149,9 @@ def status_payload() -> dict:
         "last_scene": last_scene,
         "last_choices": last_choices,
         "project": studio.active_project_name(),
+        "language": studio.project_language(),
+        "genre": studio.project_genre(),
+        "subgenre": studio.project_subgenre(),
     }
 
 
@@ -172,11 +178,25 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/status":
             self._send(200, "application/json", json.dumps(status_payload()))
             return
+        if path == "/api/lore":
+            p = studio.project_base() / "world_lore.md"
+            content = p.read_text(encoding="utf-8") if p.exists() else ""
+            self._send(200, "application/json", json.dumps({"content": content}))
+            return
+        if path == "/api/characters":
+            p = studio.project_base() / "characters.json"
+            content = p.read_text(encoding="utf-8") if p.exists() else "[]"
+            self._send(200, "application/json", json.dumps({"content": content}))
+            return
         if path == "/api/projects":
             self._send(200, "application/json", json.dumps({
                 "projects": studio.list_projects(),
                 "active": studio.active_project_name(),
             }))
+            return
+        if path == "/api/genres":
+            genres = json.loads((BASE / "genres.json").read_text(encoding="utf-8")) if (BASE / "genres.json").exists() else {}
+            self._send(200, "application/json", json.dumps(genres))
             return
         if path == "/api/branches":
             self._send(200, "application/json", json.dumps({
@@ -247,6 +267,27 @@ class Handler(BaseHTTPRequestHandler):
             studio.save_feedback(scene, rating if rating is not None else 0, text)
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
+        if path == "/api/save_lore":
+            text = body.get("text")
+            if not isinstance(text, str):
+                self._send(400, "application/json", json.dumps({"error": "text must be a string"}))
+                return
+            studio.atomic_write(studio.project_base() / "world_lore.md", text)
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/save_characters":
+            text = body.get("text")
+            if not isinstance(text, str):
+                self._send(400, "application/json", json.dumps({"error": "text must be a string"}))
+                return
+            try:
+                json.loads(text)  # validate JSON
+            except json.JSONDecodeError as e:
+                self._send(400, "application/json", json.dumps({"error": f"Invalid JSON: {e}"}))
+                return
+            studio.atomic_write(studio.project_base() / "characters.json", text)
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
         if path == "/api/save_scene":
             try:
                 scene = int(body.get("scene"))
@@ -293,11 +334,26 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/new_project":
             name = body.get("name")
-            if not isinstance(name, str) or not studio.create_project(name):
+            language = body.get("language", "en")
+            genre = body.get("genre", "")
+            subgenre = body.get("subgenre", "")
+            if not isinstance(name, str) or not studio.create_project(name, language if isinstance(language, str) else "en",
+                                                                      genre if isinstance(genre, str) else "",
+                                                                      subgenre if isinstance(subgenre, str) else ""):
                 self._send(400, "application/json", json.dumps({"error": "invalid or duplicate project name"}))
                 return
             studio.switch_project(name.strip())
             self._send(200, "application/json", json.dumps({"ok": True, "active": name.strip()}))
+            return
+        if path == "/api/delete_project":
+            name = body.get("name")
+            if not isinstance(name, str):
+                self._send(400, "application/json", json.dumps({"error": "name must be a string"}))
+                return
+            if not studio.delete_project(name):
+                self._send(400, "application/json", json.dumps({"error": "cannot delete (not found or last project)"}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True, "active": studio.active_project_name()}))
             return
         if path == "/api/reconcile":
             try:

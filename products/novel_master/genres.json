@@ -1,0 +1,370 @@
+{
+  "Fantasy": {
+    "subgenres": [
+      "Epic / High Fantasy",
+      "Urban Fantasy",
+      "Dark Fantasy",
+      "Paranormal Fantasy",
+      "Sword & Sorcery",
+      "Magical Realism",
+      "Fairy Tale Retelling",
+      "Portal Fantasy",
+      "Progression Fantasy",
+      "Grimdark",
+      "Cozy Fantasy",
+      "Historical Fantasy",
+      "Contemporary Fantasy",
+      "Mythic Fantasy",
+      "Low Fantasy",
+      "Gaslamp Fantasy",
+      "Flintlock Fantasy",
+      "Wuxia",
+      "Xianxia",
+      "Isekai"
+    ],
+    "style_rules": "Vivid world-building. Magic has rules and costs. Sensory-rich descriptions. Formal or archaic dialogue for high fantasy; modern for urban. Avoid anachronistic language in historical fantasy. Show magic through consequences, not exposition."
+  },
+  "Science Fiction": {
+    "subgenres": [
+      "Hard SF",
+      "Soft SF",
+      "Space Opera",
+      "Cyberpunk",
+      "Steampunk",
+      "Dieselpunk",
+      "Biopunk",
+      "Solarpunk",
+      "Time Travel",
+      "Dystopian",
+      "Utopian",
+      "Military SF",
+      "First Contact",
+      "Generation Ship",
+      "Post-Apocalyptic",
+      "Near-Future",
+      "Climate Fiction (Cli-Fi)",
+      "AI / Robot SF",
+      "Alternate History",
+      "Science Fantasy"
+    ],
+    "style_rules": "Ground speculation in plausible science. Technical vocabulary when appropriate but explain through context. Sense of wonder and scale. Avoid info-dumps; reveal world through character experience. Tension between technology and humanity."
+  },
+  "Mystery": {
+    "subgenres": [
+      "Cozy Mystery",
+      "Hardboiled",
+      "Noir",
+      "Police Procedural",
+      "Amateur Sleuth",
+      "Historical Mystery",
+      "Locked Room",
+      "Whodunit",
+      "Inverted Mystery",
+      "Forensic Mystery"
+    ],
+    "style_rules": "Plant clues fairly. Red herrings should be plausible. Pacing: steady revelation. Avoid revealing the solution too early. Dialogue should carry subtext. End chapters on questions or discoveries."
+  },
+  "Thriller": {
+    "subgenres": [
+      "Psychological Thriller",
+      "Legal Thriller",
+      "Medical Thriller",
+      "Techno-Thriller",
+      "Political Thriller",
+      "Spy / Espionage",
+      "Action Thriller",
+      "Domestic Thriller",
+      "Conspiracy Thriller",
+      "Financial Thriller"
+    ],
+    "style_rules": "Short sentences. Fast pacing. High stakes. Cliffhanger chapter endings. Tension through uncertainty. Avoid lengthy exposition. Show danger through physical sensation."
+  },
+  "Horror": {
+    "subgenres": [
+      "Gothic Horror",
+      "Psychological Horror",
+      "Supernatural Horror",
+      "Cosmic Horror (Lovecraftian)",
+      "Body Horror",
+      "Slasher",
+      "Folk Horror",
+      "Haunted House",
+      "Vampire",
+      "Zombie",
+      "Monster",
+      "Splatterpunk",
+      "Quiet Horror",
+      "Weird Horror"
+    ],
+    "style_rules": "Build dread through atmosphere, not gore (unless splatterpunk). Short sentences increase tension. Sensory details: sounds, smells, temperature. Avoid over-explaining the threat. Leave ambiguity. Fear lives in what's unseen."
+  },
+  "Romance": {
+    "subgenres": [
+      "Contemporary Romance",
+      "Historical Romance",
+      "Paranormal Romance",
+      "Romantic Suspense",
+      "Romantic Comedy",
+      "Erotic Romance",
+      "LGBTQ+ Romance",
+      "Regency Romance",
+      "Western Romance",
+      "Sports Romance",
+      "Dark Romance",
+      "New Adult Romance",
+      "Fantasy Romance",
+      "Sci-Fi Romance",
+      "Slow-Burn Romance"
+    ],
+    "style_rules": "Emotional interiority is central. Dialogue carries subtext. Tension through obstacles and misunderstandings. Physical descriptions through desire. Avoid purple prose. Show attraction through behavior, not just statement."
+  },
+  "Historical Fiction": {
+    "subgenres": [
+      "Ancient World",
+      "Medieval",
+      "Renaissance",
+      "Victorian",
+      "Edwardian",
+      "World War I",
+      "World War II",
+      "Regency",
+      "Colonial",
+      "American Civil War",
+      "Tudor",
+      "Byzantine",
+      "Feudal Japan",
+      "Mughal India",
+      "Ottoman Empire"
+    ],
+    "style_rules": "Period-accurate vocabulary and social norms. Avoid anachronisms. Show daily life through sensory detail. Dialogue reflects class and era. Research-backed but never info-dumpy. Characters should feel of their time, not modern minds in costumes."
+  },
+  "Crime / Detective": {
+    "subgenres": [
+      "Heist / Caper",
+      "Gangster",
+      "Detective",
+      "Courtroom Drama",
+      "Organized Crime",
+      "True Crime (Fictionalized)",
+      "Forensic",
+      "Vigilante"
+    ],
+    "style_rules": "Procedural detail grounds the story. Moral ambiguity is key. Show the cost of crime. Dialogue is terse, cynical, layered. Avoid glorifying violence. Pacing alternates between action and investigation."
+  },
+  "Adventure": {
+    "subgenres": [
+      "Survival",
+      "Exploration",
+      "Treasure Hunt",
+      "Jungle / Expedition",
+      "Maritime",
+      "Mountaineering",
+      "Desert / Safari",
+      "Arctic / Polar"
+    ],
+    "style_rules": "Physical sensation dominates: exhaustion, hunger, weather. Short sentences in action. Pacing alternates between tension and recovery. Show the environment as an antagonist. Characters revealed through choices under pressure."
+  },
+  "Literary Fiction": {
+    "subgenres": [
+      "Coming of Age",
+      "Family Saga",
+      "Philosophical",
+      "Satirical",
+      "Experimental / Avant-garde",
+      "Domestic",
+      "Psychological",
+      "Southern Gothic",
+      "Magical Realism",
+      "Metafiction"
+    ],
+    "style_rules": "Prose quality is the point. Interiority, subtext, thematic depth. Slower pacing. Every sentence earns its place. Avoid genre cliches. Show character through small moments. Ambiguity is acceptable."
+  },
+  "Young Adult (YA)": {
+    "subgenres": [
+      "YA Fantasy",
+      "YA Sci-Fi",
+      "YA Contemporary",
+      "YA Mystery / Thriller",
+      "YA Romance",
+      "YA Dystopian",
+      "YA Horror",
+      "YA Historical",
+      "YA Paranormal"
+    ],
+    "style_rules": "First-person or close third. Immediate, present-tense energy. Protagonist is teen (13-18). Voice is authentic to age. Themes: identity, belonging, first love, rebellion. Avoid condescension. Pacing is faster than adult fiction."
+  },
+  "Middle Grade": {
+    "subgenres": [
+      "MG Adventure",
+      "MG Fantasy",
+      "MG Mystery",
+      "MG Contemporary",
+      "MG Historical"
+    ],
+    "style_rules": "Ages 8-12. Clear moral framework. Humor is important. Shorter chapters. Protagonist solves problems. Avoid graphic content. Hopeful tone. Adult characters are secondary."
+  },
+  "Comedy / Humor": {
+    "subgenres": [
+      "Satire",
+      "Parody",
+      "Dark Comedy",
+      "Romantic Comedy",
+      "Absurdist",
+      "Screwball"
+    ],
+    "style_rules": "Timing is everything. Setup and payoff. Exaggeration with a straight face. Dialogue should be witty, not forced. Avoid explaining the joke. Physical comedy through precise description."
+  },
+  "Western": {
+    "subgenres": [
+      "Traditional Western",
+      "Revisionist Western",
+      "Weird Western",
+      "Spaghetti Western",
+      "Neo-Western"
+    ],
+    "style_rules": "Sparse, laconic prose. Landscape as character. Moral ambiguity. Violence has weight. Dialogue is clipped, minimal. Show the cost of the frontier. Avoid romanticizing."
+  },
+  "War / Military": {
+    "subgenres": [
+      "War Fiction",
+      "Military Fiction",
+      "Anti-War",
+      "Home Front",
+      "Resistance"
+    ],
+    "style_rules": "Procedural accuracy (weapons, tactics, ranks). Show the human cost. Avoid glorification. Dialogue is clipped, professional. Sensory: noise, smoke, mud, fear. Alternating between action and quiet moments."
+  },
+  "Speculative / Weird": {
+    "subgenres": [
+      "Weird Fiction",
+      "Slipstream",
+      "New Weird",
+      "Bizarro Fiction",
+      "Surrealism"
+    ],
+    "style_rules": "Defamiliarize the ordinary. Unsettling, not scary. Blend genres freely. Dream-logic is acceptable. Avoid explaining the weirdness. Let the reader sit with discomfort."
+  },
+  "Superhero": {
+    "subgenres": [
+      "Superhero Fiction",
+      "Supervillain",
+      "Street-Level",
+      "Cosmic",
+      "Deconstruction"
+    ],
+    "style_rules": "Balance spectacle with character. Powers have costs. Moral complexity. Action scenes need clarity. Avoid excessive origin stories. Show the civilian life alongside the hero life."
+  },
+  "Epistolary": {
+    "subgenres": [
+      "Letter Collection",
+      "Diary / Journal",
+      "Email / Text",
+      "Mixed Media",
+      "Found Documents"
+    ],
+    "style_rules": "Voice varies by correspondent. Show, don't tell through documents. Gaps in the record create mystery. Each document must advance plot or character. Avoid info-dumps in letters."
+  },
+  "Drama": {
+    "subgenres": [
+      "Family Drama",
+      "Medical Drama",
+      "Legal Drama",
+      "Workplace Drama",
+      "Political Drama"
+    ],
+    "style_rules": "Character-driven. Conflict from relationships, not action. Dialogue is the primary tool. Subtext and silence matter. Slow burn. Show the cracks before the break."
+  },
+  "Sports": {
+    "subgenres": [
+      "Sports Fiction",
+      "Underdog",
+      "Team Dynamics",
+      "Individual Sport"
+    ],
+    "style_rules": "Physical sensation of the sport. Show the body under stress. Team dynamics as metaphor for life. Avoid play-by-play narration. The sport is the vehicle, character is the story."
+  },
+  "Southern Gothic": {
+    "subgenres": [
+      "Southern Gothic",
+      "Rural Noir",
+      "Appalachian"
+    ],
+    "style_rules": "Decay, grotesque, heat, family curses. Atmosphere over plot. Characters are flawed, often grotesque. Landscape reflects moral decay. Slow, oppressive pacing."
+  },
+  "Magical Realism": {
+    "subgenres": [
+      "Magical Realism",
+      "Fabulism"
+    ],
+    "style_rules": "Magic is mundane, accepted, unexplained. No wonder, no fear. Grounded in reality with one impossible element. Lyrical prose. The magic serves the theme, not the plot."
+  },
+  "Noir": {
+    "subgenres": [
+      "Classic Noir",
+      "Neo-Noir",
+      "Tech Noir"
+    ],
+    "style_rules": "First-person or close third. Cynical, world-weary voice. Short, punchy sentences. Rain, neon, shadows. Moral ambiguity. Everyone is corrupt. The city is a character."
+  },
+  "Dystopian": {
+    "subgenres": [
+      "Dystopian",
+      "Post-Apocalyptic",
+      "Climate Dystopia",
+      "Technological Dystopia",
+      "Social Dystopia"
+    ],
+    "style_rules": "Show the oppression through daily life, not speeches. The system is the antagonist. Protagonist discovers the truth gradually. Avoid heavy-handed politics. Ground in sensory detail."
+  },
+  "Utopian": {
+    "subgenres": [
+      "Utopian",
+      "Eutopian"
+    ],
+    "style_rules": "Explore the cost of perfection. Conflict comes from within the system. Avoid naivety. The utopia should feel real and appealing before revealing its flaws."
+  },
+  "Slice of Life": {
+    "subgenres": [
+      "Slice of Life",
+      "Domestic Fiction"
+    ],
+    "style_rules": "No plot required. Character and moment are the story. Quiet, observational. Find the extraordinary in the ordinary. Avoid manufactured conflict."
+  },
+  "Fan Fiction": {
+    "subgenres": [
+      "Canon-Compliant",
+      "AU (Alternate Universe)",
+      "Crossover",
+      "Fix-It",
+      "Hurt/Comfort",
+      "Fluff",
+      "Angst"
+    ],
+    "style_rules": "Respect source material voice. Add depth to existing characters. AU changes one variable and explores consequences. Avoid Mary Sue. Know the canon deeply."
+  },
+  "Metafiction": {
+    "subgenres": [
+      "Metafiction",
+      "Breaking the Fourth Wall",
+      "Self-Referential"
+    ],
+    "style_rules": "The narrative acknowledges itself. Playful, ironic. Risk of pretension. Must serve a purpose beyond cleverness. Reader awareness is the point."
+  },
+  "Flash Fiction": {
+    "subgenres": [
+      "Drabble (100 words)",
+      "Microfiction",
+      "Flash (under 1000 words)"
+    ],
+    "style_rules": "Every word counts. One moment, one image, one emotion. No setup, no resolution. End on resonance, not conclusion."
+  },
+  "Serial / Web Fiction": {
+    "subgenres": [
+      "Web Serial",
+      "LitRPG",
+      "Progression Fantasy (serial)",
+      "Isekai (serial)"
+    ],
+    "style_rules": "Regular update rhythm. Each chapter must satisfy AND hook. Power progression must feel earned. Cliffhangers are essential. Community feedback may influence direction."
+  }
+}
