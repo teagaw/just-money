@@ -99,6 +99,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         if applied_any:
             studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(state, indent=2))
         studio.apply_audit_extras(audit)
+    studio.git_commit_scene(n, f"scene {n:02d}: accepted")
     # Phase 3: voice + knowledge + NPC checks
     v_issues = studio.voice_check(scene, chars)
     k_path = studio.project_base() / "character_knowledge.json"
@@ -144,6 +145,7 @@ def status_payload() -> dict:
         "state": state,
         "last_scene": last_scene,
         "last_choices": last_choices,
+        "project": studio.active_project_name(),
     }
 
 
@@ -174,6 +176,12 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, "application/json", json.dumps({
                 "projects": studio.list_projects(),
                 "active": studio.active_project_name(),
+            }))
+            return
+        if path == "/api/branches":
+            self._send(200, "application/json", json.dumps({
+                "branches": studio.list_branches(),
+                "current": studio.current_branch(),
             }))
             return
         if path == "/api/rebuild_state":
@@ -264,6 +272,25 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._send(200, "application/json", json.dumps({"ok": True, "active": name}))
             return
+        if path == "/api/create_branch":
+            name = body.get("name")
+            from_scene = body.get("from_scene")
+            if not isinstance(name, str):
+                self._send(400, "application/json", json.dumps({"error": "name must be a string"}))
+                return
+            ok = studio.create_branch(name, from_scene)
+            if not ok:
+                self._send(400, "application/json", json.dumps({"error": "branch creation failed (exists or invalid name)"}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True, "branch": name}))
+            return
+        if path == "/api/switch_branch":
+            name = body.get("name")
+            if not isinstance(name, str) or not studio.switch_branch(name):
+                self._send(400, "application/json", json.dumps({"error": "unknown branch"}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True, "branch": name}))
+            return
         if path == "/api/new_project":
             name = body.get("name")
             if not isinstance(name, str) or not studio.create_project(name):
@@ -332,11 +359,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    # rebuild state on startup if missing (prevents drift)
-    if not (studio.project_base() / "character_state.json").exists():
-        new_state = studio.rebuild_state_from_events()
-        studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(new_state, indent=2))
-        print("State rebuilt from event log (was missing).")
+    # rebuild state on startup from event log (prevents drift)
+    new_state = studio.rebuild_state_from_events()
+    studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(new_state, indent=2))
+    print("State rebuilt from event log on startup.")
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Novel Studio UI running at http://{HOST}:{PORT}")
     print("Open that URL in your browser. Ctrl+C to stop.")

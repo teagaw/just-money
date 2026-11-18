@@ -1141,6 +1141,97 @@ def apply_reconciliation(proposals: list[dict], scene: int | None = None,
     return {"applied": applied, "rebuilt": True, "flagged_scenes": flagged}
 
 
+def list_branches() -> list[str]:
+    """List git branches in the current project."""
+    import subprocess
+    base = project_base()
+    if not (base / ".git").exists():
+        return ["main"]
+    try:
+        r = subprocess.run(["git", "-C", str(base), "branch", "--format=%(refname:short)"],
+                           capture_output=True, text=True, timeout=10)
+        branches = [b.strip() for b in r.stdout.splitlines() if b.strip()]
+        return branches if branches else ["main"]
+    except Exception:
+        return ["main"]
+
+
+def current_branch() -> str:
+    import subprocess
+    base = project_base()
+    if not (base / ".git").exists():
+        return "main"
+    try:
+        r = subprocess.run(["git", "-C", str(base), "branch", "--show-current"],
+                           capture_output=True, text=True, timeout=10)
+        return r.stdout.strip() or "main"
+    except Exception:
+        return "main"
+
+
+def create_branch(name: str, from_scene: int = None) -> bool:
+    """Create a new branch from the current state (or a specific scene)."""
+    import subprocess
+    base = project_base()
+    if not (base / ".git").exists():
+        return False
+    name = name.strip()
+    if not name or "/" in name or "\\" in name or ".." in name or " " in name:
+        return False
+    # check if branch already exists
+    if name in list_branches():
+        return False
+    try:
+        # create branch from current HEAD
+        r = subprocess.run(["git", "-C", str(base), "checkout", "-b", name],
+                           capture_output=True, text=True, timeout=10)
+        if r.returncode != 0:
+            return False
+        # write branch metadata
+        meta = {"name": name, "parent": None, "divergence_scene": from_scene,
+                "created": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()}
+        # try to get parent branch
+        # (we just created from current, so parent is previous branch)
+        atomic_write(base / "branch_meta.json", json.dumps(meta, indent=2))
+        return True
+    except Exception:
+        return False
+
+
+def switch_branch(name: str) -> bool:
+    """Switch to an existing branch. Reloads project state from disk."""
+    import subprocess
+    base = project_base()
+    if not (base / ".git").exists():
+        return False
+    if name not in list_branches():
+        return False
+    try:
+        r = subprocess.run(["git", "-C", str(base), "checkout", name],
+                           capture_output=True, text=True, timeout=10)
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
+def delete_branch(name: str) -> bool:
+    """Delete a branch (cannot delete current branch)."""
+    import subprocess
+    base = project_base()
+    if not (base / ".git").exists():
+        return False
+    if name == current_branch():
+        return False
+    if name in ("main", "master"):
+        return False
+    try:
+        r = subprocess.run(["git", "-C", str(base), "branch", "-D", name],
+                           capture_output=True, text=True, timeout=10)
+        return r.returncode == 0
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
     try:
         main()

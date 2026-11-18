@@ -338,8 +338,11 @@
 <div class="layout">
   <header class="topbar">
     <span class="wordmark">Novel Studio</span>
+    <span id="novelTitle" style="font-size:13px; color:var(--text-muted); margin-inline-start:var(--sp-2);"></span>
     <select id="projectSelect" onchange="switchProject(this.value)" aria-label="Select novel project" class="project-select"></select>
     <button onclick="newProject()" class="new-btn" aria-label="New project">+ New</button>
+    <select id="branchSelect" onchange="switchBranch(this.value)" aria-label="Select branch" class="project-select" style="max-width:140px;"></select>
+    <button onclick="newBranch()" class="new-btn" aria-label="New branch">Branch</button>
     <div class="nav">
       <button id="prevBtn" onclick="prevScene()" aria-label="Previous scene">◀ Prev</button>
       <select id="sceneSelect" onchange="viewScene(parseInt(this.value))" aria-label="Select scene"></select>
@@ -354,7 +357,7 @@
     <div class="progress-wrap" id="pwrap"><div class="progress-bar" id="pbar"></div></div>
 
     <div id="recon" class="recon hidden">
-      <h3>⚠ Edit detected</h3>
+      <h3>⚠ Reconciliation</h3>
       <div id="reconBody"></div>
       <div class="btn-row">
         <button class="apply-btn" onclick="applyProposals()">Apply accepted</button>
@@ -429,7 +432,7 @@ let genAbort = null;
 
 /* ── Renderers ── */
 function renderStatus(d){
-  document.getElementById('status').textContent = `Scene ${d.scene_count}/${d.scene_count} accepted`.replace('?', d.scene_count);
+  document.getElementById('status').textContent = `Scene ${d.scene_count}/${d.scene_count} · accepted`;
 }
 function renderScene(text){
   document.getElementById('scene').textContent = text || '';
@@ -744,7 +747,7 @@ async function loadProjects(){
 async function switchProject(name){
   const r = await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
   const d = await r.json();
-  if(d.ok){ await loadStatus(); }
+  if(d.ok){ await loadBranches(); await loadStatus(); }
   else { alert('Switch failed: '+(d.error||'unknown')); await loadProjects(); }
 }
 async function newProject(){
@@ -755,12 +758,39 @@ async function newProject(){
   if(d.ok){ await loadProjects(); await loadStatus(); }
   else { alert('Create failed: '+(d.error||'unknown')); }
 }
+async function loadBranches(){
+  const r = await fetch('/api/branches');
+  const d = await r.json();
+  const sel = document.getElementById('branchSelect');
+  sel.innerHTML = '';
+  (d.branches||[]).forEach(b=>{
+    const o = document.createElement('option');
+    o.value = b; o.textContent = b;
+    if(b === d.current) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+async function switchBranch(name){
+  const r = await fetch('/api/switch_branch', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+  const d = await r.json();
+  if(d.ok){ await loadStatus(); }
+  else { alert('Switch failed: '+(d.error||'unknown')); await loadBranches(); }
+}
+async function newBranch(){
+  const name = prompt('New branch name (no spaces):');
+  if(!name) return;
+  const r = await fetch('/api/create_branch', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, from_scene: currentScene})});
+  const d = await r.json();
+  if(d.ok){ await loadBranches(); alert('Branch "'+name+'" created.'); }
+  else { alert('Create failed: '+(d.error||'unknown')); }
+}
 
 /* ── Init ── */
 async function loadStatus(){
   const r = await fetch('/api/status');
   const d = await r.json();
   renderStatus(d);
+  document.getElementById('novelTitle').textContent = d.project || '';
   renderChars(d.characters);
   renderState(d.state);
   renderScenes(d.scenes);
@@ -771,7 +801,7 @@ async function loadStatus(){
   if(totalScenes>0){ currentScene = totalScenes; viewScene(totalScenes); }
   checkEdits();
 }
-loadProjects().then(()=>loadStatus());
+loadProjects().then(()=>{ loadBranches(); loadStatus(); });
 </script>
 </body>
 </html>
