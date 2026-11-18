@@ -644,9 +644,20 @@ If this loop isn't reliable with manual terminal edits, a React UI will only hid
 - Optional text-to-speech for generated scenes so the user can *listen* instead of read.
 - Provider-agnostic: local (e.g. Piper, Coqui) or cloud (OpenAI TTS, ElevenLabs, etc.), chosen in config.
 - Per-character voice assignment: map each character to a voice profile; narrator voice for prose, character voices for dialogue.
+- **Character voices by gender:** assign male/female/neutral voices per character (from character sheets). Dialogue is spoken in the character's assigned voice; narration uses the narrator voice. This makes multi-character scenes sound like a real audiobook.
 - Generate audio per scene, cache as files (e.g. `scenes/scene_01.mp3`), playable in the UI.
 - Long-term: full-chapter audio and downloadable audiobook export.
 - Reason: reading long novels is tiring; listening fits the "studio" feel and lowers the barrier to enjoying the work.
+
+### 24.9 Novel import and improvement (future)
+- The author can **import their own rough draft** (paste text or upload file). Not for third-party novels — for the author's own work.
+- Use case: the author has strong ideas and rough chapters but struggles with details, description, and polish. They paste a rough chapter; the AI improves it.
+- The AI **reads and analyzes** the draft: structure, pacing, character voices, plot threads, weak points, missing details, inconsistencies.
+- The app then **asks what the author wants to do**: improve prose, add details/description, fix continuity, expand scenes, rewrite dialogue, tighten pacing, etc.
+- The AI operates **scene-by-scene** on the imported draft (same pipeline as original writing), treating the imported text as the starting canon.
+- Author can accept/reject each proposed change (same review UI as reconciliation).
+- The imported novel becomes a project like any other (same file structure, event log, state tracking).
+- Reason: turns the studio into a revision tool, not just a drafting tool. The author writes rough; the AI adds the details they struggle with.
 
 ### 24.4 Scene feedback loop (learning from ratings)
 - After each accepted scene, the user rates it 1-10 and writes free-text feedback: what worked, what didn't, voice issues, pacing, continuity slips, etc.
@@ -675,12 +686,12 @@ If this loop isn't reliable with manual terminal edits, a React UI will only hid
 ### 24.6 API key / model rotation — Phase 1 survival infra (not Phase 4)
 - Free-tier slugs rate-limit and rotate frequently. A ~30-line fallback loop (try key A → on 429/402/timeout → try key B → …) is needed before the Phase 1 exit test, not after. Move out of "future features" into Phase 1 scope.
 
-### 24.7 Novel ingestion and style learning (future)
-- The author can **add different novels** (their own past work or reference texts) to the studio.
-- The AI **reads and analyzes** them: sentence rhythm, vocabulary, dialogue ratio, POV distance, pacing, descriptive density, recurring motifs, and overall voice.
-- It **recognizes patterns and styles** in the writing and **learns from them** to improve its own prose.
-- It then **creates named writing styles** (e.g. "Gritty Noir", "Lyrical Fantasy", "My Old Voice") that the author can **choose per novel or per scene**.
+### 24.7 Style templates from your own writing (future)
+- The author can **add their own past writing** (finished or rough) to the studio.
+- The AI **reads and analyzes** it: sentence rhythm, vocabulary, dialogue ratio, POV distance, pacing, descriptive density, recurring motifs, and overall voice.
+- It then **creates named writing styles** (e.g. "My Old Voice", "Gritty Noir", "Lyrical Fantasy") that the author can **choose per novel or per scene**.
 - Chosen style becomes a constraint block in the Showrunner prompt alongside genre rules and voice contracts.
 - Optional: blend styles (e.g. 70% Style A + 30% Style B).
 - Storage: `/styles/<style_id>.json` (feature vector + example passages + prompt template). Ingestion is a one-time analysis pass; results are cached and reusable across projects.
-- Privacy: ingested novels stay local unless the user opts in to sharing.
+- Privacy: all writing stays local unless the user opts in to sharing.
+- Note: this extracts and reuses *your own* style patterns. It does not reproduce or imitate other authors' copyrighted work.

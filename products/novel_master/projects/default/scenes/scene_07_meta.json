@@ -1,0 +1,15 @@
+{
+  "scene": 7,
+  "hash": "5f4d5ad92d0bcf3cb24d2d876bec05f18315220f26aebf4159613384c93fc6b2",
+  "status": "accepted",
+  "characters_present": [],
+  "location": null,
+  "events": [],
+  "choices": [
+    "Enter the black door alone and leave Tovin outside.",
+    "Take the writ to the Warden barracks and face Sable.",
+    "Leave the city through the Tide Isles and never look back.",
+    "Ask the old rope-seller for more before moving.",
+    "Custom input."
+  ]
+}

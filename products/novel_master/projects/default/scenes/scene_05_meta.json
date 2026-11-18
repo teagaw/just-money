@@ -1,0 +1,115 @@
+{
+  "scene": 5,
+  "hash": "88909f9340b9b7fa102f3c9268b62854a7dafa7675d94bfa5e9c3a8ba1b43ebd",
+  "status": "reconciled",
+  "characters_present": [
+    "c1",
+    "c2"
+  ],
+  "location": "Salt Market, rope-seller's stall",
+  "events": [
+    {
+      "type": "dialogue",
+      "actor": "c2",
+      "summary": "Tovin admits he told the green-shawl woman about the ferry from the Reach and that they do not sleep much; he gave no name.",
+      "target": "c1",
+      "uncertain": false,
+      "state_updates": {
+        "c2": {
+          "relationships": {
+            "c1": "ally; has disclosed a breach of secrecy to her"
+          }
+        }
+      }
+    },
+    {
+      "type": "action",
+      "actor": "c1",
+      "summary": "Maren orders Tovin to stay at the rope-seller's stall and count the rope; he complies.",
+      "target": "c2",
+      "uncertain": false,
+      "state_updates": {
+        "c2": {
+          "location": "Salt Market, rope-seller's stall",
+          "status": "left behind to count rope"
+        }
+      }
+    },
+    {
+      "type": "action",
+      "actor": "c1",
+      "summary": "Maren shows the writ with the wren-in-ring Council wax seal to the rope-seller, keeping it under the awning out of the rain.",
+      "target": null,
+      "uncertain": false,
+      "state_updates": {}
+    },
+    {
+      "type": "discovery",
+      "actor": null,
+      "summary": "Rope-seller reveals a black door in the old quarter, past the cooper's, where the lane runs to nothing; no handle on the street side; wren cut in stone over the lintel, Council stock; people the harbor books do not see go in; crates go in, sometimes not crates.",
+      "target": "c1",
+      "uncertain": false,
+      "state_updates": {
+        "c1": {
+          "location": "Salt Market, rope-seller's stall"
+        }
+      }
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren states she got the writ from a Warden who wants her to carry it, and that she said no.",
+      "target": null,
+      "uncertain": false,
+      "state_updates": {}
+    },
+    {
+      "type": "dialogue",
+      "actor": "c1",
+      "summary": "Maren asks whether Warden Sable uses the black door; the rope-seller refuses to answer further.",
+      "target": null,
+      "uncertain": true,
+      "state_updates": {}
+    },
+    {
+      "type": "item_loss",
+      "actor": "c1",
+      "summary": "Maren pays coin for a coil of rope without counting it; the rope-seller counts it.",
+      "target": null,
+      "uncertain": false,
+      "state_updates": {
+        "c1": {
+          "inventory_add": [
+            "coil of rope"
+          ],
+          "inventory_remove": [
+            "coin (unspecified amount)"
+          ]
+        }
+      }
+    },
+    {
+      "type": "dialogue",
+      "actor": null,
+      "summary": "Rope-seller warns that second bell is coming and that the black door is not the only door in the city with Maren's name near it.",
+      "target": "c1",
+      "uncertain": false,
+      "state_updates": {}
+    },
+    {
+      "type": "discovery",
+      "actor": "c2",
+      "summary": "Tovin reports the tide is turning; the water in the gutters is already climbing.",
+      "target": "c1",
+      "uncertain": false,
+      "state_updates": {}
+    }
+  ],
+  "choices": [
+    "Go to the black door in the old quarter now, before the tide closes the low lanes.",
+    "Keep the appointment. Warden Row, second bell, ask for Sable by name.",
+    "Lean on the rope-seller \u2014 pay more, or press harder \u2014 for what goes through that door.",
+    "Take Tovin and vanish into the crowd. Let the second page come to you.",
+    "(custom input)"
+  ]
+}

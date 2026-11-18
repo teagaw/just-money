@@ -1,8 +1,9 @@
 {
   "c1": {
-    "location": "rope-seller's stall, harbor market row",
+    "location": "Salt Market, rope-seller's stall",
     "inventory": [
-      "sealed writ (council stock, red wax wren seal)"
+      "sealed writ (council stock, red wax wren seal)",
+      "coil of rope"
     ],
     "relationships": {
       "c2": "commands him to stay and count",
@@ -11,13 +12,13 @@
     "status": "marked (unlicensed caster); left hand has fish scale residue"
   },
   "c2": {
-    "location": "rope-seller's stall, harbor market row",
+    "location": "Salt Market, rope-seller's stall",
     "inventory": [],
     "relationships": {
-      "c1": "disclosed the green-shawl woman encounter to Sable",
+      "c1": "ally; has disclosed a breach of secrecy to her",
       "c3": "answered her questions about the job"
     },
-    "status": "told to stay; anxious; owes ten marks, has six and a half"
+    "status": "left behind to count rope"
   },
   "c3": {
     "location": "departing the row with constable",
@@ -26,5 +27,13 @@
       "c1": "asserts knowledge of a second document naming Maren"
     },
     "status": "knows Maren declined offered work; references a second page"
+  },
+  "char_id": {
+    "location": "str or null",
+    "inventory": [],
+    "relationships": {
+      "other_char_id": "str"
+    },
+    "status": "str or null"
   }
 }

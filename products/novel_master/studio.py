@@ -149,13 +149,14 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def llm_call(model: str, messages: list, max_tokens: int, temperature: float, scene_ref=None) -> str:
+def llm_call(model: str, messages: list, max_tokens: int, temperature: float, scene_ref=None,
+             json_mode: bool = False) -> str:
     keys = api_keys()
     if not keys:
         raise RuntimeError("No API keys found. Set OPENROUTER_API_KEY or OPENROUTER_API_KEYS in .env.")
     last_err = None
     for key in keys:
-        for attempt in range(2):
+        for _ in range(2):
             headers = {
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json",
@@ -168,8 +169,11 @@ def llm_call(model: str, messages: list, max_tokens: int, temperature: float, sc
                 "max_tokens": max_tokens,
                 "temperature": temperature,
             }
+            if json_mode:
+                payload["response_format"] = {"type": "json_object"}
             try:
-                with httpx.Client(timeout=120) as c:
+                timeout = httpx.Timeout(120.0, connect=15.0, read=60.0, write=15.0)
+                with httpx.Client(timeout=timeout) as c:
                     r = c.post(f"{BASE_URL}/chat/completions", headers=headers, json=payload)
                     r.raise_for_status()
                     data = r.json()
@@ -245,7 +249,7 @@ def recent_feedback(n: int = 5) -> str:
     for p in sorted((project_base() / "scenes").glob("scene_*_feedback.json")):
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
+        except (json.JSONDecodeError, OSError):
             continue
         out.append(f"Scene {d.get('scene')}: rating {d.get('rating')}/10 - {d.get('feedback','')}")
     return "\n".join(out[-n:])
@@ -281,6 +285,149 @@ def load_state() -> dict:
     return state
 
 
+def voice_check(scene: str, chars: list) -> list[dict]:
+    """Rule-based voice check: verify each character's dialogue matches their voice contract.
+
+    Returns a list of issues: [{"character": name, "issue": str, "severity": "warn|error"}].
+    """
+    issues = []
+    lines = scene.splitlines()
+    char_names = {c["name"]: c for c in chars}
+    for line in lines:
+        for name, c in char_names.items():
+            contract = c.get("voice_contract", {})
+            forbidden = contract.get("forbidden_words", [])
+            # only check lines where this character speaks (name appears before a quote)
+            idx = line.lower().find(name.lower())
+            if idx < 0:
+                continue
+            # find the first quote after the character name
+            quote_start = line.find('"', idx)
+            if quote_start < 0:
+                continue
+            # extract the quoted speech
+            quote_end = line.find('"', quote_start + 1)
+            if quote_end < 0:
+                quote_end = len(line)
+            speech = line[quote_start + 1:quote_end]
+            if not speech.strip():
+                continue
+            # check forbidden words in the quoted speech only
+            speech_lower = speech.lower()
+            for fw in forbidden:
+                if fw.lower() in speech_lower:
+                    issues.append({"character": name, "issue": f"forbidden word '{fw}' in dialogue", "severity": "warn"})
+            # check sentence length of the quoted speech
+            wc = len(speech.split())
+            sl = contract.get("sentence_length", "")
+            if "short" in sl and wc > 25:
+                issues.append({"character": name, "issue": f"sentence too long ({wc} words, contract says short)", "severity": "warn"})
+            if "long" in sl and wc < 5:
+                issues.append({"character": name, "issue": f"sentence too short ({wc} words, contract says long)", "severity": "warn"})
+    # deduplicate
+    seen = set()
+    unique = []
+    for iss in issues:
+        key = (iss["character"], iss["issue"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(iss)
+    return unique
+    # deduplicate
+    seen = set()
+    unique = []
+    for iss in issues:
+        key = (iss["character"], iss["issue"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(iss)
+    return unique
+
+
+def npc_check(scene: str, npc_registry: dict) -> list[dict]:
+    """Rule-based NPC consistency check: verify NPC dialogue matches registry voice tags/faction.
+
+    For each NPC in the registry, checks if their name appears in the scene and
+    whether their dialogue contains words inconsistent with their voice tags or faction.
+    """
+    issues = []
+    scene_lower = scene.lower()
+    for name, info in (npc_registry or {}).items():
+        if name.lower() not in scene_lower:
+            continue
+        voice_tags = info.get("voice_tags", [])
+        faction = info.get("faction", "")
+        # check voice tags: if an NPC has a "formal" tag, flag informal words
+        informal_markers = {"gonna", "yeah", "stuff", "kinda", "like", "dude", "bro"}
+        formal_markers = {"therefore", "furthermore", "moreover", "indeed", "perhaps"}
+        for tag in voice_tags:
+            tag_lower = tag.lower()
+            if tag_lower in ("formal", "noble", "educated"):
+                for marker in informal_markers:
+                    if marker in scene_lower and name.lower() in scene_lower:
+                        idx = scene_lower.find(name.lower())
+                        window = scene_lower[max(0, idx - 100):idx + 200]
+                        if marker in window:
+                            issues.append({"character": name, "issue": f"informal word '{marker}' used by formal NPC", "severity": "warn"})
+            if tag_lower in ("rough", "street", "working-class", "crude"):
+                for marker in formal_markers:
+                    if marker in scene_lower and name.lower() in scene_lower:
+                        idx = scene_lower.find(name.lower())
+                        window = scene_lower[max(0, idx - 100):idx + 200]
+                        if marker in window:
+                            issues.append({"character": name, "issue": f"formal word '{marker}' used by rough NPC", "severity": "warn"})
+        # check faction consistency: if NPC is in a faction, flag mentions of opposing faction loyalty
+        if faction:
+            opposing = {"Merchant Council": ["unmarked", "rebel"], "Wardens": ["unmarked", "smuggler"],
+                        "Unmarked": ["warden", "council"]}
+            for opp_word in opposing.get(faction, []):
+                if opp_word in scene_lower and name.lower() in scene_lower:
+                    idx = scene_lower.find(name.lower())
+                    window = scene_lower[max(0, idx - 150):idx + 150]
+                    if opp_word in window:
+                        issues.append({"character": name, "issue": f"NPC of faction '{faction}' references opposing concept '{opp_word}'", "severity": "info"})
+    # deduplicate
+    seen = set()
+    unique = []
+    for iss in issues:
+        key = (iss["character"], iss["issue"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(iss)
+    return unique
+
+
+def knowledge_check(scene: str, chars: list, knowledge: dict) -> list[dict]:
+    """Rule-based knowledge-boundary check: flag characters referencing facts they shouldn't know."""
+    issues = []
+    scene_lower = scene.lower()
+    for c in chars:
+        cid = c["id"]
+        cname = c["name"].lower()
+        k = knowledge.get(cid, {})
+        allowed = set(w.lower() for f in (k.get("known", []) + k.get("suspected", [])) for w in f.split() if len(w) > 4)
+        for other in chars:
+            if other["id"] == cid:
+                continue
+            for secret in other.get("secrets", []):
+                for sw in [w for w in secret.lower().split() if len(w) > 4]:
+                    if sw in scene_lower and cname in scene_lower and sw not in allowed:
+                        idx = scene_lower.find(cname)
+                        if idx >= 0:
+                            window = scene_lower[max(0, idx - 200):idx + 200]
+                            if sw in window:
+                                issues.append({"character": c["name"], "issue": "may reference '" + sw + "' from " + other["name"] + "'s secrets (not in known/suspected)", "severity": "warn"})
+    seen = set()
+    unique = []
+    for iss in issues:
+        key = (iss["character"], iss["issue"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(iss)
+    return unique
+
+
+
 def apply_audit_extras(audit: dict):
     # Apply plot_threads, timeline, npc_updates from an auditor result to their JSON files.
     if not audit:
@@ -302,6 +449,23 @@ def apply_audit_extras(audit: dict):
         existing = [e for e in existing if e.get("scene") != te.get("scene")]
         existing.append(te)
         atomic_write(p, json.dumps(existing, indent=2))
+
+    # character knowledge
+    ku = audit.get("knowledge_updates") or {}
+    if ku:
+        p = project_base() / "character_knowledge.json"
+        existing = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+        for cid, upd in ku.items():
+            if cid not in existing:
+                existing[cid] = {"known": [], "suspected": [], "misconceptions": []}
+            for fact in (upd.get("learned") or []):
+                if fact not in existing[cid].setdefault("known", []):
+                    existing[cid]["known"].append(fact)
+            for fact in (upd.get("suspected") or []):
+                if fact not in existing[cid].setdefault("suspected", []):
+                    existing[cid]["suspected"].append(fact)
+        atomic_write(p, json.dumps(existing, indent=2))
+
     npc_updates = audit.get("npc_updates") or []
     if npc_updates:
         p = project_base() / "npc_registry.json"
@@ -383,7 +547,8 @@ Output strict JSON only, no markdown fences, matching this schema:
   "location": "str",
   "plot_threads": [{"id": "thread_id", "type": "mystery|promise|foreshadowing|conflict|object", "description": "short", "status": "open|resolved", "characters": ["char_id"], "introduced_scene": 1}],
   "timeline_entry": {"scene": 1, "date": "day 3", "duration": "1 hour", "location": "Salt Market", "characters_present": ["c1"]},
-  "npc_updates": [{"name": "NPC Name", "voice_tags": ["gruff", "merchant"], "faction": "Merchant Council", "grudge": "none", "last_interaction_scene": 1}]
+  "npc_updates": [{"name": "NPC Name", "voice_tags": ["gruff", "merchant"], "faction": "Merchant Council", "grudge": "none", "last_interaction_scene": 1}],
+  "knowledge_updates": {"char_id": {"learned": ["fact the character now knows"], "suspected": ["fact they now suspect"]}}
 }
 
 Put state_updates INSIDE each event (per-event deltas). If an event has no state change, set "state_updates": {}. Do NOT use a top-level state_updates field."""
@@ -399,14 +564,33 @@ def parse_json_robust(text: str) -> dict:
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        # try to find a JSON object
-        m = re.search(r"\{.*\}", text, re.DOTALL)
-        if m:
-            try:
-                return json.loads(m.group(0))
-            except json.JSONDecodeError:
-                pass
-        raise
+        pass
+    # brace-balancing search for the first valid JSON object containing expected keys
+    best = None
+    for start in (i for i, ch in enumerate(text) if ch == "{"):
+        depth = 0
+        for i in range(start, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    candidate = text[start:i + 1]
+                    try:
+                        obj = json.loads(candidate)
+                        if isinstance(obj, dict):
+                            # prefer objects with known keys
+                            if best is None or any(k in obj for k in ("proposals", "events", "scene", "error")):
+                                best = obj
+                                if any(k in obj for k in ("proposals", "events")):
+                                    return best
+                        break
+                    except json.JSONDecodeError:
+                        break
+                    break
+    if best is not None:
+        return best
+    raise json.JSONDecodeError("No valid JSON object found", text, 0)
 
 
 def split_scene_and_choices(raw: str):
@@ -435,15 +619,6 @@ def split_scene_and_choices(raw: str):
     scene = re.sub(r"^SCENE:\s*", "", scene, flags=re.IGNORECASE).strip()
     return scene, choices
 
-
-def recent_history(n: int = 3) -> str:
-    files = sorted(p for p in (project_base() / "scenes").glob("scene_*.md")
-                    if re.match(r"scene_\d+\.md", p.name))
-    tail = files[-n:]
-    parts = []
-    for p in tail:
-        parts.append(f"--- {p.name} ---\n{p.read_text(encoding='utf-8')[:1500]}")
-    return "\n\n".join(parts)
 
 
 def retrieve_relevant_scenes(direction: str, chars: list, n: int = 5) -> str:
@@ -649,9 +824,9 @@ def main():
         print("\nRunning State Auditor...")
         audit = None
         try:
-            a_raw = llm_call(CONFIG["auditor_model"], auditor_prompt(scene, chars), CONFIG["max_tokens_auditor"], 0.2, scene_ref=n)
+            a_raw = llm_call(CONFIG["auditor_model"], auditor_prompt(scene, chars), CONFIG["max_tokens_auditor"], 0.2, scene_ref=n, json_mode=True)
             audit = parse_json_robust(a_raw)
-        except Exception as e:
+        except Exception as e:  # broad: auditor/parse failure -> skip state update
             print(f"Auditor failed: {e}. State not updated this scene.")
 
         # Save scene
@@ -695,6 +870,19 @@ def main():
             if applied_any:
                 atomic_write(project_base() / "character_state.json", json.dumps(state, indent=2))
             apply_audit_extras(audit)
+            # Phase 3: voice + knowledge + NPC checks (rule-based, no LLM)
+            v_issues = voice_check(scene, chars)
+            k_path = project_base() / "character_knowledge.json"
+            knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
+            k_issues = knowledge_check(scene, chars, knowledge)
+            npc_path = project_base() / "npc_registry.json"
+            npc_reg = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
+            n_issues = npc_check(scene, npc_reg)
+            all_issues = v_issues + k_issues + n_issues
+            if all_issues:
+                print("  Checks:")
+                for iss in all_issues:
+                    print(f"    [{iss['severity']}] {iss['character']}: {iss['issue']}")
 
         # Print choices
         print("\nCHOICES:")
@@ -719,43 +907,13 @@ def main():
 
 def reconciler_prompt(original: str, edited: str, chars: list, events: list) -> list:
     safe_chars = [{k: v for k, v in c.items() if k not in ("secrets",)} for c in chars]
-    system = """You are the Reconciler. The author edited a scene. Compare the ORIGINAL (accepted) version with the EDITED version.
-
-Decide whether the edit affects: events, character knowledge, relationships, inventory, timeline, plot threads, or only prose style.
-
-Output strict JSON only, no markdown fences:
-{
-  "summary": "one-sentence description of what changed",
-  "passages_changed": ["quoted/paraphrased passage from edited scene"],
-  "affected_events": [104, 105],
-  "proposals": [
-    {
-      "proposal_id": "p-001",
-      "op": "nullify",
-      "target_event_id": 104,
-      "source_passage": "the paragraph where the protagonist picks up a key",
-      "reason": "author_edit",
-      "confidence": 0.9,
-      "auto_safe": false,
-      "description": "Remove 'Iron Sword' from Protagonist inventory; nullify Event #104"
-    }
-  ],
-  "downstream_entities": ["Iron Sword", "key", "Maren"]
-}
-
-ops: add | modify | remove | nullify. auto_safe true only for pure spelling/grammar rewording with no entity/inventory/relationship/timeline change. Be conservative: when in doubt, auto_safe=false and let the author decide. Only propose changes the edit actually implies; do not invent."""
-    user = f"""CHARACTERS: {json.dumps(safe_chars)}
-
-ORIGINAL SCENE (accepted):
-{original}
-
-EDITED SCENE (author's version):
-{edited}
-
-STORED EVENTS (from this scene):
-{json.dumps(events, indent=2)}
-
-Propose reconciliation changes now."""
+    orig_short = original[:1200]
+    edited_short = edited[:1200]
+    events_short = json.dumps(events[:10])[:800]
+    system = "You are a JSON-only API. Compare two versions of a scene. Output ONLY a valid JSON object. No analysis, no explanation, no markdown. Just JSON."
+    system += "\nSchema: {\"summary\":\"...\",\"passages_changed\":[\"...\"],\"affected_events\":[104],\"proposals\":[{\"proposal_id\":\"p1\",\"op\":\"nullify\",\"target_event_id\":104,\"description\":\"...\",\"confidence\":0.9,\"auto_safe\":false,\"downstream_entities\":[\"key\"]}],\"downstream_entities\":[\"key\"]}"
+    system += "\nops: add|modify|remove|nullify. auto_safe=true only for spelling/grammar rewording. Be conservative."
+    user = "CHARACTERS: " + json.dumps(safe_chars) + "\n\nORIGINAL:\n" + orig_short + "\n\nEDITED:\n" + edited_short + "\n\nEVENTS: " + events_short + "\n\nOutput JSON now."
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
@@ -826,7 +984,7 @@ def flag_downstream(entities: list[str], after_scene: int | None = None) -> list
                 meta = json.loads(meta_path.read_text(encoding="utf-8"))
                 for ev in (meta.get("events") or []):
                     extra += " " + (ev.get("summary") or "")
-            except Exception:
+            except (json.JSONDecodeError, OSError):
                 pass
         haystack = (text + " " + extra).lower()
         if any(e.lower() in haystack for e in entities if e):
@@ -872,10 +1030,25 @@ def reconcile_scene(n: int) -> dict | None:
         return None
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
     chars = json.loads((project_base() / "characters.json").read_text(encoding="utf-8"))
-    events = meta.get("events", []) or []
+    # Prefer events from the event log (which have event_ids) over meta.events (legacy)
+    events = []
+    log_path = project_base() / "events" / "event_log.jsonl"
+    if log_path.exists():
+        for line in log_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                ev = json.loads(line)
+                if ev.get("scene") == n:
+                    events.append(ev)
+            except json.JSONDecodeError:
+                continue
+    if not events:
+        events = meta.get("events", []) or []
     try:
         raw = llm_call(CONFIG["auditor_model"], reconciler_prompt(original, edited, chars, events),
-                       CONFIG["max_tokens_auditor"], 0.2)
+                       CONFIG["max_tokens_auditor"], 0.2, json_mode=True)
         data = parse_json_robust(raw)
     except Exception as e:  # broad: reconciler/auditor failure -> report, don't crash
         return {"error": str(e)}
@@ -898,7 +1071,7 @@ def apply_proposals(proposals: list[dict]) -> int:
                 continue
             try:
                 valid_ids.add(int(json.loads(line).get("event_id", 0)))
-            except Exception:
+            except (json.JSONDecodeError, ValueError, OSError):
                 pass
     for prop in proposals:
         op = prop.get("op")
@@ -959,7 +1132,7 @@ def apply_reconciliation(proposals: list[dict], scene: int | None = None,
                 meta["hash"] = sha256_file(sp)
                 atomic_write(mp, json.dumps(meta, indent=2))
                 save_snapshot(scene, sp.read_text(encoding="utf-8"))
-            except Exception:
+            except (json.JSONDecodeError, OSError, ValueError):
                 pass
     entities = downstream_entities or []
     for p in accepted:

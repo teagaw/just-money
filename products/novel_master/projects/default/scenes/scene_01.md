@@ -18,7 +18,7 @@ A bell rang from the harbor. The crowd thinned. Fishwives covered their baskets.
 
 They came in pairs. Gray cloaks dark with rain. People stepped back without being told. The Wardens did not hurry. At their head walked a woman with silver at her throat and a ledger under her arm. Warden Sable.
 
-Tovin made a small sound. "Look, maybe we should—"
+Tovin made a small sound. "Look, maybe we shouldâ€”"
 
 "Stay," Maren said.
 
@@ -58,7 +58,7 @@ Sable looked at him at last. "You are her friend."
 
 "Then you will understand this." Sable lifted the ledger. "Harboring a courier's secret is theft. Lying to a Warden is obstruction. Obstruction carries a fine. The fine is ten silver marks. Or three days in the barracks."
 
-Tovin went pale. "Ten silver? I— look, that is a great deal of money for a misunderstanding."
+Tovin went pale. "Ten silver? Iâ€” look, that is a great deal of money for a misunderstanding."
 
 "It is not a misunderstanding," Sable said. "It is a choice."
 

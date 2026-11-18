@@ -1,0 +1,17 @@
+{
+  "c1": {
+    "known": ["marked (self)", "sister missing", "Wardens hunt unlicensed casters", "courier found dead in north quarter", "writ missing from courier"],
+    "suspected": ["Tovin owes debt to Merchant Council", "Sable's daughter may be marked"],
+    "misconceptions": []
+  },
+  "c2": {
+    "known": ["Maren is marked", "owes debt to Merchant Council", "courier found dead"],
+    "suspected": ["Maren's sister is in the Reach", "Wardens are watching Maren"],
+    "misconceptions": []
+  },
+  "c3": {
+    "known": ["Maren is marked (suspected)", "courier was killed", "writ is missing", "Maren asked for by courier"],
+    "suspected": ["Maren has the writ", "Maren's sister is marked"],
+    "misconceptions": ["Maren met the courier (she denied it)"]
+  }
+}

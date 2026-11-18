@@ -1,0 +1,56 @@
+[
+  {
+    "id": "c1",
+    "name": "Maren",
+    "role": "protagonist",
+    "voice": "terse, dry, self-deprecating. Short sentences. Never says 'I feel'.",
+    "voice_contract": {
+      "sentence_length": "short (4-12 words per sentence)",
+      "vocabulary": "plain, working-class; no fancy or academic words",
+      "speech_quirks": ["drops subjects", "uses 'we' even when alone", "answers questions with questions"],
+      "forbidden_words": ["I feel", "I think", "perhaps", "indeed", "moreover", "furthermore"],
+      "dialogue_ratio": "low — Maren speaks less than others; silence is her tool",
+      "tone": "dry, guarded, self-deprecating, never sentimental"
+    },
+    "core_values": ["survival", "loyalty to crew", "distrust of authority"],
+    "secrets": ["is secretly marked (unlicensed caster)"],
+    "goals": ["find her missing sister", "stay ahead of the Wardens"],
+    "speech_quirks": ["drops subjects", "uses 'we' even when alone"]
+  },
+  {
+    "id": "c2",
+    "name": "Tovin",
+    "role": "ally",
+    "voice": "warm, verbose, nervous. Fills silences. Apologizes too much.",
+    "voice_contract": {
+      "sentence_length": "long, rambling (15-30 words), with trailing clauses",
+      "vocabulary": "polite, slightly formal, over-explains",
+      "speech_quirks": ["'look,' before bad news", "trails off with '...'", "apologizes mid-sentence"],
+      "forbidden_words": ["shut up", "whatever", "obviously"],
+      "dialogue_ratio": "high — Tovin fills silences and over-explains",
+      "tone": "warm, nervous, eager to please, apologetic"
+    },
+    "core_values": ["honesty", "friendship"],
+    "secrets": ["owes a debt to the Merchant Council"],
+    "goals": ["keep Maren alive", "pay off his debt"],
+    "speech_quirks": ["'look,' before bad news", "trails off with '...'"]
+  },
+  {
+    "id": "c3",
+    "name": "Warden Sable",
+    "role": "antagonist",
+    "voice": "cold, formal, precise. No contractions. Measured threats.",
+    "voice_contract": {
+      "sentence_length": "medium, precise (8-15 words), declarative",
+      "vocabulary": "formal, legal, authoritative; no slang",
+      "speech_quirks": ["addresses people by surname", "pauses before key words", "no contractions"],
+      "forbidden_words": ["gonna", "yeah", "stuff", "kinda", "like"],
+      "dialogue_ratio": "medium — Sable speaks deliberately, never rambles",
+      "tone": "cold, formal, precise, threatening but controlled"
+    },
+    "core_values": ["order", "duty", "the law above all"],
+    "secrets": ["her own daughter is marked"],
+    "goals": ["capture unlicensed casters", "protect her secret"],
+    "speech_quirks": ["addresses people by surname", "pauses before key words"]
+  }
+]

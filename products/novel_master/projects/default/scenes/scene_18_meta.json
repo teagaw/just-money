@@ -1,0 +1,13 @@
+{
+  "scene": 18,
+  "hash": "5a63a9b2f3db7a2c6d3a527cda362666334283005e68b7682d232bd8a8b30a1e",
+  "status": "accepted",
+  "characters_present": [
+    "c1"
+  ],
+  "location": "Salt Market",
+  "events": [],
+  "choices": [
+    "**Analyze the User's Request:**"
+  ]
+}

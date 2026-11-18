@@ -1,13 +1,6 @@
 {
-  "scene": 1,
-  "hash": "b4787792f7642814e4d825bd71878b765737d72c92b19b4a593f52a0e2c878ae",
-  "status": "accepted",
-  "characters_present": [
-    "c1",
-    "c2",
-    "c3"
-  ],
-  "location": "Salt Market, Duskport",
+  "hash": "d3523bd094b9f0fab1af270e354b2499e1ce29cd50311763afc7c6df46961feb",
+  "status": "reconciled",
   "events": [
     {
       "type": "dialogue",
@@ -72,12 +65,5 @@
       "target": null,
       "uncertain": false
     }
-  ],
-  "choices": [
-    "Hand over the key and claim it belonged to the dead courier.",
-    "Refuse, and demand Sable explain what the missing writ says.",
-    "Signal Tovin to create a distraction in the crowd.",
-    "Follow Sable quietly, but keep the key hidden.",
-    "Custom: write your own action."
   ]
 }

@@ -1,1 +1,76 @@
-[]
+[
+  {
+    "id": "thread_sister_message",
+    "type": "mystery",
+    "description": "Maren's sister sent three words on oilcloth: 'Salt Market. Low tide.' Then three weeks of nothing.",
+    "status": "open",
+    "characters": [
+      "c1"
+    ],
+    "introduced_scene": 1
+  },
+  {
+    "id": "thread_writ",
+    "type": "object",
+    "description": "Council writ with wren-in-ring red wax seal; a Warden wants Maren to carry it; Maren refused.",
+    "status": "open",
+    "characters": [
+      "c1",
+      "c3"
+    ],
+    "introduced_scene": 1
+  },
+  {
+    "id": "thread_black_door",
+    "type": "mystery",
+    "description": "Black door in old quarter past the cooper's, no street-side handle, wren cut in stone over lintel; Warden wants Maren there by second bell.",
+    "status": "open",
+    "characters": [
+      "c1",
+      "c3"
+    ],
+    "introduced_scene": 1
+  },
+  {
+    "id": "thread_tovin_disclosure",
+    "type": "conflict",
+    "description": "Tovin told the green-shawl woman about the ferry from the Reach and their lack of sleep; gave no name.",
+    "status": "open",
+    "characters": [
+      "c1",
+      "c2"
+    ],
+    "introduced_scene": 1
+  },
+  {
+    "id": "thread_green_shawl_identity",
+    "type": "mystery",
+    "description": "Identity of the green-shawl woman who questioned Tovin; possibly the same Warden, unconfirmed.",
+    "status": "open",
+    "characters": [
+      "c2",
+      "c3"
+    ],
+    "introduced_scene": 1
+  },
+  {
+    "id": "thread_oldman_warning",
+    "type": "foreshadowing",
+    "description": "Rope-seller's warning: not the only door in the city with Maren's name near it.",
+    "status": "open",
+    "characters": [
+      "c1"
+    ],
+    "introduced_scene": 1
+  },
+  {
+    "id": "thread_id",
+    "type": "mystery|promise|foreshadowing|conflict|object",
+    "description": "short",
+    "status": "open|resolved",
+    "characters": [
+      "char_id"
+    ],
+    "introduced_scene": 1
+  }
+]

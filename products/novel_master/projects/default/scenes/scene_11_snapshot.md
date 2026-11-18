@@ -1,0 +1,1 @@
+Rain sluiced off the canvas awning, pooling

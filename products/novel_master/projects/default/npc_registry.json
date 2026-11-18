@@ -1,1 +1,23 @@
-{}
+{
+  "Old rope-seller": {
+    "name": "Old rope-seller",
+    "voice_tags": [
+      "terse",
+      "cautious",
+      "merchant"
+    ],
+    "faction": null,
+    "grudge": "none",
+    "last_interaction_scene": 1
+  },
+  "NPC Name": {
+    "name": "NPC Name",
+    "voice_tags": [
+      "gruff",
+      "merchant"
+    ],
+    "faction": "Merchant Council",
+    "grudge": "none",
+    "last_interaction_scene": 1
+  }
+}

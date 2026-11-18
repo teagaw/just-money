@@ -1,0 +1,30 @@
+{
+  "scene": 11,
+  "hash": "3e287f92d2be74d480bbb57acca769c00fdd2b733c503a9d9bfa824272d6bfde",
+  "status": "accepted",
+  "characters_present": [
+    "char_id"
+  ],
+  "location": "str",
+  "events": [
+    {
+      "type": "action|dialogue|discovery|injury|item_gain|item_loss|relationship_change|location_change",
+      "actor": "char_id or null",
+      "summary": "short factual",
+      "target": "char_id or null",
+      "uncertain": false,
+      "state_updates": {
+        "char_id": {
+          "location": "str or null",
+          "inventory_add": [],
+          "inventory_remove": [],
+          "status": "str or null",
+          "relationships": {
+            "other_char_id": "str"
+          }
+        }
+      }
+    }
+  ],
+  "choices": []
+}

@@ -21,6 +21,13 @@ GEN_LOCK = threading.Lock()
 
 def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
     """Yield (event_type, payload) tuples for SSE streaming."""
+    import time as _time
+    _start = _time.time()
+    GEN_TIMEOUT = 300
+    def _check_timeout():
+        if _time.time() - _start > GEN_TIMEOUT:
+            raise TimeoutError("Generation timed out after 5 minutes. Try a shorter direction or a different model.")
+    _check_timeout()
     lore = (studio.project_base() / "world_lore.md").read_text(encoding="utf-8")
     chars = json.loads((studio.project_base() / "characters.json").read_text(encoding="utf-8"))
     chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars]
@@ -35,16 +42,18 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
                                     npc_registry, plot_threads, timeline)
 
     yield ("stage", {"message": "Calling Showrunner (writing the scene)...", "progress": 5})
+    _check_timeout()
     raw = studio.llm_call(studio.CONFIG["showrunner_model"], msgs,
                           studio.CONFIG["max_tokens_showrunner"], studio.CONFIG["temperature"], scene_ref=n)
     scene, choices = studio.split_scene_and_choices(raw)
 
     yield ("stage", {"message": "Running State Auditor (extracting events)...", "progress": 60})
+    _check_timeout()
     audit = None
     try:
         a_raw = studio.llm_call(studio.CONFIG["auditor_model"],
                                 studio.auditor_prompt(scene, chars),
-                                studio.CONFIG["max_tokens_auditor"], 0.2, scene_ref=n)
+                                studio.CONFIG["max_tokens_auditor"], 0.2, scene_ref=n, json_mode=True)
         audit = studio.parse_json_robust(a_raw)
     except Exception:  # broad: auditor/parse failure -> skip state update
         audit = None
@@ -90,6 +99,15 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         if applied_any:
             studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(state, indent=2))
         studio.apply_audit_extras(audit)
+    # Phase 3: voice + knowledge + NPC checks
+    v_issues = studio.voice_check(scene, chars)
+    k_path = studio.project_base() / "character_knowledge.json"
+    knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
+    k_issues = studio.knowledge_check(scene, chars, knowledge)
+    npc_path = studio.project_base() / "npc_registry.json"
+    npc_reg = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
+    n_issues = studio.npc_check(scene, npc_reg)
+    checks = v_issues + k_issues + n_issues
 
     yield ("done", {
         "scene_number": n,
@@ -98,6 +116,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         "state": state,
         "events": (audit or {}).get("events", []),
         "characters": chars,
+        "checks": checks,
     })
 
 
@@ -220,6 +239,24 @@ class Handler(BaseHTTPRequestHandler):
             studio.save_feedback(scene, rating if rating is not None else 0, text)
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
+        if path == "/api/save_scene":
+            try:
+                scene = int(body.get("scene"))
+            except (TypeError, ValueError):
+                self._send(400, "application/json", json.dumps({"error": "scene must be an integer"}))
+                return
+            text = body.get("text")
+            if not isinstance(text, str):
+                self._send(400, "application/json", json.dumps({"error": "text must be a string"}))
+                return
+            p = studio.project_base() / "scenes" / f"scene_{scene:02d}.md"
+            if not p.exists():
+                self._send(404, "application/json", json.dumps({"error": "scene not found"}))
+                return
+            studio.atomic_write(p, text)
+            dirty = studio.detect_edit(scene)
+            self._send(200, "application/json", json.dumps({"ok": True, "dirty": dirty}))
+            return
         if path == "/api/switch_project":
             name = body.get("name")
             if not isinstance(name, str) or not studio.switch_project(name):
@@ -295,6 +332,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    # rebuild state on startup if missing (prevents drift)
+    if not (studio.project_base() / "character_state.json").exists():
+        new_state = studio.rebuild_state_from_events()
+        studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(new_state, indent=2))
+        print("State rebuilt from event log (was missing).")
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Novel Studio UI running at http://{HOST}:{PORT}")
     print("Open that URL in your browser. Ctrl+C to stop.")
