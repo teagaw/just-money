@@ -190,7 +190,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/projects":
             self._send(200, "application/json", json.dumps({
-                "projects": studio.list_projects(),
+                "projects": studio.project_summaries(),
                 "active": studio.active_project_name(),
             }))
             return

@@ -422,6 +422,50 @@ def test_reconcile_scene_with_mock(tmp_path, monkeypatch):
     assert "scene_01.md" not in (res.get("downstream_scenes") or [])
 
 
+# ---------- Home page: project summaries ----------
+
+def test_project_summaries(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    # 0 projects
+    assert studio.project_summaries() == []
+
+    # 1 project
+    (tmp_path / "projects" / "novel_a").mkdir(parents=True)
+    (tmp_path / "projects" / "novel_a" / "scenes").mkdir()
+    (tmp_path / "projects" / "novel_a" / "scenes" / "scene_01.md").write_text("First scene prose here", encoding="utf-8")
+    (tmp_path / "projects" / "novel_a" / "project_config.json").write_text('{"language":"en","genre":"Fantasy","subgenre":"Grimdark"}', encoding="utf-8")
+    (tmp_path / "active_project.txt").write_text("novel_a", encoding="utf-8")
+    summaries = studio.project_summaries()
+    assert len(summaries) == 1
+    assert summaries[0]["name"] == "novel_a"
+    assert summaries[0]["genre"] == "Fantasy"
+    assert summaries[0]["subgenre"] == "Grimdark"
+    assert summaries[0]["language"] == "en"
+    assert summaries[0]["scene_count"] == 1
+    assert "First scene" in summaries[0]["last_scene_preview"]
+    assert len(summaries[0]["last_scene_preview"]) <= 80
+
+    # preview truncation
+    long_text = "A" * 200
+    (tmp_path / "projects" / "novel_a" / "scenes" / "scene_02.md").write_text(long_text, encoding="utf-8")
+    summaries = studio.project_summaries()
+    assert summaries[0]["scene_count"] == 2
+    # highest-numbered scene = scene_02
+    assert summaries[0]["last_scene_preview"] == long_text[:80]
+
+    # missing config / missing scenes dir handled
+    (tmp_path / "projects" / "bare").mkdir()
+    summaries = studio.project_summaries()
+    assert len(summaries) == 2
+    bare = [s for s in summaries if s["name"] == "bare"][0]
+    assert bare["genre"] == ""
+    assert bare["subgenre"] == ""
+    assert bare["language"] == "en"
+    assert bare["scene_count"] == 0
+    assert bare["last_scene_preview"] == ""
+    assert isinstance(bare["last_modified"], str)
+
+
 # ---------- Phase 1: integration test (exit test simulation) ----------
 
 def test_phase1_exit_flow(tmp_path, monkeypatch):

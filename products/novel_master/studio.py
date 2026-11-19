@@ -59,6 +59,78 @@ def list_projects() -> list[str]:
     return sorted(p.name for p in pd.iterdir() if p.is_dir())
 
 
+_SCENE_FILE_RE = re.compile(r"^scene_(\d+)\.md$")
+
+
+def project_summaries() -> list[dict]:
+    """Return per-project summary dicts for the home page launcher."""
+    pd = _projects_dir()
+    if not pd.exists():
+        return []
+    out = []
+    for p in pd.iterdir():
+        if not p.is_dir():
+            continue
+        # read project config (graceful defaults)
+        genre = ""
+        subgenre = ""
+        language = "en"
+        cfg_path = p / "project_config.json"
+        if cfg_path.exists():
+            try:
+                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+                if isinstance(cfg, dict):
+                    g = cfg.get("genre", "")
+                    genre = g if isinstance(g, str) else ("" if g is None else str(g))
+                    sg = cfg.get("subgenre", "")
+                    subgenre = sg if isinstance(sg, str) else ("" if sg is None else str(sg))
+                    lang = cfg.get("language", "en")
+                    language = lang if isinstance(lang, str) and lang else "en"
+            except (json.JSONDecodeError, OSError, ValueError):
+                pass
+        # collect scene files matching ^scene_<n>.md$
+        scene_entries = []
+        scenes_dir = p / "scenes"
+        if scenes_dir.exists() and scenes_dir.is_dir():
+            for f in scenes_dir.iterdir():
+                m = _SCENE_FILE_RE.match(f.name)
+                if m and f.is_file():
+                    scene_entries.append((int(m.group(1)), f))
+        scene_count = len(scene_entries)
+        if scene_entries:
+            newest = max(scene_entries, key=lambda e: e[1].stat().st_mtime)
+            try:
+                last_modified = datetime.fromtimestamp(
+                    newest[1].stat().st_mtime, tz=timezone.utc).isoformat()
+            except OSError:
+                last_modified = datetime.now(timezone.utc).isoformat()
+            highest = max(scene_entries, key=lambda e: e[0])
+            try:
+                text = highest[1].read_text(encoding="utf-8")
+            except OSError:
+                text = ""
+            last_scene_preview = text[:80]
+        else:
+            try:
+                last_modified = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc).isoformat()
+            except OSError:
+                last_modified = datetime.now(timezone.utc).isoformat()
+            last_scene_preview = ""
+        out.append({
+            "name": p.name,
+            "genre": genre,
+            "subgenre": subgenre,
+            "language": language,
+            "scene_count": scene_count,
+            "last_modified": last_modified,
+            "last_scene_preview": last_scene_preview,
+        })
+    # sort by last_modified desc, then name asc for deterministic ties
+    out.sort(key=lambda d: d["name"])
+    out.sort(key=lambda d: d["last_modified"], reverse=True)
+    return out
+
+
 def project_language() -> str:
     # Return the language code for the active project (default en).
     base = project_base()
