@@ -379,6 +379,45 @@
     .input-row button { width: 100%; }
   }
 
+  /* ── Modal (Start New) ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; padding: var(--sp-4);
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-5); width: min(600px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px); overflow-y: auto;
+    display: flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .modal-card h2 { font-size: 18px; font-weight: 600; }
+  .modal-card .field { display: flex; flex-direction: column; gap: var(--sp-1); }
+  .modal-card .field label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .modal-card input, .modal-card select, .modal-card textarea {
+    padding: var(--sp-2) var(--sp-3); background: var(--bg-input); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--r-sm); font-size: 14px;
+    font-family: var(--font-ui);
+  }
+  .modal-card input:focus, .modal-card select:focus, .modal-card textarea:focus {
+    outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent);
+  }
+  .modal-card textarea { resize: vertical; min-height: 60px; }
+  .modal-error { color: var(--danger); font-size: 13px; min-height: 1em; }
+  .modal-actions { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-2); }
+  .btn-primary {
+    padding: var(--sp-2) var(--sp-4); background: var(--accent); color: var(--accent-text);
+    border: none; border-radius: var(--r-sm); cursor: pointer; font-weight: 600; font-size: 14px;
+  }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary {
+    padding: var(--sp-2) var(--sp-4); background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 14px;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--accent); }
+  .skip-link { font-size: 13px; color: var(--accent); text-decoration: underline; cursor: pointer; margin-inline-start: auto; }
+
   .hidden { display: none !important; }
   .sr-only {
     position: absolute; width: 1px; height: 1px;
@@ -498,7 +537,7 @@
       <h2>Continue</h2>
       <p>Resume your most recent project</p>
     </button>
-    <button class="action-card" onclick="startNewProject()" aria-label="Start a new novel">
+    <button class="action-card" onclick="openStartNewModal()" aria-label="Start a new novel">
       <h2>Start New</h2>
       <p>Create a new novel project</p>
     </button>
@@ -515,6 +554,43 @@
   <section class="home-quick" aria-label="Quick actions">
     <button class="quick-btn" onclick="location.hash='#/studio'">Open Studio</button>
   </section>
+</div>
+
+<div id="startNewModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="snTitle">
+  <div class="modal-card">
+    <h2 id="snTitle">Start New Project</h2>
+    <form id="startNewForm">
+      <div class="field">
+        <label for="snName">Project name *</label>
+        <input id="snName" type="text" required aria-required="true" autocomplete="off" placeholder="My Novel">
+      </div>
+      <div class="field">
+        <label for="snLang">Language</label>
+        <select id="snLang">
+          <option value="en">English</option>
+          <option value="ar-eg">Arabic (Egyptian dialect)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="snGenre">Genre</label>
+        <select id="snGenre"><option value="">— none —</option></select>
+      </div>
+      <div class="field">
+        <label for="snSubgenre">Subgenre</label>
+        <select id="snSubgenre"><option value="">— none —</option></select>
+      </div>
+      <div class="field">
+        <label for="snPremise">Premise (optional)</label>
+        <textarea id="snPremise" rows="3" placeholder="A short premise..."></textarea>
+      </div>
+      <div class="modal-error" id="snError" role="alert" aria-live="polite"></div>
+      <div class="modal-actions">
+        <button type="button" id="snCancel" class="btn-secondary">Cancel</button>
+        <a id="snSkip" class="skip-link" href="#">Skip and use defaults</a>
+        <button type="submit" id="snCreate" class="btn-primary" disabled>Create</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -946,6 +1022,115 @@ async function newBranch(){
   else { alert('Create failed: '+(d.error||'unknown')); }
 }
 
+/* ── Start New modal ── */
+let snGenres = null;
+let snPrevFocus = null;
+function hasModalData(){
+  const name = document.getElementById('snName').value.trim();
+  const genre = document.getElementById('snGenre').value;
+  const premise = document.getElementById('snPremise').value.trim();
+  return !!(name || genre || premise);
+}
+async function openStartNewModal(){
+  const modal = document.getElementById('startNewModal');
+  snPrevFocus = document.activeElement;
+  // reset
+  document.getElementById('snName').value = '';
+  document.getElementById('snLang').value = 'en';
+  document.getElementById('snGenre').innerHTML = '<option value="">— none —</option>';
+  document.getElementById('snSubgenre').innerHTML = '<option value="">— none —</option>';
+  document.getElementById('snPremise').value = '';
+  document.getElementById('snError').textContent = '';
+  document.getElementById('snCreate').disabled = true;
+  modal.classList.remove('hidden');
+  // load genres
+  if(!snGenres){
+    try {
+      const r = await fetch('/api/genres');
+      snGenres = await r.json();
+    } catch(e){ snGenres = {}; }
+  }
+  const gsel = document.getElementById('snGenre');
+  gsel.innerHTML = '<option value="">— none —</option>';
+  Object.keys(snGenres).forEach(g=>{
+    const o = document.createElement('option'); o.value = g; o.textContent = g; gsel.appendChild(o);
+  });
+  document.getElementById('snName').focus();
+  document.addEventListener('keydown', snKeyHandler);
+}
+function closeStartNewModal(force){
+  if(!force && hasModalData()){
+    if(!confirm('Discard entered data?')) return;
+  }
+  const modal = document.getElementById('startNewModal');
+  modal.classList.add('hidden');
+  document.removeEventListener('keydown', snKeyHandler);
+  if(snPrevFocus && typeof snPrevFocus.focus === 'function') snPrevFocus.focus();
+  snPrevFocus = null;
+}
+function snKeyHandler(e){
+  const modal = document.getElementById('startNewModal');
+  if(modal.classList.contains('hidden')) return;
+  if(e.key === 'Escape'){ e.preventDefault(); closeStartNewModal(); return; }
+  if(e.key === 'Tab'){
+    const focusables = modal.querySelectorAll('input, select, textarea, button, a[href]');
+    const arr = Array.from(focusables).filter(el=>!el.disabled);
+    if(!arr.length) return;
+    const first = arr[0], last = arr[arr.length-1];
+    if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+  }
+}
+function onGenreChange(){
+  const g = document.getElementById('snGenre').value;
+  const ssel = document.getElementById('snSubgenre');
+  ssel.innerHTML = '<option value="">— none —</option>';
+  const subs = (snGenres && snGenres[g] && snGenres[g].subgenres) ? snGenres[g].subgenres : [];
+  subs.forEach(s=>{
+    const o = document.createElement('option'); o.value = s; o.textContent = s; ssel.appendChild(o);
+  });
+}
+async function submitStartNew(e){
+  if(e) e.preventDefault();
+  const name = document.getElementById('snName').value.trim();
+  const err = document.getElementById('snError');
+  err.textContent = '';
+  if(!name){ err.textContent = 'Project name is required.'; document.getElementById('snName').focus(); return false; }
+  const language = document.getElementById('snLang').value;
+  const genre = document.getElementById('snGenre').value;
+  const subgenre = document.getElementById('snSubgenre').value;
+  const premise = document.getElementById('snPremise').value.trim();
+  const btn = document.getElementById('snCreate');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name, language, genre, subgenre, premise})});
+    const d = await r.json();
+    if(d.ok){
+      closeStartNewModal(true);
+      await loadProjects();
+      await loadStatus();
+      location.hash = '#/studio';
+    } else {
+      err.textContent = 'Create failed: ' + (d.error || 'unknown');
+    }
+  } catch(ex){ err.textContent = 'Create failed: ' + ex; }
+  finally { updateCreateBtn(); }
+  return false;
+}
+function updateCreateBtn(){
+  const name = document.getElementById('snName').value.trim();
+  document.getElementById('snCreate').disabled = !name;
+}
+function skipDefaults(e){
+  if(e) e.preventDefault();
+  document.getElementById('snGenre').value = '';
+  document.getElementById('snSubgenre').innerHTML = '<option value="">— none —</option>';
+  document.getElementById('snPremise').value = '';
+  document.getElementById('snLang').value = 'en';
+  submitStartNew(null);
+}
+
 /* ── Routing ── */
 function showHome(){
   document.getElementById('studioView').classList.add('hidden');
@@ -1034,6 +1219,13 @@ async function loadStatus(){
   if(totalScenes>0){ currentScene = totalScenes; viewScene(totalScenes); }
   checkEdits();
 }
+// Wire Start New modal events
+document.getElementById('startNewForm').addEventListener('submit', submitStartNew);
+document.getElementById('snName').addEventListener('input', updateCreateBtn);
+document.getElementById('snGenre').addEventListener('change', onGenreChange);
+document.getElementById('snCancel').addEventListener('click', ()=>closeStartNewModal());
+document.getElementById('snSkip').addEventListener('click', skipDefaults);
+
 loadProjects().then(async ()=>{
   await loadBranches();
   await loadStatus();
