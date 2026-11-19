@@ -95,25 +95,29 @@ def project_summaries() -> list[dict]:
             for f in scenes_dir.iterdir():
                 m = _SCENE_FILE_RE.match(f.name)
                 if m and f.is_file():
-                    scene_entries.append((int(m.group(1)), f))
+                    try:
+                        mt = f.stat().st_mtime
+                    except OSError:
+                        mt = 0.0
+                    scene_entries.append((int(m.group(1)), f, mt))
         scene_count = len(scene_entries)
         if scene_entries:
-            newest = max(scene_entries, key=lambda e: e[1].stat().st_mtime)
+            newest = max(scene_entries, key=lambda e: e[2])
             try:
                 last_modified = datetime.fromtimestamp(
-                    newest[1].stat().st_mtime, tz=timezone.utc).isoformat()
-            except OSError:
+                    newest[2], tz=timezone.utc).isoformat()
+            except (OSError, ValueError, OverflowError):
                 last_modified = datetime.now(timezone.utc).isoformat()
             highest = max(scene_entries, key=lambda e: e[0])
             try:
                 text = highest[1].read_text(encoding="utf-8")
-            except OSError:
+            except (OSError, UnicodeDecodeError):
                 text = ""
             last_scene_preview = text[:80]
         else:
             try:
                 last_modified = datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc).isoformat()
-            except OSError:
+            except (OSError, ValueError, OverflowError):
                 last_modified = datetime.now(timezone.utc).isoformat()
             last_scene_preview = ""
         out.append({
@@ -205,10 +209,34 @@ def switch_project(name: str) -> bool:
     return True
 
 
-def create_project(name: str, language: str = "en", genre: str = "", subgenre: str = "") -> bool:
-    name = name.strip()
+def create_project(name: str, language: str = "en", genre: str = "", subgenre: str = "",
+                   premise: str = "", characters=None, lore: str = "") -> bool:
+    name = name.strip() if isinstance(name, str) else ""
     if not name or "/" in name or "\\" in name or ".." in name:
         return False
+    # normalize optional inputs
+    if premise is None:
+        premise = ""
+    elif not isinstance(premise, str):
+        premise = str(premise)
+    if lore is None:
+        lore = ""
+    elif not isinstance(lore, str):
+        lore = str(lore)
+    if characters is None:
+        characters = []
+    if not isinstance(characters, list):
+        characters = []
+    # reject duplicate (non-empty) character names
+    seen_names = set()
+    for c in characters:
+        cname = c.get("name") if isinstance(c, dict) else ""
+        if not isinstance(cname, str):
+            cname = "" if cname is None else str(cname)
+        if cname and cname in seen_names:
+            return False
+        if cname:
+            seen_names.add(cname)
     pd = _projects_dir()
     p = pd / name
     if p.exists():
@@ -216,14 +244,48 @@ def create_project(name: str, language: str = "en", genre: str = "", subgenre: s
     p.mkdir(parents=True)
     (p / "scenes").mkdir()
     (p / "events").mkdir()
-    # template files
-    (p / "world_lore.md").write_text("# World Lore\n\n(describe your world here)\n", encoding="utf-8")
-    (p / "characters.json").write_text("[]", encoding="utf-8")
+    # world_lore.md: premise (if any) + lore (if any); else template
+    body_parts = []
+    if premise.strip():
+        body_parts.append(premise.strip())
+    if lore.strip():
+        body_parts.append(lore.strip())
+    if body_parts:
+        lore_text = "# World Lore\n\n" + "\n\n".join(body_parts) + "\n"
+    else:
+        lore_text = "# World Lore\n\n(describe your world here)\n"
+    (p / "world_lore.md").write_text(lore_text, encoding="utf-8")
+    # characters.json with generated ids (c1, c2, ...)
+    built_chars = []
+    for i, c in enumerate(characters, start=1):
+        src = c if isinstance(c, dict) else {}
+        def _s(key):
+            v = src.get(key, "")
+            if v is None:
+                return ""
+            return v if isinstance(v, str) else str(v)
+        def _l(key):
+            v = src.get(key, [])
+            return v if isinstance(v, list) else []
+        def _d(key):
+            v = src.get(key, {})
+            return v if isinstance(v, dict) else {}
+        built_chars.append({
+            "id": "c%d" % i,
+            "name": _s("name"),
+            "role": _s("role"),
+            "voice": _s("voice"),
+            "voice_contract": _d("voice_contract"),
+            "secrets": _l("secrets"),
+            "goals": _l("goals"),
+            "speech_quirks": _l("speech_quirks"),
+        })
+    (p / "characters.json").write_text(json.dumps(built_chars, indent=2), encoding="utf-8")
     (p / "character_state.json").write_text("{}", encoding="utf-8")
     (p / "npc_registry.json").write_text("{}", encoding="utf-8")
     (p / "plot_threads.json").write_text("[]", encoding="utf-8")
     (p / "timeline.json").write_text("[]", encoding="utf-8")
-    (p / "project_config.json").write_text(json.dumps({"language": language, "genre": genre, "subgenre": subgenre}, indent=2), encoding="utf-8")
+    (p / "project_config.json").write_text(json.dumps({"language": language, "genre": genre, "subgenre": subgenre, "premise": premise}, indent=2), encoding="utf-8")
     return True
 
 def delete_project(name: str) -> bool:

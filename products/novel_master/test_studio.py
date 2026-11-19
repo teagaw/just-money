@@ -539,3 +539,151 @@ def test_phase1_exit_flow(tmp_path, monkeypatch):
     # verify meta status
     meta = json.loads((tmp_path / "scenes" / "scene_01_meta.json").read_text())
     assert meta["status"] == "reconciled"
+
+
+# ---------- Home page: extended create_project ----------
+
+def test_create_project_with_premise(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    ok = studio.create_project("test_novel", "en", "Fantasy", "Grimdark",
+                               premise="A dark fantasy about revenge",
+                               characters=[{"name": "Kael", "role": "protagonist", "voice": "gruff"}],
+                               lore="Magic is rare and feared.")
+    assert ok is True
+    pp = tmp_path / "projects" / "test_novel"
+    assert (pp / "world_lore.md").exists()
+    lore = (pp / "world_lore.md").read_text()
+    assert "revenge" in lore
+    assert "Magic is rare" in lore
+    chars = json.loads((pp / "characters.json").read_text())
+    assert len(chars) == 1
+    assert chars[0]["name"] == "Kael"
+    assert chars[0]["id"] == "c1"
+    assert chars[0]["role"] == "protagonist"
+    assert chars[0]["voice"] == "gruff"
+    assert chars[0]["voice_contract"] == {}
+    assert chars[0]["secrets"] == []
+    assert chars[0]["goals"] == []
+    assert chars[0]["speech_quirks"] == []
+    cfg = json.loads((pp / "project_config.json").read_text())
+    assert cfg["premise"] == "A dark fantasy about revenge"
+
+def test_create_project_char_ids(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    ok = studio.create_project("t", "en", "", "", characters=[
+        {"name": "A"}, {"name": "B"}, {"name": "C"},
+    ])
+    assert ok is True
+    chars = json.loads((tmp_path / "projects" / "t" / "characters.json").read_text())
+    assert [c["id"] for c in chars] == ["c1", "c2", "c3"]
+
+def test_create_project_duplicate_name_rejected(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    assert studio.create_project("dup", "en", "", "") is True
+    assert studio.create_project("dup", "en", "", "") is False
+    assert studio.create_project("x", "en", "", "", characters=[{"name": "A"}, {"name": "A"}]) is False
+
+def test_create_project_missing_fields(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    ok = studio.create_project("m", "en", "", "", premise=None, characters=None, lore=None)
+    assert ok is True
+    p = tmp_path / "projects" / "m"
+    assert (p / "characters.json").read_text().strip() == "[]"
+    assert "World Lore" in (p / "world_lore.md").read_text()
+    ok2 = studio.create_project("m2", "en", "", "", characters=[{"name": "Z"}])
+    assert ok2 is True
+    chars = json.loads((tmp_path / "projects" / "m2" / "characters.json").read_text())
+    assert chars[0]["name"] == "Z"
+    assert chars[0]["role"] == ""
+    assert chars[0]["voice_contract"] == {}
+
+def test_create_project_no_lore_template(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    studio.create_project("n", "en", "", "", premise="Prem")
+    lore = (tmp_path / "projects" / "n" / "world_lore.md").read_text()
+    assert "Prem" in lore
+
+def test_create_project_empty_characters_writes_empty(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    studio.create_project("e", "en", "", "", characters=[])
+    assert json.loads((tmp_path / "projects" / "e" / "characters.json").read_text()) == []
+
+
+# ---------- Home page: extended create_project ----------
+
+def test_create_project_with_premise(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    ok = studio.create_project("test_novel", "en", "Fantasy", "Grimdark",
+                               premise="A dark fantasy about revenge",
+                               characters=[{"name": "Kael", "role": "protagonist", "voice": "gruff"}],
+                               lore="Magic is rare and feared.")
+    assert ok is True
+    pp = tmp_path / "projects" / "test_novel"
+    assert (pp / "world_lore.md").exists()
+    lore = (pp / "world_lore.md").read_text()
+    assert "revenge" in lore
+    assert "Magic is rare" in lore
+    chars = json.loads((pp / "characters.json").read_text())
+    assert len(chars) == 1
+    assert chars[0]["name"] == "Kael"
+    assert chars[0]["id"] == "c1"
+    assert chars[0]["role"] == "protagonist"
+    assert chars[0]["voice"] == "gruff"
+    assert chars[0]["voice_contract"] == {}
+    assert chars[0]["secrets"] == []
+    assert chars[0]["goals"] == []
+    assert chars[0]["speech_quirks"] == []
+    cfg = json.loads((pp / "project_config.json").read_text())
+    assert cfg["premise"] == "A dark fantasy about revenge"
+
+def test_create_project_char_ids(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    ok = studio.create_project("t", "en", "", "", characters=[
+        {"name": "A"}, {"name": "B"}, {"name": "C"},
+    ])
+    assert ok is True
+    chars = json.loads((tmp_path / "projects" / "t" / "characters.json").read_text())
+    assert [c["id"] for c in chars] == ["c1", "c2", "c3"]
+
+def test_create_project_duplicate_name_rejected(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    assert studio.create_project("dup", "en", "", "") is True
+    assert studio.create_project("dup", "en", "", "") is False
+    assert studio.create_project("x", "en", "", "", characters=[{"name": "A"}, {"name": "A"}]) is False
+
+def test_create_project_missing_fields(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    ok = studio.create_project("m", "en", "", "", premise=None, characters=None, lore=None)
+    assert ok is True
+    p = tmp_path / "projects" / "m"
+    assert (p / "characters.json").read_text().strip() == "[]"
+    assert "World Lore" in (p / "world_lore.md").read_text()
+    ok2 = studio.create_project("m2", "en", "", "", characters=[{"name": "Z"}])
+    assert ok2 is True
+    chars = json.loads((tmp_path / "projects" / "m2" / "characters.json").read_text())
+    assert chars[0]["name"] == "Z"
+    assert chars[0]["role"] == ""
+    assert chars[0]["voice_contract"] == {}
+
+def test_create_project_no_lore_template(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    studio.create_project("n", "en", "", "", premise="Prem")
+    lore = (tmp_path / "projects" / "n" / "world_lore.md").read_text()
+    assert "Prem" in lore
+
+def test_create_project_empty_characters_writes_empty(tmp_path, monkeypatch):
+    monkeypatch.setattr(studio, "BASE", tmp_path)
+    (tmp_path / "projects").mkdir()
+    studio.create_project("e", "en", "", "", characters=[])
+    assert json.loads((tmp_path / "projects" / "e" / "characters.json").read_text()) == []

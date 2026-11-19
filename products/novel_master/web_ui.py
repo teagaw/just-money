@@ -337,9 +337,21 @@ class Handler(BaseHTTPRequestHandler):
             language = body.get("language", "en")
             genre = body.get("genre", "")
             subgenre = body.get("subgenre", "")
+            premise = body.get("premise", "")
+            lore = body.get("lore", "")
+            characters = body.get("characters", None)
+            if not isinstance(premise, str):
+                premise = "" if premise is None else str(premise)
+            if not isinstance(lore, str):
+                lore = "" if lore is None else str(lore)
+            if not isinstance(characters, list):
+                characters = None
             if not isinstance(name, str) or not studio.create_project(name, language if isinstance(language, str) else "en",
                                                                       genre if isinstance(genre, str) else "",
-                                                                      subgenre if isinstance(subgenre, str) else ""):
+                                                                      subgenre if isinstance(subgenre, str) else "",
+                                                                       premise=premise,
+                                                                       characters=characters,
+                                                                       lore=lore):
                 self._send(400, "application/json", json.dumps({"error": "invalid or duplicate project name"}))
                 return
             studio.switch_project(name.strip())
