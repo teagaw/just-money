@@ -131,6 +131,7 @@
   .scene {
     font-family: var(--font-prose); font-size: 18px; line-height: 1.75;
     color: var(--text); white-space: pre-wrap; word-wrap: break-word;
+    padding: var(--sp-2) 0;
   }
   [dir="rtl"] .scene { font-family: var(--font-prose-ar); }
   [dir="rtl"] .page { border-inline-start: none; border-inline-end: 1px solid var(--border); }
@@ -311,8 +312,58 @@
     font-size: 16px; color: var(--text-muted);
   }
 
+  /* ── Home view ── */
+  .home-view {
+    height: 100vh; overflow-y: auto; padding: var(--sp-5);
+    background: var(--bg-chrome); color: var(--text);
+  }
+  .home-header { display: flex; align-items: baseline; gap: var(--sp-3); margin-bottom: var(--sp-5); }
+  .home-header h1 { font-size: 22px; font-weight: 600; }
+  .home-actions {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4);
+    margin-bottom: var(--sp-6);
+  }
+  .action-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-5); cursor: pointer; text-align: start; color: var(--text);
+    transition: border-color 100ms ease-out, background-color 100ms ease-out;
+    min-height: 120px;
+  }
+  .action-card:hover { border-color: var(--accent); background: var(--bg-page); }
+  .action-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .action-card h2 { font-size: 16px; margin-bottom: var(--sp-2); }
+  .action-card p { font-size: 13px; color: var(--text-muted); }
+  .home-projects h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: var(--sp-3); }
+  .project-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--sp-4);
+  }
+  .project-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-4); cursor: pointer; text-align: start; color: var(--text);
+    transition: border-color 100ms ease-out, background-color 100ms ease-out;
+    display: flex; flex-direction: column; gap: var(--sp-2);
+  }
+  .project-card:hover { border-color: var(--accent); background: var(--bg-page); }
+  .project-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .project-card .pc-name { font-weight: 700; font-size: 15px; }
+  .project-card .pc-genre {
+    display: inline-block; font-size: 11px; padding: 2px 8px;
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 999px;
+    color: var(--text-muted); width: fit-content;
+  }
+  .project-card .pc-meta { font-size: 12px; color: var(--text-muted); }
+  .project-card .pc-preview { font-size: 12px; color: var(--text-muted); font-style: italic; }
+  .home-quick { margin-top: var(--sp-6); display: flex; gap: var(--sp-2); }
+  .quick-btn {
+    padding: var(--sp-2) var(--sp-4); background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 13px;
+  }
+  .quick-btn:hover { color: var(--text); border-color: var(--accent); }
+
   /* ── Responsive ── */
   @media (max-width: 900px) {
+    .home-actions { grid-template-columns: 1fr; }
     .layout { grid-template-columns: 1fr; grid-template-rows: 48px auto 1fr; }
     .topbar { grid-column: 1; }
     .left { border-inline-end: none; border-bottom: 1px solid var(--border); }
@@ -338,7 +389,7 @@
 </head>
 <body>
 <a href="#main" class="sr-only">Skip to main content</a>
-<div class="layout">
+<div class="layout" id="studioView">
   <header class="topbar">
     <span class="wordmark">Novel Studio</span>
     <span id="novelTitle" style="font-size:13px; color:var(--text-muted); margin-inline-start:var(--sp-2);"></span>
@@ -354,6 +405,7 @@
       <button id="nextBtn" onclick="nextScene()" aria-label="Next scene">Next ▶</button>
       <span class="nav-label" id="navLabel"></span>
     </div>
+    <button onclick="location.hash='#/home'" class="new-btn" aria-label="Home">Home</button>
     <span class="status" id="status" aria-live="polite">Loading...</span>
   </header>
 
@@ -388,6 +440,7 @@
       <div class="input-row">
         <input id="direction" placeholder="Director direction for next scene (or pick a choice above)" aria-label="Director direction" />
         <button onclick="generate()" id="genBtn">Generate</button>
+        <button onclick="cancelGen()" id="cancelBtn" style="display:none; padding:var(--sp-2) var(--sp-3); background:transparent; color:var(--danger); border:1px solid var(--danger); border-radius:var(--r-md); cursor:pointer; font-size:13px;">Cancel</button>
       </div>
     </div>
 
@@ -433,6 +486,35 @@
       <ul class="scene-list" id="scenes"></ul>
     </div>
   </aside>
+</div>
+
+<div id="homeView" class="home-view hidden" role="main" aria-label="Home">
+  <header class="home-header">
+    <span class="wordmark">Novel Studio</span>
+    <h1>Home</h1>
+  </header>
+  <section class="home-actions" aria-label="Primary actions">
+    <button class="action-card" onclick="continueProject()" aria-label="Continue most recent project">
+      <h2>Continue</h2>
+      <p>Resume your most recent project</p>
+    </button>
+    <button class="action-card" onclick="startNewProject()" aria-label="Start a new novel">
+      <h2>Start New</h2>
+      <p>Create a new novel project</p>
+    </button>
+    <button class="action-card" onclick="improveStub()" aria-label="Improve existing draft (coming soon)">
+      <h2>Improve</h2>
+      <p>Import &amp; analyze a draft (coming soon)</p>
+    </button>
+  </section>
+  <section class="home-projects" aria-label="Recent projects">
+    <h2>Recent projects</h2>
+    <div id="projectCards" class="project-cards"></div>
+    <div id="homeEmpty" class="empty-state hidden">No projects yet. Start a new novel or import a rough draft.</div>
+  </section>
+  <section class="home-quick" aria-label="Quick actions">
+    <button class="quick-btn" onclick="location.hash='#/studio'">Open Studio</button>
+  </section>
 </div>
 
 <script>
@@ -713,6 +795,7 @@ async function generate(){
     stopTimer();
     document.getElementById('genBtn').disabled = false;
     document.getElementById('genBtn').textContent = 'Generate';
+    document.getElementById('cancelBtn').style.display = 'none';
     genAbort = null;
   }
 }
@@ -758,11 +841,58 @@ async function loadProjects(){
   sel.innerHTML = '';
   (d.projects||[]).forEach(p=>{
     const o = document.createElement('option');
-    o.value = p; o.textContent = p;
-    if(p === d.active) o.selected = true;
+    o.value = p.name; o.textContent = p.name;
+    if(p.name === d.active) o.selected = true;
     sel.appendChild(o);
   });
 }
+async function loadHomeProjects(){
+  let d;
+  try {
+    const r = await fetch('/api/projects');
+    d = await r.json();
+  } catch(e){ alert('Failed to load projects: '+e); return; }
+  const grid = document.getElementById('projectCards');
+  grid.innerHTML = '';
+  const projects = d.projects || [];
+  const empty = document.getElementById('homeEmpty');
+  if(!projects.length){ empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  projects.forEach(p=>{
+    const card = document.createElement('button');
+    card.className = 'project-card';
+    card.setAttribute('aria-label', 'Open project '+p.name);
+    const genre = [p.genre, p.subgenre].filter(Boolean).join(' / ');
+    const preview = (p.last_scene_preview || '').slice(0,80);
+    const modified = p.last_modified ? new Date(p.last_modified).toLocaleString() : '';
+    card.innerHTML = `
+      <div class="pc-name">${esc(p.name)}</div>
+      ${genre ? `<span class="pc-genre">${esc(genre)}</span>` : ''}
+      <div class="pc-meta">${esc(p.scene_count)} scenes · ${esc(modified)}</div>
+      ${preview ? `<div class="pc-preview">${esc(preview)}</div>` : ''}
+    `;
+    card.onclick = ()=> openProject(p.name);
+    grid.appendChild(card);
+  });
+}
+async function openProject(name){
+  await switchProject(name);
+  location.hash = '#/studio';
+}
+async function continueProject(){
+  try {
+    const r = await fetch('/api/projects');
+    const d = await r.json();
+    const projects = d.projects || [];
+    if(!projects.length){ document.getElementById('homeEmpty').classList.remove('hidden'); return; }
+    await openProject(projects[0].name);
+  } catch(e){ alert('Failed: '+e); }
+}
+async function startNewProject(){
+  const ok = await newProject();
+  if(ok) location.hash = '#/studio';
+}
+function improveStub(){ alert('Coming soon'); }
 async function switchProject(name){
   const r = await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
   const d = await r.json();
@@ -771,13 +901,13 @@ async function switchProject(name){
 }
 async function newProject(){
   const name = prompt('New novel name:');
-  if(!name) return;
+  if(!name) return false;
   const lang = prompt('Language? (en = English, ar-eg = Arabic Egyptian dialect)', 'en');
-  if(lang === null) return;
+  if(lang === null) return false;
   const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, language: lang.trim()||'en'})});
   const d = await r.json();
-  if(d.ok){ await loadProjects(); await loadStatus(); }
-  else { alert('Create failed: '+(d.error||'unknown')); }
+  if(d.ok){ await loadProjects(); await loadStatus(); return true; }
+  else { alert('Create failed: '+(d.error||'unknown')); return false; }
 }
 async function deleteProject(){
   const sel = document.getElementById('projectSelect');
@@ -815,6 +945,26 @@ async function newBranch(){
   if(d.ok){ await loadBranches(); alert('Branch "'+name+'" created.'); }
   else { alert('Create failed: '+(d.error||'unknown')); }
 }
+
+/* ── Routing ── */
+function showHome(){
+  document.getElementById('studioView').classList.add('hidden');
+  document.getElementById('homeView').classList.remove('hidden');
+  loadHomeProjects();
+}
+function showStudio(){
+  document.getElementById('homeView').classList.add('hidden');
+  document.getElementById('studioView').classList.remove('hidden');
+}
+function route(){
+  const h = location.hash;
+  if(h === '#/home'){ showHome(); }
+  else if(h === '#/studio'){ showStudio(); }
+  else {
+    // default: handled during init
+  }
+}
+window.addEventListener('hashchange', route);
 
 /* ── Init ── */
 async function loadLore(){
@@ -884,7 +1034,15 @@ async function loadStatus(){
   if(totalScenes>0){ currentScene = totalScenes; viewScene(totalScenes); }
   checkEdits();
 }
-loadProjects().then(()=>{ loadBranches(); loadStatus(); });
+loadProjects().then(async ()=>{
+  await loadBranches();
+  await loadStatus();
+  if(!location.hash){
+    location.hash = (totalScenes > 0) ? '#/studio' : '#/home';
+  } else {
+    route();
+  }
+});
 </script>
 </body>
 </html>
