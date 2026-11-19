@@ -1,9 +1,11 @@
 [
   {
     "scene": 1,
-    "date": "unknown",
-    "duration": null,
-    "location": "unknown",
-    "characters_present": []
+    "date": "day 3",
+    "duration": "1 hour",
+    "location": "Salt Market",
+    "characters_present": [
+      "c1"
+    ]
   }
 ]

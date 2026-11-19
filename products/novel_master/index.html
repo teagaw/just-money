@@ -133,6 +133,12 @@
     color: var(--text); white-space: pre-wrap; word-wrap: break-word;
     padding: var(--sp-2) 0;
   }
+  .scene .para { margin-bottom: var(--sp-4); }
+  .scene .para:first-child { margin-top: 0; }
+  .scene .scene-break {
+    text-align: center; margin: var(--sp-6) 0; color: var(--text-muted);
+    letter-spacing: 0.3em; font-size: 14px; font-family: var(--font-ui);
+  }
   [dir="rtl"] .scene { font-family: var(--font-prose-ar); }
   [dir="rtl"] .page { border-inline-start: none; border-inline-end: 1px solid var(--border); }
   .scene:empty::before {
@@ -338,6 +344,11 @@
     display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: var(--sp-4);
   }
+  .project-cards.highlight {
+    outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--r-lg);
+    animation: pulse 0.6s ease-out;
+  }
+  @keyframes pulse { 0% { outline-color: var(--accent); } 100% { outline-color: transparent; } }
   .project-card {
     background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
     padding: var(--sp-4); cursor: pointer; text-align: start; color: var(--text);
@@ -638,8 +649,20 @@ let genAbort = null;
 function renderStatus(d){
   document.getElementById('status').textContent = `Scene ${d.scene_count}/${d.scene_count} · accepted`;
 }
+let rawSceneText = '';
 function renderScene(text){
-  document.getElementById('scene').textContent = text || '';
+  rawSceneText = text || '';
+  const el = document.getElementById('scene');
+  if(!text){ el.textContent = ''; return; }
+  const paras = text.split(/\n\n+/);
+  el.innerHTML = paras.map(p=>{
+    const trimmed = p.trim();
+    if(!trimmed) return '';
+    if(/^[-*_]{3,}$/.test(trimmed)){
+      return '<div class="scene-break">* * *</div>';
+    }
+    return '<div class="para">'+esc(trimmed).replace(/\n/g,'<br>')+'</div>';
+  }).join('');
 }
 function renderChoices(choices){
   lastChoices = choices || [];
@@ -729,8 +752,7 @@ function nextScene(){ if(currentScene<totalScenes) viewScene(currentScene+1); }
 /* ── Edit mode ── */
 function toggleEdit(){
   if(editingScene){ cancelEdit(); return; }
-  const scene = document.getElementById('scene').textContent;
-  document.getElementById('sceneEdit').value = scene;
+  document.getElementById('sceneEdit').value = rawSceneText;
   document.getElementById('scene').style.display = 'none';
   document.getElementById('sceneEdit').style.display = 'block';
   document.getElementById('editBtn').style.display = 'none';
@@ -951,6 +973,8 @@ async function loadProjects(){
 }
 let homeProjects = [];
 let ctxTargetName = null;
+let ctxOutsideHandler = null;
+let ctxKeyHandler = null;
 
 async function loadHomeProjects(){
   let d;
@@ -977,7 +1001,7 @@ async function loadHomeProjects(){
     const preview = (p.last_scene_preview || '').slice(0,80);
     const modified = p.last_modified ? new Date(p.last_modified).toLocaleString() : '';
     card.innerHTML = `
-      <button type="button" class="pc-more" aria-label="Project actions for ${esc(p.name)}" data-name="${esc(p.name)}">⋯</button>
+      <span role="button" tabindex="0" class="pc-more" aria-label="Project actions for ${esc(p.name)}" data-name="${esc(p.name)}" onclick="event.stopPropagation(); showContextMenu(event, '${esc(p.name)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.stopPropagation();event.preventDefault();showContextMenu(event,'${esc(p.name)}');}">⋯</span>
       <div class="pc-name">${esc(p.name)}</div>
       ${genre ? `<span class="pc-genre">${esc(genre)}</span>` : ''}
       <div class="pc-meta">${esc(p.scene_count)} scenes · ${esc(modified)}</div>
@@ -1062,11 +1086,20 @@ function showContextMenu(x, y, name){
   const btn = document.getElementById('ctxDelete');
   btn.onclick = ()=>{ hideContextMenu(); deleteProjectByName(ctxTargetName); };
   // outside click / escape
-  setTimeout(()=> document.addEventListener('click', hideContextMenuOnce, {once:true}), 0);
-  document.addEventListener('keydown', ctxKeyHandler, {once:true});
+  const onOutside = (e)=>{ if(!document.getElementById('contextMenu').contains(e.target)) hideContextMenu(); };
+  const onKey = (e)=>{ if(e.key === 'Escape') hideContextMenu(); };
+  ctxOutsideHandler = onOutside;
+  ctxKeyHandler = onKey;
+  setTimeout(()=> document.addEventListener('click', onOutside), 0);
+  document.addEventListener('keydown', onKey);
 }
-function hideContextMenu(){ document.getElementById('contextMenu').classList.add('hidden'); ctxTargetName = null; }
-function hideContextMenuOnce(){ hideContextMenu(); document.removeEventListener('keydown', ctxKeyHandler); }
+function hideContextMenu(){
+  document.getElementById('contextMenu').classList.add('hidden');
+  ctxTargetName = null;
+  if(ctxOutsideHandler){ document.removeEventListener('click', ctxOutsideHandler); ctxOutsideHandler = null; }
+  if(ctxKeyHandler){ document.removeEventListener('keydown', ctxKeyHandler); ctxKeyHandler = null; }
+}
+
 function ctxKeyHandler(e){ if(e.key === 'Escape'){ hideContextMenu(); } }
 async function openProject(name){
   await switchProject(name);

@@ -1,0 +1,13 @@
+{
+  "scene": 27,
+  "hash": "92343912d28d8fbdc3c041b9a0c4f2b4f60aa52b142a35b3f04a6ac52bf39d5f",
+  "status": "accepted",
+  "characters_present": [
+    "c1"
+  ],
+  "location": "Salt Market",
+  "events": [],
+  "choices": [
+    "**Determine the Starting Point:**"
+  ]
+}

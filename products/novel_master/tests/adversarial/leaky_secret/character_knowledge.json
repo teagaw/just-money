@@ -1,0 +1,12 @@
+{
+  "c1": {
+    "known": ["marked (self)", "sister missing", "Wardens hunt unlicensed casters"],
+    "suspected": ["Tovin owes debt to Merchant Council"],
+    "misconceptions": []
+  },
+  "c2": {
+    "known": ["Maren is her friend", "owes debt to Merchant Council"],
+    "suspected": ["Maren hides something"],
+    "misconceptions": []
+  }
+}
