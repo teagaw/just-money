@@ -418,6 +418,29 @@
   .btn-secondary:hover { color: var(--text); border-color: var(--accent); }
   .skip-link { font-size: 13px; color: var(--accent); text-decoration: underline; cursor: pointer; margin-inline-start: auto; }
 
+  /* ── Project card more menu / context menu ── */
+  .pc-more {
+    position: absolute; top: var(--sp-2); right: var(--sp-2);
+    background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+    border-radius: var(--r-sm); cursor: pointer; font-size: 12px; line-height: 1;
+    padding: 2px 6px; opacity: 0; transition: opacity 100ms ease-out;
+  }
+  .project-card { position: relative; }
+  .project-card:hover .pc-more, .project-card:focus-within .pc-more { opacity: 1; }
+  .project-card.highlight { box-shadow: 0 0 0 2px var(--accent); }
+  .context-menu {
+    position: fixed; z-index: 1100; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-sm); padding: var(--sp-1); min-width: 120px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .context-menu.hidden { display: none; }
+  .context-menu button {
+    display: block; width: 100%; text-align: start; padding: var(--sp-2) var(--sp-3);
+    background: transparent; color: var(--danger); border: none; border-radius: var(--r-sm);
+    cursor: pointer; font-size: 13px;
+  }
+  .context-menu button:hover { background: var(--bg-page); }
+
   .hidden { display: none !important; }
   .sr-only {
     position: absolute; width: 1px; height: 1px;
@@ -546,9 +569,9 @@
       <p>Import &amp; analyze a draft (coming soon)</p>
     </button>
   </section>
-  <section class="home-projects" aria-label="Recent projects">
+  <section class="home-projects" id="recentProjects" aria-label="Recent projects">
     <h2>Recent projects</h2>
-    <div id="projectCards" class="project-cards"></div>
+    <div id="projectCards" class="project-cards" role="list"></div>
     <div id="homeEmpty" class="empty-state hidden">No projects yet. Start a new novel or import a rough draft.</div>
   </section>
   <section class="home-quick" aria-label="Quick actions">
@@ -591,6 +614,10 @@
       </div>
     </form>
   </div>
+</div>
+
+<div id="contextMenu" class="context-menu hidden" role="menu" aria-label="Project actions">
+  <button type="button" id="ctxDelete" role="menuitem">Delete</button>
 </div>
 
 <script>
@@ -922,6 +949,9 @@ async function loadProjects(){
     sel.appendChild(o);
   });
 }
+let homeProjects = [];
+let ctxTargetName = null;
+
 async function loadHomeProjects(){
   let d;
   try {
@@ -931,26 +961,113 @@ async function loadHomeProjects(){
   const grid = document.getElementById('projectCards');
   grid.innerHTML = '';
   const projects = d.projects || [];
+  homeProjects = projects;
   const empty = document.getElementById('homeEmpty');
   if(!projects.length){ empty.classList.remove('hidden'); return; }
   empty.classList.add('hidden');
-  projects.forEach(p=>{
+  projects.forEach((p, idx)=>{
     const card = document.createElement('button');
     card.className = 'project-card';
+    card.type = 'button';
+    card.setAttribute('role', 'listitem');
+    card.setAttribute('tabindex', idx === 0 ? '0' : '-1');
     card.setAttribute('aria-label', 'Open project '+p.name);
+    card.dataset.name = p.name;
     const genre = [p.genre, p.subgenre].filter(Boolean).join(' / ');
     const preview = (p.last_scene_preview || '').slice(0,80);
     const modified = p.last_modified ? new Date(p.last_modified).toLocaleString() : '';
     card.innerHTML = `
+      <button type="button" class="pc-more" aria-label="Project actions for ${esc(p.name)}" data-name="${esc(p.name)}">⋯</button>
       <div class="pc-name">${esc(p.name)}</div>
       ${genre ? `<span class="pc-genre">${esc(genre)}</span>` : ''}
       <div class="pc-meta">${esc(p.scene_count)} scenes · ${esc(modified)}</div>
       ${preview ? `<div class="pc-preview">${esc(preview)}</div>` : ''}
     `;
-    card.onclick = ()=> openProject(p.name);
+    card.addEventListener('click', (e)=>{
+      if(e.target && e.target.classList && e.target.classList.contains('pc-more')) return;
+      openProject(p.name);
+    });
+    card.addEventListener('contextmenu', (e)=>{ e.preventDefault(); showContextMenu(e.clientX, e.clientY, p.name); });
+    card.addEventListener('keydown', (e)=> onProjectCardKey(e, card));
+    const moreBtn = card.querySelector('.pc-more');
+    if(moreBtn){
+      moreBtn.addEventListener('click', (e)=>{ e.stopPropagation(); const rect = moreBtn.getBoundingClientRect(); showContextMenu(rect.left, rect.bottom + 4, p.name); });
+    }
     grid.appendChild(card);
   });
+  // roving tabindex: first card focusable
+  const cards = grid.querySelectorAll('.project-card');
+  if(cards.length){ cards[0].setAttribute('tabindex','0'); }
 }
+function onProjectCardKey(e, card){
+  const grid = document.getElementById('projectCards');
+  const cards = Array.from(grid.querySelectorAll('.project-card'));
+  if(!cards.length) return;
+  let idx = cards.indexOf(card);
+  if(idx < 0) idx = cards.indexOf(document.activeElement);
+  if(idx < 0) idx = 0;
+  let target = null;
+  if(e.key === 'ArrowRight' || e.key === 'ArrowDown'){
+    e.preventDefault();
+    target = cards[Math.min(cards.length-1, idx+1)];
+  } else if(e.key === 'ArrowLeft' || e.key === 'ArrowUp'){
+    e.preventDefault();
+    target = cards[Math.max(0, idx-1)];
+  } else if(e.key === 'Home'){
+    e.preventDefault(); target = cards[0];
+  } else if(e.key === 'End'){
+    e.preventDefault(); target = cards[cards.length-1];
+  } else if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    const name = cards[idx].dataset.name;
+    openProject(name);
+    return;
+  } else if(e.key === 'Delete'){
+    e.preventDefault();
+    const name = cards[idx].dataset.name;
+    deleteProjectByName(name);
+    return;
+  }
+  if(target){
+    cards.forEach((c,i)=> c.setAttribute('tabindex', i === cards.indexOf(target) ? '0' : '-1'));
+    target.focus();
+  }
+}
+async function deleteProjectByName(name){
+  if(!name) return;
+  if(!confirm('Delete novel "'+name+'"? This cannot be undone.')) return;
+  try {
+    const r = await fetch('/api/delete_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+    const d = await r.json();
+    if(d.ok){
+      await loadHomeProjects();
+      await loadProjects();
+    } else {
+      alert('Delete failed: '+(d.error||'unknown'));
+    }
+  } catch(e){ alert('Delete failed: '+e); }
+}
+function showContextMenu(x, y, name){
+  const menu = document.getElementById('contextMenu');
+  ctxTargetName = name;
+  // position with viewport clamp
+  const mw = 140, mh = 40;
+  let left = x, top = y;
+  if(left + mw > window.innerWidth) left = window.innerWidth - mw - 8;
+  if(top + mh > window.innerHeight) top = window.innerHeight - mh - 8;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+  menu.classList.remove('hidden');
+  // wire delete
+  const btn = document.getElementById('ctxDelete');
+  btn.onclick = ()=>{ hideContextMenu(); deleteProjectByName(ctxTargetName); };
+  // outside click / escape
+  setTimeout(()=> document.addEventListener('click', hideContextMenuOnce, {once:true}), 0);
+  document.addEventListener('keydown', ctxKeyHandler, {once:true});
+}
+function hideContextMenu(){ document.getElementById('contextMenu').classList.add('hidden'); ctxTargetName = null; }
+function hideContextMenuOnce(){ hideContextMenu(); document.removeEventListener('keydown', ctxKeyHandler); }
+function ctxKeyHandler(e){ if(e.key === 'Escape'){ hideContextMenu(); } }
 async function openProject(name){
   await switchProject(name);
   location.hash = '#/studio';
@@ -960,7 +1077,15 @@ async function continueProject(){
     const r = await fetch('/api/projects');
     const d = await r.json();
     const projects = d.projects || [];
-    if(!projects.length){ document.getElementById('homeEmpty').classList.remove('hidden'); return; }
+    if(!projects.length){
+      const empty = document.getElementById('homeEmpty');
+      empty.classList.remove('hidden');
+      const target = document.getElementById('projectCards');
+      target.classList.add('highlight');
+      try { document.getElementById('recentProjects').scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
+      setTimeout(()=> target.classList.remove('highlight'), 1200);
+      return;
+    }
     await openProject(projects[0].name);
   } catch(e){ alert('Failed: '+e); }
 }
