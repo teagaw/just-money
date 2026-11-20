@@ -13,6 +13,7 @@ from urllib.parse import unquote
 BASE = Path(__file__).parent
 sys.path.insert(0, str(BASE))
 import studio
+import import_pipeline
 
 HOST = "127.0.0.1"
 PORT = 8765
@@ -194,6 +195,9 @@ class Handler(BaseHTTPRequestHandler):
                 "active": studio.active_project_name(),
             }))
             return
+        if path == "/api/import_novel":
+            # handled in do_POST
+            pass
         if path == "/api/genres":
             genres = json.loads((BASE / "genres.json").read_text(encoding="utf-8")) if (BASE / "genres.json").exists() else {}
             self._send(200, "application/json", json.dumps(genres))
@@ -391,6 +395,43 @@ class Handler(BaseHTTPRequestHandler):
                 entities = []
             result = studio.apply_reconciliation(proposals, scene=scene, downstream_entities=entities)
             # refresh snapshot already done; clear dirty handled in apply
+            self._send(200, "application/json", json.dumps(result))
+            return
+        if path == "/api/import_novel":
+            text = body.get("text", "")
+            name = body.get("name", "imported_novel")
+            language = body.get("language", "en")
+            genre = body.get("genre", "")
+            subgenre = body.get("subgenre", "")
+            if not isinstance(text, str) or not text.strip():
+                self._send(400, "application/json", json.dumps({"error": "text is required"}))
+                return
+            if not isinstance(name, str):
+                name = "imported_novel"
+            result = import_pipeline.import_novel(text, name, language, genre, subgenre)
+            self._send(200, "application/json", json.dumps(result))
+            return
+        if path == "/api/analyze_novel":
+            text = body.get("text", "")
+            if not isinstance(text, str) or not text.strip():
+                self._send(400, "application/json", json.dumps({"error": "text is required"}))
+                return
+            result = import_pipeline.analyze_novel(text)
+            self._send(200, "application/json", json.dumps(result))
+            return
+        if path == "/api/improve_scene":
+            try:
+                scene = int(body.get("scene"))
+            except (TypeError, ValueError):
+                self._send(400, "application/json", json.dumps({"error": "scene must be an integer"}))
+                return
+            options = body.get("options", [])
+            if not isinstance(options, list):
+                options = []
+            direction = body.get("direction", "")
+            if not isinstance(direction, str):
+                direction = ""
+            result = import_pipeline.improve_scene(scene, options, direction)
             self._send(200, "application/json", json.dumps(result))
             return
         if path == "/api/generate":

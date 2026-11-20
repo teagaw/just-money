@@ -287,7 +287,8 @@ def create_project(name: str, language: str = "en", genre: str = "", subgenre: s
     (p / "timeline.json").write_text("[]", encoding="utf-8")
     (p / "project_config.json").write_text(json.dumps({"language": language, "genre": genre, "subgenre": subgenre, "premise": premise}, indent=2), encoding="utf-8")
     return True
-
+
+
 def delete_project(name: str) -> bool:
     """Delete a novel project (cannot delete the last/active one without switching first)."""
     name = name.strip()
@@ -446,6 +447,21 @@ def snapshot_path(n: int) -> Path:
 
 def save_snapshot(n: int, scene_text: str):
     atomic_write(snapshot_path(n), scene_text)
+
+
+def git_commit_scene(n: int, message: str = None):
+    import subprocess
+    base = project_base()
+    if not (base / ".git").exists():
+        return
+    if message is None:
+        message = "scene %02d: accepted" % n
+    try:
+        subprocess.run(["git", "-C", str(base), "add", "-A"], capture_output=True, timeout=30)
+        subprocess.run(["git", "-C", str(base), "commit", "-m", message], capture_output=True, timeout=30)
+    except Exception:
+        pass
+
 
 
 def feedback_path(n: int) -> Path:

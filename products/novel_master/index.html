@@ -58,8 +58,9 @@
   .topbar {
     grid-column: 1 / -1;
     display: flex; align-items: center; gap: var(--sp-3);
-    padding: 0 var(--sp-4); height: 48px;
+    padding: 0 var(--sp-4); height: 52px;
     border-bottom: 1px solid var(--border); background: var(--bg-chrome);
+    backdrop-filter: blur(8px);
   }
   .topbar .wordmark {
     font-size: 12px; font-weight: 600; color: var(--text-muted);
@@ -112,9 +113,11 @@
   /* ── Page (scene prose) ── */
   .page {
     background: var(--bg-page); border-radius: var(--r-lg);
-    padding: var(--sp-5) var(--sp-6); margin-bottom: var(--sp-4);
-    border-inline-start: 1px solid var(--border);
-    max-width: 65ch; margin-inline: auto;
+    padding: var(--sp-6) var(--sp-6) var(--sp-5); margin-bottom: var(--sp-4);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    max-width: 68ch; margin-inline: auto;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 1px rgba(255,255,255,0.06);
   }
   .page-toolbar {
     display: flex; justify-content: flex-end; gap: var(--sp-2);
@@ -129,7 +132,7 @@
   .page-toolbar .save-btn { background: var(--accent); color: var(--accent-text); border: none; font-weight: 600; }
   .page-toolbar .save-btn:hover { opacity: 0.9; }
   .scene {
-    font-family: var(--font-prose); font-size: 18px; line-height: 1.75;
+    font-family: var(--font-prose); font-size: 19px; line-height: 1.8;
     color: var(--text); white-space: pre-wrap; word-wrap: break-word;
     padding: var(--sp-2) 0;
   }
@@ -169,6 +172,28 @@
     border: 1px solid var(--accent); border-radius: var(--r-md);
     margin-bottom: var(--sp-3); display: none;
   }
+  #globalLoading {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; backdrop-filter: blur(2px);
+  }
+  #globalLoading .spinner-box {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: var(--sp-6); text-align: center;
+    min-width: 200px;
+  }
+  #globalLoading .spinner-text {
+    font-size: 14px; color: var(--text); margin-bottom: var(--sp-3);
+  }
+  #globalLoading .spinner-sub {
+    font-size: 12px; color: var(--text-muted);
+  }
+  .spinner {
+    width: 32px; height: 32px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto var(--sp-3);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ── Recon panel ── */
   .recon {
@@ -452,7 +477,39 @@
   }
   .context-menu button:hover { background: var(--bg-page); }
 
+  .action-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-5); cursor: pointer; text-align: start; color: var(--text);
+    transition: border-color 150ms ease-out, transform 100ms ease-out, background-color 100ms ease-out;
+  }
+  .action-card:hover { border-color: var(--accent); transform: translateY(-2px); background: var(--bg-page); }
+  .action-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .project-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--sp-4); cursor: pointer; text-align: start; color: var(--text);
+    transition: border-color 100ms ease-out, background-color 100ms ease-out; position: relative;
+  }
+  .project-card:hover { border-color: var(--accent); background: var(--bg-page); }
+  .project-card .pc-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .project-card .pc-genre { font-size: 11px; color: var(--accent); background: oklch(0.20 0.04 70); padding: 1px 6px; border-radius: 3px; display: inline-block; margin-bottom: var(--sp-1); }
+  .project-card .pc-meta { font-size: 12px; color: var(--text-muted); margin-bottom: var(--sp-1); font-variant-numeric: tabular-nums; }
+  .project-card .pc-preview { font-size: 12px; color: var(--text-muted); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .project-card .pc-more { position: absolute; top: var(--sp-2); right: var(--sp-2); background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 12px; padding: 2px 6px; opacity: 0; transition: opacity 100ms; }
+  .project-card:hover .pc-more { opacity: 1; }
+  .project-card .pc-more:focus { opacity: 1; }
+  .project-cards.highlight { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--r-lg); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-5); max-width: 560px; width: 90vw; max-height: 80vh; overflow-y: auto; }
+  .modal h2 { font-size: 18px; margin-bottom: var(--sp-4); color: var(--text); }
+  .modal label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: var(--sp-1); text-transform: uppercase; letter-spacing: 0.04em; }
+  .modal input, .modal select, .modal textarea { width: 100%; padding: var(--sp-2); background: var(--bg-input); color: var(--text); border: 1px solid var(--border); border-radius: var(--r-sm); font-family: var(--font-ui); font-size: 14px; margin-bottom: var(--sp-3); }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--accent); outline: none; }
+  .modal .btn-row { display: flex; gap: var(--sp-2); justify-content: flex-end; margin-top: var(--sp-3); }
+  .modal .btn-row button { padding: var(--sp-2) var(--sp-4); border: none; border-radius: var(--r-md); cursor: pointer; font-weight: 600; font-size: 14px; }
+  .modal .btn-primary { background: var(--accent); color: var(--accent-text); }
+  .modal .btn-secondary { background: var(--border); color: var(--text); }
   .hidden { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
   .sr-only {
     position: absolute; width: 1px; height: 1px;
     padding: 0; margin: -1px; overflow: hidden;
@@ -462,6 +519,132 @@
 </head>
 <body>
 <a href="#main" class="sr-only">Skip to main content</a>
+<div id="globalLoading"><div class="spinner-box"><div class="spinner"></div><div class="spinner-text" id="globalLoadingText">Working...</div><div class="spinner-sub" id="globalLoadingSub"></div></div></div>
+<!-- ── Home view (project launcher) ── -->
+<div id="homeView" style="display:none; height:100vh; overflow:auto; padding:var(--sp-6); background:var(--bg-chrome);">
+  <div style="max-width:960px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-6);">
+      <span class="wordmark" style="font-size:16px;">Novel Studio</span>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:var(--sp-4); margin-bottom:var(--sp-6);">
+      <div class="action-card" onclick="continueProject()" tabindex="0" role="button" aria-label="Continue most recent project">
+        <div style="font-size:24px; margin-bottom:var(--sp-2);">📖</div>
+        <div style="font-size:16px; font-weight:600; margin-bottom:var(--sp-1);">Continue</div>
+        <div style="font-size:13px; color:var(--text-muted);">Resume your most recent novel.</div>
+      </div>
+      <div class="action-card" onclick="openStartNewModal()" tabindex="0" role="button" aria-label="Start a new novel">
+        <div style="font-size:24px; margin-bottom:var(--sp-2);">✏️</div>
+        <div style="font-size:16px; font-weight:600; margin-bottom:var(--sp-1);">Start New</div>
+        <div style="font-size:13px; color:var(--text-muted);">Create a new novel project.</div>
+      </div>
+      <div class="action-card" onclick="openImproveModal()" tabindex="0" role="button" aria-label="Improve an existing draft">
+        <div style="font-size:24px; margin-bottom:var(--sp-2);">🔧</div>
+        <div style="font-size:16px; font-weight:600; margin-bottom:var(--sp-1);">Improve</div>
+        <div style="font-size:13px; color:var(--text-muted);">Import and refine a rough draft.</div>
+      </div>
+    </div>
+    <div id="homeEmpty" class="empty-state" style="text-align:center; padding:var(--sp-6); display:none;">
+      No projects yet. Start a new novel or import a rough draft.
+    </div>
+    <div style="margin-bottom:var(--sp-4);">
+      <h2 style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:var(--sp-3); border-bottom:1px solid var(--border); padding-bottom:var(--sp-1); font-weight:600;">Recent projects</h2>
+      <div class="project-cards" id="projectCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Improve modal ── -->
+<div id="improveModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:700px;">
+    <h2>Improve a Rough Draft</h2>
+    <div id="improveStep1">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:var(--sp-3);">Paste your rough draft below. The AI will analyze it and help you improve it scene by scene.</p>
+      <textarea id="improveText" rows="10" placeholder="Paste your rough draft here..." style="width:100%; padding:var(--sp-2); background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:var(--font-prose); font-size:14px; resize:vertical;"></textarea>
+      <div id="improveInfo" style="font-size:12px; color:var(--text-muted); margin:var(--sp-2) 0;"></div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="closeImproveModal()">Cancel</button>
+        <button class="btn-primary" onclick="analyzeDraft()">Analyze Draft</button>
+      </div>
+    </div>
+    <div id="improveStep2" style="display:none;">
+      <h3 style="font-size:14px; color:var(--accent); margin-bottom:var(--sp-3);">Analysis Results</h3>
+      <div id="analysisResults" style="font-size:13px; color:var(--text); margin-bottom:var(--sp-3); line-height:1.6;"></div>
+      <h3 style="font-size:14px; color:var(--accent); margin-bottom:var(--sp-2);">What to improve?</h3>
+      <div id="improveOptions" style="margin-bottom:var(--sp-3);">
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="add_details" checked> Add details &amp; description</label>
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="rewrite_dialogue"> Rewrite dialogue</label>
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="fix_continuity"> Fix continuity</label>
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="expand"> Expand scenes</label>
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="tighten_pacing"> Tighten pacing</label>
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="change_tone"> Change tone</label>
+        <label style="display:block; margin:4px 0;"><input type="checkbox" value="add_characters"> Add characters</label>
+      </div>
+      <div style="margin-bottom:var(--sp-3);">
+        <label style="font-size:12px; color:var(--text-muted);">Custom instruction (optional)</label>
+        <textarea id="improveCustom" rows="2" placeholder="e.g., Make it darker, add more action..." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px;"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="closeImproveModal()">Cancel</button>
+        <button class="btn-primary" onclick="startImprovement()">Start Improvement</button>
+      </div>
+    </div>
+    <div id="improveStep3" style="display:none;">
+      <h3 style="font-size:14px; color:var(--accent); margin-bottom:var(--sp-3);">Improving Scene <span id="improveSceneNum"></span></h3>
+      <div id="improveProgress" style="font-size:13px; color:var(--text-muted); margin-bottom:var(--sp-3);">Preparing...</div>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="closeImproveModal()">Stop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Improve Scene modal ── -->
+<div id="improveSceneModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Improve Scene <span id="improveSceneNum2"></span></h2>
+    <div style="margin-bottom:var(--sp-3);">
+      <label style="display:block; margin:4px 0;"><input type="checkbox" value="add_details" checked> Add details &amp; description</label>
+      <label style="display:block; margin:4px 0;"><input type="checkbox" value="rewrite_dialogue"> Rewrite dialogue</label>
+      <label style="display:block; margin:4px 0;"><input type="checkbox" value="fix_continuity"> Fix continuity</label>
+      <label style="display:block; margin:4px 0;"><input type="checkbox" value="expand"> Expand scenes</label>
+      <label style="display:block; margin:4px 0;"><input type="checkbox" value="tighten_pacing"> Tighten pacing</label>
+      <label style="display:block; margin:4px 0;"><input type="checkbox" value="change_tone"> Change tone</label>
+    </div>
+    <textarea id="improveSceneCustom" rows="2" placeholder="Custom instruction (optional)..." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px; margin-bottom:var(--sp-3);"></textarea>
+    <div id="improveSceneProgress" style="font-size:12px; color:var(--text-muted); margin-bottom:var(--sp-3); display:none;"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeImproveSceneModal()">Cancel</button>
+      <button class="btn-primary" onclick="runImproveScene()">Improve</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Start New modal ── -->
+<div id="startNewModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Start New Novel</h2>
+    <label for="snName">Name</label>
+    <input id="snName" type="text" placeholder="My Novel" />
+    <label for="snLang">Language</label>
+    <select id="snLang">
+      <option value="en">English</option>
+      <option value="ar-eg">Arabic (Egyptian dialect)</option>
+    </select>
+    <label for="snGenre">Genre</label>
+    <select id="snGenre" onchange="onGenreChange()"><option value="">— select —</option></select>
+    <label for="snSubgenre">Subgenre</label>
+    <select id="snSubgenre"><option value="">— select —</option></select>
+    <label for="snPremise">Premise (optional)</label>
+    <textarea id="snPremise" rows="3" placeholder="A brief description of your story idea..."></textarea>
+    <div id="snError" style="color:var(--danger); font-size:12px; margin-bottom:var(--sp-2);"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeStartNewModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitStartNew()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Studio view ── -->
 <div class="layout" id="studioView">
   <header class="topbar">
     <span class="wordmark">Novel Studio</span>
@@ -500,6 +683,7 @@
         <button id="editBtn" onclick="toggleEdit()">Edit</button>
         <button id="saveBtn" class="save-btn" onclick="saveScene()" style="display:none;">Save</button>
         <button id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">Cancel</button>
+        <button onclick="openImproveSceneModal()" style="padding:4px 10px; background:transparent; color:var(--text-muted); border:1px solid var(--border); border-radius:var(--r-sm); cursor:pointer; font-size:12px;">Improve</button>
       </div>
       <div class="scene" id="scene"></div>
       <textarea class="scene-edit" id="sceneEdit"></textarea>
@@ -634,6 +818,15 @@
 <script>
 /* ── Utilities ── */
 function esc(v){ const d=document.createElement('div'); d.textContent=(v==null?'':String(v)); return d.innerHTML; }
+function showLoading(text, sub){
+  const el = document.getElementById('globalLoading');
+  document.getElementById('globalLoadingText').textContent = text || 'Working...';
+  document.getElementById('globalLoadingSub').textContent = sub || '';
+  el.style.display = 'flex';
+}
+function hideLoading(){
+  document.getElementById('globalLoading').style.display = 'none';
+}
 
 /* ── State ── */
 let lastChoices = [];
@@ -791,11 +984,13 @@ async function saveScene(){
 /* ── Feedback ── */
 function showFeedback(n){ feedbackScene=n; document.getElementById('feedbackRow').style.display='block'; }
 function submitFeedback(){
+  showLoading('Saving feedback...', '');
   const rating = parseInt(document.getElementById('rating').value) || 7;
   const text = document.getElementById('fbText').value.trim();
   fetch('/api/feedback', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:feedbackScene, rating, text})})
     .then(r=>r.json()).then(d=>{ if(d.ok){ alert('Feedback saved for scene '+feedbackScene); document.getElementById('fbText').value=''; } else { alert('Error saving feedback'); } })
-    .catch(e=>alert('Request failed: '+e));
+    .catch(e=>alert('Request failed: '+e))
+    .finally(()=>hideLoading());
 }
 
 /* ── Reconciliation ── */
@@ -836,6 +1031,7 @@ function showRecon(prop){
 }
 async function applyProposals(){
   if(!currentRecon) return;
+  showLoading('Applying proposals...', 'Rebuilding state from event log.');
   const proposals = currentRecon.proposals.map((p,i)=>{
     const cb = document.querySelector('.propcb[data-idx="'+i+'"]');
     return Object.assign({}, p, {accepted: cb ? cb.checked : false});
@@ -849,6 +1045,7 @@ async function applyProposals(){
   currentRecon = null;
   document.getElementById('recon').classList.add('hidden');
   await loadStatus();
+  hideLoading();
 }
 function discardRecon(){
   currentRecon = null;
@@ -952,6 +1149,7 @@ function stopTimer(){
 
 /* ── Rebuild state ── */
 async function rebuildState(){
+  showLoading('Rebuilding state...', 'Reading event log.');
   const r = await fetch('/api/rebuild_state', {method:'POST'});
   const d = await r.json();
   if(d.ok){ renderState(d.state); alert('State rebuilt from event log.'); }
@@ -1060,6 +1258,7 @@ function onProjectCardKey(e, card){
 async function deleteProjectByName(name){
   if(!name) return;
   if(!confirm('Delete novel "'+name+'"? This cannot be undone.')) return;
+  showLoading('Deleting project...', '');
   try {
     const r = await fetch('/api/delete_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
     const d = await r.json();
@@ -1100,7 +1299,7 @@ function hideContextMenu(){
   if(ctxKeyHandler){ document.removeEventListener('keydown', ctxKeyHandler); ctxKeyHandler = null; }
 }
 
-function ctxKeyHandler(e){ if(e.key === 'Escape'){ hideContextMenu(); } }
+
 async function openProject(name){
   await switchProject(name);
   location.hash = '#/studio';
@@ -1128,30 +1327,37 @@ async function startNewProject(){
 }
 function improveStub(){ alert('Coming soon'); }
 async function switchProject(name){
+  showLoading('Switching project...', '');
   const r = await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
   const d = await r.json();
   if(d.ok){ await loadBranches(); await loadStatus(); }
   else { alert('Switch failed: '+(d.error||'unknown')); await loadProjects(); }
+  hideLoading();
 }
 async function newProject(){
+  showLoading('Creating project...', '');
   const name = prompt('New novel name:');
-  if(!name) return false;
+  if(!name){ hideLoading(); return false; }
   const lang = prompt('Language? (en = English, ar-eg = Arabic Egyptian dialect)', 'en');
-  if(lang === null) return false;
+  if(lang === null){ hideLoading(); return false; }
   const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, language: lang.trim()||'en'})});
   const d = await r.json();
-  if(d.ok){ await loadProjects(); await loadStatus(); return true; }
-  else { alert('Create failed: '+(d.error||'unknown')); return false; }
+  if(d.ok){ await loadProjects(); await loadStatus(); hideLoading(); return true; }
+  else { alert('Create failed: '+(d.error||'unknown')); hideLoading(); return false; }
 }
 async function deleteProject(){
   const sel = document.getElementById('projectSelect');
   const name = sel.value;
   if(!name){ alert('No project selected.'); return; }
-  if(!confirm('Delete novel "'+name+'"? This cannot be undone.')) return;
+  const typed = prompt('Type the project name to confirm deletion:\n\n'+name);
+  if(typed !== name){ alert('Name does not match. Deletion cancelled.'); return; }
+  showLoading('Deleting project...', '');
+  if(!confirm('Are you sure? This cannot be undone.')){ hideLoading(); return; }
   const r = await fetch('/api/delete_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
   const d = await r.json();
   if(d.ok){ await loadProjects(); await loadStatus(); alert('Deleted "'+name+'".'); }
   else { alert('Delete failed: '+(d.error||'unknown')); }
+  hideLoading();
 }
 async function loadBranches(){
   const r = await fetch('/api/branches');
@@ -1166,10 +1372,12 @@ async function loadBranches(){
   });
 }
 async function switchBranch(name){
+  showLoading('Switching branch...', '');
   const r = await fetch('/api/switch_branch', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
   const d = await r.json();
   if(d.ok){ await loadStatus(); }
   else { alert('Switch failed: '+(d.error||'unknown')); await loadBranches(); }
+  hideLoading();
 }
 async function newBranch(){
   const name = prompt('New branch name (no spaces):');
@@ -1291,13 +1499,13 @@ function skipDefaults(e){
 
 /* ── Routing ── */
 function showHome(){
-  document.getElementById('studioView').classList.add('hidden');
-  document.getElementById('homeView').classList.remove('hidden');
+  document.getElementById('homeView').style.display = 'block';
+  document.getElementById('studioView').style.display = 'none';
   loadHomeProjects();
 }
 function showStudio(){
-  document.getElementById('homeView').classList.add('hidden');
-  document.getElementById('studioView').classList.remove('hidden');
+  document.getElementById('homeView').style.display = 'none';
+  document.getElementById('studioView').style.display = 'block';
 }
 function route(){
   const h = location.hash;
@@ -1308,6 +1516,68 @@ function route(){
   }
 }
 window.addEventListener('hashchange', route);
+
+/* ── Init ── */
+/* ── Home view functions ── */
+async 
+/* ── Improve modal ── */
+function openImproveModal(){ 
+  document.getElementById('improveModal').classList.remove('hidden');
+  document.getElementById('improveStep1').style.display = 'block';
+  document.getElementById('improveStep2').style.display = 'none';
+  document.getElementById('improveStep3').style.display = 'none';
+}
+function closeImproveModal(){ document.getElementById('improveModal').classList.add('hidden'); }
+async function analyzeDraft(){
+  const text = document.getElementById('improveText').value.trim();
+  if(!text){ alert('Paste your draft first.'); return; }
+  const info = document.getElementById('improveInfo');
+  info.textContent = 'Analyzing... (' + text.split(/\s+/).length + ' words)';
+  try {
+    const r = await fetch('/api/analyze_novel', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+    const d = await r.json();
+    if(d.error){ alert('Analysis failed: '+d.error); info.textContent = ''; return; }
+    let html = '';
+    if(d.structure) html += '<b>Structure:</b> ' + esc(d.structure) + '<br>';
+    if(d.pacing) html += '<b>Pacing:</b> ' + esc(d.pacing) + '<br>';
+    if(d.voices) html += '<b>Voices:</b> ' + esc(d.voices) + '<br>';
+    if(d.avg_sentence_length) html += '<b>Avg sentence length:</b> ' + d.avg_sentence_length + ' words<br>';
+    if(d.dialogue_ratio_pct !== undefined) html += '<b>Dialogue ratio:</b> ' + d.dialogue_ratio_pct + '%<br>';
+    if(d.top_words && d.top_words.length) html += '<b>Top words:</b> ' + d.top_words.map(esc).join(', ') + '<br>';
+    if(d.plot_threads && d.plot_threads.length) html += '<b>Plot threads:</b> ' + (Array.isArray(d.plot_threads) ? d.plot_threads.map(esc).join('; ') : esc(d.plot_threads)) + '<br>';
+    if(d.weak_points && d.weak_points.length) html += '<b>Weak points:</b> ' + (Array.isArray(d.weak_points) ? d.weak_points.map(esc).join('; ') : esc(d.weak_points)) + '<br>';
+    if(d.strengths && d.strengths.length) html += '<b>Strengths:</b> ' + (Array.isArray(d.strengths) ? d.strengths.map(esc).join('; ') : esc(d.strengths)) + '<br>';
+    if(d.word_count) html += '<b>Word count:</b> ' + d.word_count + ' (~' + (d.estimated_scenes||'?') + ' scenes)';
+    if(d.llm_enhanced) html += ' <span style="color:var(--success);">(AI-enhanced)</span>';
+    document.getElementById('analysisResults').innerHTML = html;
+    document.getElementById('improveStep1').style.display = 'none';
+    document.getElementById('improveStep2').style.display = 'block';
+  } catch(e){ alert('Analysis failed: '+e); info.textContent = ''; }
+  finally { hideLoading(); }
+}
+async function startImprovement(){
+  const text = document.getElementById('improveText').value.trim();
+  if(!text){ alert('No draft text.'); return; }
+  showLoading('Importing novel...', 'Splitting into scenes and creating project.');
+  // get selected options
+  const opts = [];
+  document.querySelectorAll('#improveOptions input:checked').forEach(cb=>opts.push(cb.value));
+  const custom = document.getElementById('improveCustom').value.trim();
+  if(custom) opts.push('custom');
+  // import the novel first
+  const name = 'improved_' + Date.now();
+  const ir = await fetch('/api/import_novel', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, name})});
+  const id = await ir.json();
+  if(!id.ok){ alert('Import failed: '+(id.error||'unknown')); return; }
+  // switch to the new project
+  await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name: id.name})});
+  await loadProjects();
+  location.hash = '#/studio';
+  await loadStatus();
+  closeImproveModal();
+  hideLoading();
+  alert('Imported "' + id.name + '" with ' + id.scene_count + ' scenes. Navigate to each scene and use "Improve scene" to refine. (Scene-by-scene improvement coming soon.)');
+}
 
 /* ── Init ── */
 async function loadLore(){
@@ -1329,11 +1599,13 @@ function cancelLoreEdit(){
   document.getElementById('loreBtns').style.display = 'none';
 }
 async function saveLore(){
+  showLoading('Saving lore...', '');
   const text = document.getElementById('loreEdit').value;
   const r = await fetch('/api/save_lore', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
   const d = await r.json();
   if(d.ok){ cancelLoreEdit(); loadLore(); alert('Lore saved.'); }
   else { alert('Save failed: '+(d.error||'unknown')); }
+  hideLoading();
 }
 async function toggleCharsEdit(){
   const view = document.getElementById('chars');
@@ -1351,11 +1623,66 @@ function cancelCharsEdit(){
   loadStatus();
 }
 async function saveChars(){
+  showLoading('Saving characters...', '');
   const text = document.getElementById('charsEdit').value;
   const r = await fetch('/api/save_characters', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
   const d = await r.json();
   if(d.ok){ cancelCharsEdit(); loadStatus(); alert('Characters saved.'); }
   else { alert('Save failed: '+(d.error||'unknown')); }
+  hideLoading();
+}
+function openImproveSceneModal(){
+  if(!currentScene){ alert('No scene selected.'); return; }
+  document.getElementById('improveSceneNum').textContent = currentScene;
+  document.getElementById('improveSceneNum2').textContent = currentScene;
+  document.getElementById('improveSceneModal').classList.remove('hidden');
+}
+function closeImproveSceneModal(){
+  document.getElementById('improveSceneModal').classList.add('hidden');
+}
+async function runImproveScene(){
+  showLoading('Improving scene...', 'This may take 1-2 minutes on free models.');
+  const opts = [];
+  document.querySelectorAll('#improveSceneModal input:checked').forEach(cb=>opts.push(cb.value));
+  const custom = document.getElementById('improveSceneCustom').value.trim();
+  if(custom) opts.push('custom');
+  const progress = document.getElementById('improveSceneProgress');
+  progress.style.display = 'block';
+  progress.textContent = 'Improving scene ' + currentScene + '... (1-2 min)';
+  try {
+    const r = await fetch('/api/improve_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, options:opts, direction:custom})});
+    const d = await r.json();
+    if(d.error){ alert('Improve failed: '+d.error); progress.style.display='none'; return; }
+    // show original vs improved in recon panel
+    const el = document.getElementById('reconBody');
+    let html = '<div class="summary"><b>Improved Scene ' + d.scene + '</b></div>';
+    html += '<div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Original length: ' + d.original.length + ' chars → Improved: ' + d.improved.length + ' chars</div>';
+    html += '<div style="margin:8px 0; padding:8px; background:var(--bg-page); border-radius:4px; font-family:var(--font-prose); font-size:14px; white-space:pre-wrap; max-height:60vh; overflow:auto;">' + esc(d.improved) + '</div>';
+    html += '<div style="margin-top:8px; display:flex; gap:8px;">';
+    html += '<button onclick="acceptImproved(' + d.scene + ')" style="padding:6px 12px; background:var(--success); color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:600;">Accept (replace scene)</button>';
+    html += '<button onclick="closeImproveSceneModal()" style="padding:6px 12px; background:var(--border); color:var(--text); border:none; border-radius:4px; cursor:pointer;">Reject</button>';
+    html += '</div>';
+    el.innerHTML = html;
+    document.getElementById('recon').classList.remove('hidden');
+    // store improved text for acceptance
+    window._improvedText = d.improved;
+    window._improvedScene = d.scene;
+    progress.style.display = 'none';
+    closeImproveSceneModal();
+  } catch(e){ alert('Improve failed: '+e); progress.style.display='none'; }
+  finally { hideLoading(); }
+}
+async function acceptImproved(n){
+  const text = window._improvedText;
+  if(!text) return;
+  const r = await fetch('/api/save_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:n, text})});
+  const d = await r.json();
+  if(d.ok){
+    renderScene(text);
+    document.getElementById('recon').classList.add('hidden');
+    alert('Scene ' + n + ' replaced with improved version.');
+    if(d.dirty) await checkEdits();
+  } else { alert('Save failed: '+(d.error||'unknown')); }
 }
 async function loadStatus(){
   const r = await fetch('/api/status');
