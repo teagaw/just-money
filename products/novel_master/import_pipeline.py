@@ -148,7 +148,7 @@ def analyze_novel(text: str) -> dict:
     return result
 
 
-def improve_scene(n: int, options: list, direction: str = "") -> dict:
+def improve_scene(n: int, options: list, direction: str = "", level: str = "developmental") -> dict:
     base = studio.project_base()
     scene_path = base / "scenes" / ("scene_%02d.md" % n)
     if not scene_path.exists():
@@ -178,7 +178,15 @@ def improve_scene(n: int, options: list, direction: str = "") -> dict:
     instructions = [option_map.get(o, o) for o in options if o in option_map]
     if direction:
         instructions.append(direction)
+    level_focus = {
+        "developmental": "Focus on structure, pacing, and character development.",
+        "line": "Focus on prose quality, voice, and rhythm. Polish the writing.",
+        "copyedit": "Fix grammar, consistency, and formatting. Keep changes minimal.",
+        "proofread": "Fix typos, punctuation, and surface errors only. Minimal changes.",
+    }.get(level, "")
     improve_dir = "Improve this scene. " + " ".join(instructions) if instructions else "Improve this scene's prose quality."
+    if level_focus:
+        improve_dir += " " + level_focus
 
     snap = base / "scenes" / ("scene_%02d_snapshot.md" % n)
     if not snap.exists():

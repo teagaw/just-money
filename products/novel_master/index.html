@@ -52,7 +52,7 @@
   .layout {
     display: grid;
     grid-template-columns: 1fr 360px;
-    grid-template-rows: 48px 1fr;
+    grid-template-rows: 52px 1fr;
     height: 100vh;
   }
   .topbar {
@@ -104,10 +104,12 @@
   .left {
     padding: var(--sp-5) var(--sp-5); overflow-y: auto;
     border-right: 1px solid var(--border); background: var(--bg-chrome);
+    min-height: 0;
   }
   .right {
     padding: var(--sp-3); overflow-y: auto;
     background: var(--bg-card); font-size: 13px;
+    min-height: 0;
   }
 
   /* ── Page (scene prose) ── */
@@ -550,6 +552,88 @@
       <h2 style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:var(--sp-3); border-bottom:1px solid var(--border); padding-bottom:var(--sp-1); font-weight:600;">Recent projects</h2>
       <div class="project-cards" id="projectCards"></div>
     </div>
+    <div style="margin-bottom:var(--sp-4);">
+      <h2 style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:var(--sp-3); border-bottom:1px solid var(--border); padding-bottom:var(--sp-1); font-weight:600;">Skills <button onclick="showSkillsModal()" style="float:right; padding:2px 8px; background:transparent; color:var(--accent); border:1px solid var(--accent); border-radius:3px; cursor:pointer; font-size:11px; text-transform:none; letter-spacing:0;">+ Add Skill</button></h2>
+      <div id="homeSkillsList" style="font-size:13px; color:var(--text-muted);"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Skills modal ── -->
+<div id="skillsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Skills</h2>
+    <div id="skillsModalList" style="margin-bottom:var(--sp-3); max-height:200px; overflow:auto;"></div>
+    <h3 style="font-size:13px; color:var(--accent); margin:var(--sp-3) 0 var(--sp-2);">Add / Edit Skill</h3>
+    <label>Name</label>
+    <input id="skillName" type="text" placeholder="e.g. Short Sentences" />
+    <label>Trigger (keyword, genre, or 'always')</label>
+    <input id="skillTrigger" type="text" placeholder="e.g. action, Fantasy, always" />
+    <label>Active</label>
+    <select id="skillActive"><option value="true">Yes</option><option value="false">No</option></select>
+    <label>Instructions (markdown)</label>
+    <textarea id="skillBody" rows="6" placeholder="Write in short sentences. Avoid adverbs. Show don't tell." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:var(--font-ui); font-size:13px; resize:vertical;"></textarea>
+    <input type="hidden" id="skillFilename" value="" />
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeSkillsModal()">Close</button>
+      <button class="btn-danger" onclick="deleteSkill()" style="background:var(--danger); color:#fff;">Delete</button>
+      <button class="btn-primary" onclick="saveSkill()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Hints modal ── -->
+<div id="hintsModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Hints (Foreshadowing Ledger)</h2>
+    <div id="hintsModalList" style="margin-bottom:var(--sp-3); max-height:200px; overflow:auto;"></div>
+    <h3 style="font-size:13px; color:var(--accent); margin:var(--sp-3) 0 var(--sp-2);">Add / Edit Hint</h3>
+    <label>ID</label>
+    <input id="hintId" type="text" placeholder="e.g. locket-origin" />
+    <label>Surface text (what the reader sees)</label>
+    <input id="hintSurface" type="text" placeholder="e.g. Greta wears a locket" />
+    <label>Author truth (what it really means)</label>
+    <textarea id="hintTruth" rows="2" placeholder="e.g. The locket belonged to the antagonist's mother" style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px; resize:vertical;"></textarea>
+    <label>Planted in scene</label>
+    <input id="hintPlanted" type="number" min="1" value="1" />
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeHintsModal()">Close</button>
+      <button class="btn-danger" onclick="deleteHint()" style="background:var(--danger); color:#fff;">Delete</button>
+      <button class="btn-primary" onclick="saveHint()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Style from Samples modal ── -->
+<div id="styleModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>Create Style from Samples</h2>
+    <label>Name</label>
+    <input id="styleName" type="text" placeholder="e.g. My Voice" />
+    <label>Paste 3-5 paragraphs of your writing</label>
+    <textarea id="styleSamples" rows="10" placeholder="Paste your prose here..." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:var(--font-prose); font-size:14px; resize:vertical;"></textarea>
+    <div id="styleProgress" style="font-size:12px; color:var(--text-muted); margin:var(--sp-2) 0; display:none;">Analyzing...</div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeStyleModal()">Cancel</button>
+      <button class="btn-primary" onclick="createStyle()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Scene modal ── -->
+<div id="addSceneModal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:700px;">
+    <h2>Add New Scene</h2>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:var(--sp-3);">Paste a draft below. Optionally improve it before adding to this project.</p>
+    <textarea id="addSceneText" rows="8" placeholder="Paste your draft here..." style="width:100%; padding:var(--sp-2); background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:var(--font-prose); font-size:14px; resize:vertical;"></textarea>
+    <div style="margin:var(--sp-2) 0;">
+      <label style="font-size:12px; color:var(--text-muted);"><input type="checkbox" id="addSceneImprove" checked> Improve with AI</label>
+    </div>
+    <div id="addSceneProgress" style="font-size:12px; color:var(--text-muted); margin-bottom:var(--sp-3); display:none;"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeAddSceneModal()">Cancel</button>
+      <button class="btn-primary" onclick="runAddScene()">Add Scene</button>
+    </div>
   </div>
 </div>
 
@@ -610,36 +694,20 @@
       <label style="display:block; margin:4px 0;"><input type="checkbox" value="tighten_pacing"> Tighten pacing</label>
       <label style="display:block; margin:4px 0;"><input type="checkbox" value="change_tone"> Change tone</label>
     </div>
-    <textarea id="improveSceneCustom" rows="2" placeholder="Custom instruction (optional)..." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px; margin-bottom:var(--sp-3);"></textarea>
+    <div style="margin-bottom:var(--sp-3);">
+    <label style="font-size:12px; color:var(--text-muted);">Critique level</label>
+    <select id="improveSceneLevel" style="width:100%; padding:6px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-size:13px;">
+      <option value="developmental">Developmental (structure, pacing, arcs)</option>
+      <option value="line">Line edit (prose, voice, rhythm)</option>
+      <option value="copyedit">Copyedit (grammar, consistency)</option>
+      <option value="proofread">Proofread (typos, surface only)</option>
+    </select>
+  </div>
+  <textarea id="improveSceneCustom" rows="2" placeholder="Custom instruction (optional)..." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px; margin-bottom:var(--sp-3);"></textarea>
     <div id="improveSceneProgress" style="font-size:12px; color:var(--text-muted); margin-bottom:var(--sp-3); display:none;"></div>
     <div class="btn-row">
       <button class="btn-secondary" onclick="closeImproveSceneModal()">Cancel</button>
       <button class="btn-primary" onclick="runImproveScene()">Improve</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Start New modal ── -->
-<div id="startNewModal" class="modal-overlay hidden">
-  <div class="modal">
-    <h2>Start New Novel</h2>
-    <label for="snName">Name</label>
-    <input id="snName" type="text" placeholder="My Novel" />
-    <label for="snLang">Language</label>
-    <select id="snLang">
-      <option value="en">English</option>
-      <option value="ar-eg">Arabic (Egyptian dialect)</option>
-    </select>
-    <label for="snGenre">Genre</label>
-    <select id="snGenre" onchange="onGenreChange()"><option value="">— select —</option></select>
-    <label for="snSubgenre">Subgenre</label>
-    <select id="snSubgenre"><option value="">— select —</option></select>
-    <label for="snPremise">Premise (optional)</label>
-    <textarea id="snPremise" rows="3" placeholder="A brief description of your story idea..."></textarea>
-    <div id="snError" style="color:var(--danger); font-size:12px; margin-bottom:var(--sp-2);"></div>
-    <div class="btn-row">
-      <button class="btn-secondary" onclick="closeStartNewModal()">Cancel</button>
-      <button class="btn-primary" onclick="submitStartNew()">Create</button>
     </div>
   </div>
 </div>
@@ -683,6 +751,7 @@
         <button id="editBtn" onclick="toggleEdit()">Edit</button>
         <button id="saveBtn" class="save-btn" onclick="saveScene()" style="display:none;">Save</button>
         <button id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">Cancel</button>
+        <button onclick="showAddSceneModal()">+ Add Scene</button>
         <button onclick="openImproveSceneModal()" style="padding:4px 10px; background:transparent; color:var(--text-muted); border:1px solid var(--border); border-radius:var(--r-sm); cursor:pointer; font-size:12px;">Improve</button>
       </div>
       <div class="scene" id="scene"></div>
@@ -739,39 +808,18 @@
       <div id="events"><div class="empty-state">No events recorded yet.</div></div>
     </div>
     <div class="section">
-      <h3>Scenes</h3>
-      <ul class="scene-list" id="scenes"></ul>
+      <h3>Structure <button onclick="addPart()">+ Part</button> <button onclick="addChapter()">+ Chapter</button></h3>
+      <div id="structureTree" style="font-size:12px;"></div>
+    </div>
+    <div class="section">
+      <h3>Skills <button onclick="showSkillsModal()">+ Add</button> <button onclick="showStyleModal()">Create from Samples</button></h3>
+      <div id="skillsList" style="font-size:12px; color:var(--text-muted);"></div>
+    </div>
+    <div class="section">
+      <h3>Hints <button onclick="showHintsModal()">+ Add</button></h3>
+      <div id="hintsList" style="font-size:12px; color:var(--text-muted);"></div>
     </div>
   </aside>
-</div>
-
-<div id="homeView" class="home-view hidden" role="main" aria-label="Home">
-  <header class="home-header">
-    <span class="wordmark">Novel Studio</span>
-    <h1>Home</h1>
-  </header>
-  <section class="home-actions" aria-label="Primary actions">
-    <button class="action-card" onclick="continueProject()" aria-label="Continue most recent project">
-      <h2>Continue</h2>
-      <p>Resume your most recent project</p>
-    </button>
-    <button class="action-card" onclick="openStartNewModal()" aria-label="Start a new novel">
-      <h2>Start New</h2>
-      <p>Create a new novel project</p>
-    </button>
-    <button class="action-card" onclick="improveStub()" aria-label="Improve existing draft (coming soon)">
-      <h2>Improve</h2>
-      <p>Import &amp; analyze a draft (coming soon)</p>
-    </button>
-  </section>
-  <section class="home-projects" id="recentProjects" aria-label="Recent projects">
-    <h2>Recent projects</h2>
-    <div id="projectCards" class="project-cards" role="list"></div>
-    <div id="homeEmpty" class="empty-state hidden">No projects yet. Start a new novel or import a rough draft.</div>
-  </section>
-  <section class="home-quick" aria-label="Quick actions">
-    <button class="quick-btn" onclick="location.hash='#/studio'">Open Studio</button>
-  </section>
 </div>
 
 <div id="startNewModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="snTitle">
@@ -801,6 +849,34 @@
         <label for="snPremise">Premise (optional)</label>
         <textarea id="snPremise" rows="3" placeholder="A short premise..."></textarea>
       </div>
+      <details style="margin:var(--sp-2) 0;">
+        <summary style="cursor:pointer; font-size:12px; color:var(--text-muted);">Advanced options</summary>
+        <div class="field">
+          <label for="snPOV">POV</label>
+          <select id="snPOV">
+            <option value="">— not specified —</option>
+            <option value="first">First person</option>
+            <option value="third-limited">Third person limited</option>
+            <option value="third-omniscient">Third person omniscient</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="snTense">Tense</label>
+          <select id="snTense">
+            <option value="">— not specified —</option>
+            <option value="past">Past tense</option>
+            <option value="present">Present tense</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="snTone">Tone</label>
+          <input id="snTone" type="text" placeholder="e.g. dark, hopeful, gritty" />
+        </div>
+        <div class="field">
+          <label for="snSamples">Writing samples (optional)</label>
+          <textarea id="snSamples" rows="4" placeholder="Paste a few paragraphs of your writing to capture your voice..."></textarea>
+        </div>
+      </details>
       <div class="modal-error" id="snError" role="alert" aria-live="polite"></div>
       <div class="modal-actions">
         <button type="button" id="snCancel" class="btn-secondary">Cancel</button>
@@ -834,6 +910,7 @@ let timerInterval = null;
 let startTime = 0;
 let currentScene = 0;
 let totalScenes = 0;
+let sceneNumbers = [];
 let feedbackScene = 0;
 let editingScene = 0;
 let genAbort = null;
@@ -905,16 +982,150 @@ function renderEvents(events){
     el.appendChild(d);
   });
 }
-function renderScenes(list){
-  const el = document.getElementById('scenes');
+async function addPart(){
+  const name = prompt('Part name:', 'New Part');
+  if(!name) return;
+  const r = await fetch('/api/create_part', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+  const d = await r.json();
+  if(d.ok) await loadStatus();
+  else alert('Failed: '+(d.error||'unknown'));
+}
+async function renamePart(id, name){
+  const r = await fetch('/api/rename_part', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, name})});
+  const d = await r.json();
+  if(d.ok) await loadStatus();
+  else alert('Failed: '+(d.error||'unknown'));
+}
+async function deletePart(id, part){
+  const hasScenes = part.chapters && part.chapters.some(c => c.scenes && c.scenes.length);
+  if(hasScenes){
+    if(!confirm('Part "'+part.name+'" has scenes. Delete part and all its scenes?')) return;
+    const r = await fetch('/api/delete_part', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, delete_scenes:true})});
+    const d = await r.json();
+    if(d.ok) await loadStatus();
+    else alert('Failed: '+(d.error||'unknown'));
+  } else {
+    if(!confirm('Delete part "'+part.name+'"?')) return;
+    const r = await fetch('/api/delete_part', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, delete_scenes:false})});
+    const d = await r.json();
+    if(d.ok) await loadStatus();
+    else alert('Failed: '+(d.error||'unknown'));
+  }
+}
+async function addChapter(){
+  const r = await fetch('/api/structure');
+  const d = await r.json();
+  const parts = d.structure.parts || [];
+  if(!parts.length){ alert('Create a part first.'); return; }
+  let partId = parts[0].id;
+  if(parts.length > 1){
+    const names = parts.map((p,i)=>(i+1)+'. '+p.name).join('\\n');
+    const choice = prompt('Which part?\\n'+names+'\\nEnter number:', '1');
+    const idx = parseInt(choice) - 1;
+    if(isNaN(idx) || idx < 0 || idx >= parts.length) return;
+    partId = parts[idx].id;
+  }
+  const name = prompt('Chapter name:', 'New Chapter');
+  if(!name) return;
+  const r2 = await fetch('/api/create_chapter', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({part_id:partId, name})});
+  const d2 = await r2.json();
+  if(d2.ok) await loadStatus();
+  else alert('Failed: '+(d2.error||'unknown'));
+}
+async function renameChapter(id, name){
+  const r = await fetch('/api/rename_chapter', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, name})});
+  const d = await r.json();
+  if(d.ok) await loadStatus();
+  else alert('Failed: '+(d.error||'unknown'));
+}
+async function deleteChapter(id, ch){
+  const hasScenes = ch.scenes && ch.scenes.length;
+  if(hasScenes){
+    if(!confirm('Chapter "'+ch.name+'" has scenes. Delete chapter and all its scenes?')) return;
+    const r = await fetch('/api/delete_chapter', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, delete_scenes:true})});
+    const d = await r.json();
+    if(d.ok) await loadStatus();
+    else alert('Failed: '+(d.error||'unknown'));
+  } else {
+    if(!confirm('Delete chapter "'+ch.name+'"?')) return;
+    const r = await fetch('/api/delete_chapter', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, delete_scenes:false})});
+    const d = await r.json();
+    if(d.ok) await loadStatus();
+    else alert('Failed: '+(d.error||'unknown'));
+  }
+}
+async function renderStructure(){
+  const el = document.getElementById('structureTree');
   el.innerHTML = '';
-  if(!list || !list.length){ el.innerHTML = '<li class="empty-state">No scenes yet.</li>'; return; }
-  list.forEach((s,i)=>{
-    const li = document.createElement('li');
-    li.textContent = s.replace('.md','');
-    li.onclick = ()=> viewScene(i+1);
-    if(i+1 === currentScene) li.classList.add('active');
-    el.appendChild(li);
+  let struct;
+  try {
+    const r = await fetch('/api/structure');
+    const d = await r.json();
+    struct = d.structure;
+  } catch(e){ el.textContent = 'Failed to load structure.'; return; }
+  if(!struct || !struct.parts || !struct.parts.length){ el.textContent = 'No structure.'; return; }
+  struct.parts.forEach(part=>{
+    const partDiv = document.createElement('div');
+    partDiv.style.marginBottom = '8px';
+    const partHeader = document.createElement('div');
+    partHeader.style.cssText = 'display:flex; align-items:center; gap:4px; font-weight:600; color:var(--accent); cursor:pointer; padding:2px 0;';
+    partHeader.innerHTML = '<span>▼</span> ' + esc(part.name);
+    const partActions = document.createElement('span');
+    partActions.style.cssText = 'margin-left:auto; display:flex; gap:2px;';
+    const renPart = document.createElement('button');
+    renPart.textContent = '✎';
+    renPart.style.cssText = 'background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:11px;';
+    renPart.onclick = (e)=>{ e.stopPropagation(); const n = prompt('Rename part:', part.name); if(n) renamePart(part.id, n); };
+    const delPart = document.createElement('button');
+    delPart.textContent = '×';
+    delPart.style.cssText = 'background:transparent; border:none; color:var(--danger); cursor:pointer; font-size:12px;';
+    delPart.onclick = (e)=>{ e.stopPropagation(); deletePart(part.id, part); };
+    partActions.appendChild(renPart);
+    partActions.appendChild(delPart);
+    partHeader.appendChild(partActions);
+    partDiv.appendChild(partHeader);
+    const chaptersDiv = document.createElement('div');
+    chaptersDiv.style.paddingLeft = '16px';
+    (part.chapters || []).forEach(ch=>{
+      const chDiv = document.createElement('div');
+      chDiv.style.marginBottom = '4px';
+      const chHeader = document.createElement('div');
+      chHeader.style.cssText = 'display:flex; align-items:center; gap:4px; font-weight:500; color:var(--text); cursor:pointer; padding:2px 0;';
+      chHeader.innerHTML = '<span>▼</span> ' + esc(ch.name);
+      const chActions = document.createElement('span');
+      chActions.style.cssText = 'margin-left:auto; display:flex; gap:2px;';
+      const renCh = document.createElement('button');
+      renCh.textContent = '✎';
+      renCh.style.cssText = 'background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:11px;';
+      renCh.onclick = (e)=>{ e.stopPropagation(); const n = prompt('Rename chapter:', ch.name); if(n) renameChapter(ch.id, n); };
+      const delCh = document.createElement('button');
+      delCh.textContent = '×';
+      delCh.style.cssText = 'background:transparent; border:none; color:var(--danger); cursor:pointer; font-size:12px;';
+      delCh.onclick = (e)=>{ e.stopPropagation(); deleteChapter(ch.id, ch); };
+      chActions.appendChild(renCh);
+      chActions.appendChild(delCh);
+      chHeader.appendChild(chActions);
+      chDiv.appendChild(chHeader);
+      const scenesDiv = document.createElement('div');
+      scenesDiv.style.paddingLeft = '16px';
+      (ch.scenes || []).forEach(sn=>{
+        const sceneLi = document.createElement('div');
+        sceneLi.style.cssText = 'display:flex; align-items:center; gap:4px; padding:2px 0; cursor:pointer;';
+        sceneLi.innerHTML = '<span style="color:var(--text-muted);">•</span> Scene ' + sn;
+        if(sn === currentScene) sceneLi.style.color = 'var(--accent)';
+        sceneLi.onclick = ()=> viewScene(sn);
+        const delSc = document.createElement('button');
+        delSc.textContent = '×';
+        delSc.style.cssText = 'background:transparent; border:none; color:var(--danger); cursor:pointer; font-size:12px; padding:0 4px;';
+        delSc.onclick = (e)=>{ e.stopPropagation(); deleteScene(sn); };
+        sceneLi.appendChild(delSc);
+        scenesDiv.appendChild(sceneLi);
+      });
+      chDiv.appendChild(scenesDiv);
+      chaptersDiv.appendChild(chDiv);
+    });
+    partDiv.appendChild(chaptersDiv);
+    el.appendChild(partDiv);
   });
 }
 function renderChecks(checks){
@@ -926,21 +1137,46 @@ function renderChecks(checks){
 
 /* ── Scene navigation ── */
 async function viewScene(n){
-  if(n < 1 || n > totalScenes) return;
+  if(!sceneNumbers.includes(n)) return;
   currentScene = n;
+  // find and set active chapter
+  try {
+    const r = await fetch('/api/structure');
+    const d = await r.json();
+    const struct = d.structure;
+    for(const part of struct.parts){
+      for(const ch of part.chapters){
+        if(ch.scenes && ch.scenes.includes(n)){
+          await fetch('/api/set_active_chapter', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:ch.id})});
+          break;
+        }
+      }
+    }
+  } catch(e){}
   const r = await fetch('/api/scene/'+n);
   const d = await r.json();
   if(d.error){ alert(d.error); return; }
   renderScene(d.scene);
   renderChoices(d.choices || []);
   document.getElementById('sceneSelect').value = String(n);
-  document.getElementById('navLabel').textContent = `Scene ${n} of ${totalScenes}`;
-  document.getElementById('prevBtn').disabled = (n <= 1);
-  document.getElementById('nextBtn').disabled = (n >= totalScenes);
+  const idx = sceneNumbers.indexOf(n);
+  document.getElementById('navLabel').textContent = `Scene ${n} of ${sceneNumbers.length}`;
+  document.getElementById('prevBtn').disabled = (idx <= 0);
+  document.getElementById('nextBtn').disabled = (idx >= sceneNumbers.length - 1);
   showFeedback(n);
 }
-function prevScene(){ if(currentScene>1) viewScene(currentScene-1); }
-function nextScene(){ if(currentScene<totalScenes) viewScene(currentScene+1); }
+async function deleteScene(n){
+  if(!confirm('Delete scene ' + n + '? This cannot be undone.')) return;
+  showLoading('Deleting scene...', '');
+  try {
+    const r = await fetch('/api/delete_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:n})});
+    const d = await r.json();
+    if(!d.ok){ alert('Delete failed: '+(d.error||'unknown')); return; }
+    await loadStatus();
+  } catch(e){ alert('Delete failed: '+e); }
+  finally { hideLoading(); }
+}
+function nextScene(){ const idx = sceneNumbers.indexOf(currentScene); if(idx >= 0 && idx < sceneNumbers.length - 1) viewScene(sceneNumbers[idx+1]); }
 
 /* ── Edit mode ── */
 function toggleEdit(){
@@ -1093,15 +1329,15 @@ async function generate(){
           renderEvents(obj.events);
           renderChecks(obj.checks);
           const st = await (await fetch('/api/status')).json();
-          renderStatus(st); renderScenes(st.scenes);
-          totalScenes = st.scene_count;
+          renderStatus(st); renderStructure();
+          sceneNumbers = (st.scenes || []).map(s => parseInt(s.match(/scene_(\d+)\.md/)[1]));
+          totalScenes = sceneNumbers.length;
           const sel = document.getElementById('sceneSelect');
           sel.innerHTML = '';
-          for(let i=1;i<=totalScenes;i++){ const o=document.createElement('option'); o.value=i; o.textContent='Scene '+i; sel.appendChild(o); }
-          currentScene = totalScenes;
-          document.getElementById('sceneSelect').value = String(totalScenes);
-          document.getElementById('navLabel').textContent = `Scene ${totalScenes} of ${totalScenes}`;
-          showFeedback(totalScenes);
+          sceneNumbers.forEach(num => { const o = document.createElement('option'); o.value = num; o.textContent = 'Scene ' + num; sel.appendChild(o); });
+          const lastNum = sceneNumbers.length ? sceneNumbers[sceneNumbers.length - 1] : 0;
+          currentScene = lastNum;
+          if(lastNum){ document.getElementById('sceneSelect').value = String(lastNum); document.getElementById('navLabel').textContent = `Scene ${lastNum} of ${totalScenes}`; document.getElementById('prevBtn').disabled = (sceneNumbers.indexOf(lastNum) <= 0); document.getElementById('nextBtn').disabled = true; showFeedback(lastNum); }
           document.getElementById('direction').value = '';
           document.getElementById('brief').value = '';
         } else if(obj.type === 'error'){
@@ -1170,7 +1406,7 @@ async function loadProjects(){
   });
 }
 let homeProjects = [];
-let ctxTargetName = null;
+window.ctxTargetName = null;
 let ctxOutsideHandler = null;
 let ctxKeyHandler = null;
 
@@ -1199,7 +1435,7 @@ async function loadHomeProjects(){
     const preview = (p.last_scene_preview || '').slice(0,80);
     const modified = p.last_modified ? new Date(p.last_modified).toLocaleString() : '';
     card.innerHTML = `
-      <span role="button" tabindex="0" class="pc-more" aria-label="Project actions for ${esc(p.name)}" data-name="${esc(p.name)}" onclick="event.stopPropagation(); showContextMenu(event, '${esc(p.name)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.stopPropagation();event.preventDefault();showContextMenu(event,'${esc(p.name)}');}">⋯</span>
+      <span role="button" tabindex="0" class="pc-more" aria-label="Project actions for ${esc(p.name)}" data-name="${esc(p.name)}" onkeydown="if(event.key==='Enter'||event.key===' '){event.stopPropagation();event.preventDefault();const r=this.getBoundingClientRect();showContextMenu(r.left,r.bottom+4,'${esc(p.name)}');}">⋯</span>
       <div class="pc-name">${esc(p.name)}</div>
       ${genre ? `<span class="pc-genre">${esc(genre)}</span>` : ''}
       <div class="pc-meta">${esc(p.scene_count)} scenes · ${esc(modified)}</div>
@@ -1272,7 +1508,7 @@ async function deleteProjectByName(name){
 }
 function showContextMenu(x, y, name){
   const menu = document.getElementById('contextMenu');
-  ctxTargetName = name;
+  window.ctxTargetName = name;
   // position with viewport clamp
   const mw = 140, mh = 40;
   let left = x, top = y;
@@ -1283,7 +1519,7 @@ function showContextMenu(x, y, name){
   menu.classList.remove('hidden');
   // wire delete
   const btn = document.getElementById('ctxDelete');
-  btn.onclick = ()=>{ hideContextMenu(); deleteProjectByName(ctxTargetName); };
+  btn.onclick = ()=>{ hideContextMenu(); deleteProjectByName(window.ctxTargetName); };
   // outside click / escape
   const onOutside = (e)=>{ if(!document.getElementById('contextMenu').contains(e.target)) hideContextMenu(); };
   const onKey = (e)=>{ if(e.key === 'Escape') hideContextMenu(); };
@@ -1294,7 +1530,7 @@ function showContextMenu(x, y, name){
 }
 function hideContextMenu(){
   document.getElementById('contextMenu').classList.add('hidden');
-  ctxTargetName = null;
+  window.ctxTargetName = null;
   if(ctxOutsideHandler){ document.removeEventListener('click', ctxOutsideHandler); ctxOutsideHandler = null; }
   if(ctxKeyHandler){ document.removeEventListener('keydown', ctxKeyHandler); ctxKeyHandler = null; }
 }
@@ -1349,10 +1585,8 @@ async function deleteProject(){
   const sel = document.getElementById('projectSelect');
   const name = sel.value;
   if(!name){ alert('No project selected.'); return; }
-  const typed = prompt('Type the project name to confirm deletion:\n\n'+name);
-  if(typed !== name){ alert('Name does not match. Deletion cancelled.'); return; }
+  if(!confirm('Delete project "'+name+'"? This cannot be undone.')){ return; }
   showLoading('Deleting project...', '');
-  if(!confirm('Are you sure? This cannot be undone.')){ hideLoading(); return; }
   const r = await fetch('/api/delete_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
   const d = await r.json();
   if(d.ok){ await loadProjects(); await loadStatus(); alert('Deleted "'+name+'".'); }
@@ -1466,11 +1700,15 @@ async function submitStartNew(e){
   const genre = document.getElementById('snGenre').value;
   const subgenre = document.getElementById('snSubgenre').value;
   const premise = document.getElementById('snPremise').value.trim();
+  const pov = document.getElementById('snPOV').value;
+  const tense = document.getElementById('snTense').value;
+  const tone = document.getElementById('snTone').value.trim();
+  const samples = document.getElementById('snSamples').value.trim();
   const btn = document.getElementById('snCreate');
   btn.disabled = true;
   try {
     const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name, language, genre, subgenre, premise})});
+      body: JSON.stringify({name, language, genre, subgenre, premise, pov, tense, tone, samples})});
     const d = await r.json();
     if(d.ok){
       closeStartNewModal(true);
@@ -1505,7 +1743,7 @@ function showHome(){
 }
 function showStudio(){
   document.getElementById('homeView').style.display = 'none';
-  document.getElementById('studioView').style.display = 'block';
+  document.getElementById('studioView').style.display = 'grid';
 }
 function route(){
   const h = location.hash;
@@ -1517,9 +1755,6 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 
-/* ── Init ── */
-/* ── Home view functions ── */
-async 
 /* ── Improve modal ── */
 function openImproveModal(){ 
   document.getElementById('improveModal').classList.remove('hidden');
@@ -1640,17 +1875,287 @@ function openImproveSceneModal(){
 function closeImproveSceneModal(){
   document.getElementById('improveSceneModal').classList.add('hidden');
 }
+function showAddSceneModal(){ document.getElementById('addSceneModal').classList.remove('hidden'); }
+function closeAddSceneModal(){ document.getElementById('addSceneModal').classList.add('hidden'); }
+async function runAddScene(){
+  const text = document.getElementById('addSceneText').value.trim();
+  if(!text){ alert('Paste a draft first.'); return; }
+  const improve = document.getElementById('addSceneImprove').checked;
+  const progress = document.getElementById('addSceneProgress');
+  progress.style.display = 'block';
+  progress.textContent = 'Adding scene... ' + (improve ? '(improving with AI, 1-2 min)' : '');
+  showLoading('Adding scene...', improve ? 'Improving with AI...' : 'Saving...');
+  try {
+    const r = await fetch('/api/add_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, improve})});
+    const d = await r.json();
+    if(d.ok){
+      progress.textContent = 'Scene ' + d.scene + ' added!';
+      document.getElementById('addSceneText').value = '';
+      await loadStatus();
+    } else {
+      progress.textContent = 'Failed: '+(d.error||'unknown');
+      alert('Add failed: '+(d.error||'unknown'));
+    }
+  } catch(e){ progress.textContent = 'Failed: '+e; alert('Add failed: '+e); }
+  finally { hideLoading(); }
+}
 async function runImproveScene(){
   showLoading('Improving scene...', 'This may take 1-2 minutes on free models.');
   const opts = [];
   document.querySelectorAll('#improveSceneModal input:checked').forEach(cb=>opts.push(cb.value));
   const custom = document.getElementById('improveSceneCustom').value.trim();
+  const level = document.getElementById('improveSceneLevel').value;
   if(custom) opts.push('custom');
   const progress = document.getElementById('improveSceneProgress');
   progress.style.display = 'block';
   progress.textContent = 'Improving scene ' + currentScene + '... (1-2 min)';
   try {
-    const r = await fetch('/api/improve_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, options:opts, direction:custom})});
+    const r = await fetch('/api/improve_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, options:opts, direction:custom, level})});
+    const d = await r.json();
+    if(d.error){ alert('Improve failed: '+d.error); progress.style.display='none'; return; }
+    // Save original for restore
+    window._originalSceneText = document.getElementById('scene').innerHTML;
+    window._improvedText = d.improved;
+    window._improvedScene = d.scene;
+    // Show improved scene in the main page area (full scrollable)
+    renderScene(d.improved);
+    // Show accept/reject banner
+    const banner = document.createElement('div');
+    banner.id = 'improveBanner';
+    banner.style.cssText = 'margin:12px 0; padding:12px; background:var(--bg-card); border:2px solid var(--accent); border-radius:var(--r-md);';
+    banner.innerHTML = '<div style="font-size:14px; font-weight:600; color:var(--accent); margin-bottom:8px;">Improved Scene ' + d.scene + '</div>' +
+      '<div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Original: ' + d.original.length + ' chars → Improved: ' + d.improved.length + ' chars' + (d.choices && d.choices.length ? ' · ' + d.choices.length + ' choices' : '') + '</div>' +
+      '<div style="display:flex; gap:8px;">' +
+      '<button onclick="acceptImproved(' + d.scene + ')" style="padding:8px 16px; background:var(--success); color:#fff; border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Accept (replace scene)</button>' +
+      '<button onclick="rejectImproved()" style="padding:8px 16px; background:var(--border); color:var(--text); border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Reject (restore original)</button>' +
+      '</div>';
+    // Insert banner before the page div
+    const page = document.querySelector('.page');
+    page.parentNode.insertBefore(banner, page);
+    progress.style.display = 'none';
+    closeImproveSceneModal();
+  } catch(e){ alert('Improve failed: '+e); progress.style.display='none'; }
+  finally { hideLoading(); }
+}
+async function acceptImproved(n){
+  const text = window._improvedText;
+  if(!text) return;
+  const r = await fetch('/api/save_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:n, text})});
+  const d = await r.json();
+  if(d.ok){
+    // remove banner
+    const banner = document.getElementById('improveBanner');
+    if(banner) banner.remove();
+    renderScene(text);
+    alert('Scene ' + n + ' replaced with improved version.');
+    if(d.dirty) await checkEdits();
+    else await loadStatus();
+  } else { alert('Save failed: '+(d.error||'unknown')); }
+}
+function rejectImproved(){
+  const banner = document.getElementById('improveBanner');
+  if(banner) banner.remove();
+  if(window._originalSceneText){
+    document.getElementById('scene').innerHTML = window._originalSceneText;
+  }
+  window._improvedText = null;
+  window._originalSceneText = null;
+}
+function showStyleModal(){ document.getElementById('styleModal').classList.remove('hidden'); }
+function closeStyleModal(){ document.getElementById('styleModal').classList.add('hidden'); }
+async function createStyle(){
+  const name = document.getElementById('styleName').value.trim();
+  const samples = document.getElementById('styleSamples').value.trim();
+  if(!name){ alert('Name is required.'); return; }
+  if(!samples){ alert('Paste at least one paragraph.'); return; }
+  const progress = document.getElementById('styleProgress');
+  progress.style.display = 'block';
+  progress.textContent = 'Analyzing your writing style...';
+  try {
+    const r = await fetch('/api/create_style', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, samples:[samples]})});
+    const d = await r.json();
+    if(d.ok){
+      progress.textContent = 'Style created!';
+      await loadSkills();
+      setTimeout(()=>{ closeStyleModal(); progress.style.display='none'; }, 1000);
+    } else {
+      progress.textContent = 'Failed: '+(d.error||'unknown');
+    }
+  } catch(e){ progress.textContent = 'Failed: '+e; }
+}
+function showHintsModal(){ loadHintsModal(); document.getElementById('hintsModal').classList.remove('hidden'); }
+function closeHintsModal(){ document.getElementById('hintsModal').classList.add('hidden'); }
+async function loadHints(){
+  const r = await fetch('/api/hints'); const d = await r.json();
+  const el = document.getElementById('hintsList');
+  el.innerHTML = '';
+  const hints = d.hints || [];
+  if(!hints.length){ el.textContent = 'No hints. Click + Add.'; return; }
+  hints.forEach(h=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'margin:4px 0; padding:4px; border:1px solid var(--border); border-radius:4px; font-size:12px;';
+    div.innerHTML = '<b style="color:var(--text);">' + esc(h.id) + '</b> ' +
+      '<span style="color:var(--text-muted);">' + (h.status === 'resolved' ? '✓' : '●') + ' scene ' + h.planted_in + '</span>';
+    div.onclick = ()=> editHint(h);
+    el.appendChild(div);
+  });
+}
+async function loadHintsModal(){
+  const r = await fetch('/api/hints'); const d = await r.json();
+  const el = document.getElementById('hintsModalList');
+  el.innerHTML = '';
+  (d.hints||[]).forEach(h=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'margin:4px 0; padding:4px; border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size:12px;';
+    div.innerHTML = '<b>' + esc(h.id) + '</b> <span style="color:var(--text-muted);">(' + esc(h.status) + ')</span>';
+    div.onclick = ()=> editHint(h);
+    el.appendChild(div);
+  });
+}
+function editHint(h){
+  document.getElementById('hintId').value = h.id || '';
+  document.getElementById('hintSurface').value = h.surface || '';
+  document.getElementById('hintTruth').value = h.truth || '';
+  document.getElementById('hintPlanted').value = h.planted_in || 1;
+}
+async function saveHint(){
+  const id = document.getElementById('hintId').value.trim();
+  const surface = document.getElementById('hintSurface').value.trim();
+  const truth = document.getElementById('hintTruth').value.trim();
+  const planted = parseInt(document.getElementById('hintPlanted').value) || 1;
+  if(!id){ alert('ID is required.'); return; }
+  const r = await fetch('/api/save_hint', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, surface, truth, planted_in: planted})});
+  const d = await r.json();
+  if(d.ok){ await loadHints(); await loadHintsModal(); alert('Hint saved.'); }
+  else { alert('Save failed: '+(d.error||'unknown')); }
+}
+async function deleteHint(){
+  const id = document.getElementById('hintId').value.trim();
+  if(!id){ alert('Select a hint first.'); return; }
+  if(!confirm('Delete hint?')) return;
+  const r = await fetch('/api/delete_hint', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+  const d = await r.json();
+  if(d.ok){ document.getElementById('hintId').value=''; document.getElementById('hintSurface').value=''; document.getElementById('hintTruth').value=''; await loadHints(); await loadHintsModal(); alert('Hint deleted.'); }
+  else { alert('Delete failed: '+(d.error||'unknown')); }
+}
+async function loadSkills(){
+  const r = await fetch('/api/skills'); const d = await r.json();
+  const el = document.getElementById('skillsList');
+  const homeEl = document.getElementById('homeSkillsList');
+  el.innerHTML = '';
+  if(homeEl) homeEl.innerHTML = '';
+  const skills = d.skills || [];
+  if(!skills.length){ el.textContent = 'No skills. Click + Add.'; if(homeEl) homeEl.textContent = 'No skills yet. Click "+ Add Skill" above.'; return; }
+  skills.forEach(s=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'margin:4px 0; padding:4px; border:1px solid var(--border); border-radius:4px; cursor:pointer;';
+    div.innerHTML = '<b style="color:var(--text);">' + esc(s.name) + '</b> ' +
+      '<span style="font-size:10px; color:var(--text-muted);">' + (s.active ? '●' : '○') + ' ' + esc(s.trigger||'always') + '</span>';
+    div.onclick = ()=> editSkill(s);
+    el.appendChild(div);
+    if(homeEl){
+      const hdiv = document.createElement('div');
+      hdiv.style.cssText = 'display:inline-block; margin:4px; padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer;';
+      hdiv.innerHTML = esc(s.name) + ' <span style="color:var(--text-muted);">(' + esc(s.trigger||'always') + ')</span>';
+      hdiv.onclick = ()=> editSkill(s);
+      homeEl.appendChild(hdiv);
+    }
+  });
+}
+function showSkillsModal(){ loadSkillsModal(); document.getElementById('skillsModal').classList.remove('hidden'); }
+function closeSkillsModal(){ document.getElementById('skillsModal').classList.add('hidden'); }
+async function loadSkillsModal(){
+  const r = await fetch('/api/skills'); const d = await r.json();
+  const el = document.getElementById('skillsModalList');
+  el.innerHTML = '';
+  (d.skills||[]).forEach(s=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'margin:4px 0; padding:4px; border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size:12px;';
+    div.innerHTML = '<b>' + esc(s.name) + '</b> <span style="color:var(--text-muted);">(' + esc(s.trigger||'always') + ')</span>';
+    div.onclick = ()=> editSkill(s);
+    el.appendChild(div);
+  });
+}
+function editSkill(s){
+  document.getElementById('skillName').value = s.name || '';
+  document.getElementById('skillTrigger').value = s.trigger || '';
+  document.getElementById('skillActive').value = s.active ? 'true' : 'false';
+  document.getElementById('skillBody').value = s.body || '';
+  document.getElementById('skillFilename').value = s.file || '';
+}
+async function saveSkill(){
+  const filename = document.getElementById('skillFilename').value || (document.getElementById('skillName').value.trim().replace(/\s+/g,'_') + '.md');
+  const name = document.getElementById('skillName').value.trim();
+  const trigger = document.getElementById('skillTrigger').value.trim();
+  const active = document.getElementById('skillActive').value === 'true';
+  const body = document.getElementById('skillBody').value.trim();
+  if(!name){ alert('Name is required.'); return; }
+  const r = await fetch('/api/save_skill', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({filename, name, trigger, active, body})});
+  const d = await r.json();
+  if(d.ok){ await loadSkills(); await loadSkillsModal(); alert('Skill saved.'); }
+  else { alert('Save failed: '+(d.error||'unknown')); }
+}
+async function deleteSkill(){
+  const filename = document.getElementById('skillFilename').value;
+  if(!filename){ alert('Select a skill first.'); return; }
+  if(!confirm('Delete skill?')) return;
+  const r = await fetch('/api/delete_skill', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({filename})});
+  const d = await r.json();
+  if(d.ok){ document.getElementById('skillName').value=''; document.getElementById('skillTrigger').value=''; document.getElementById('skillBody').value=''; document.getElementById('skillFilename').value=''; await loadSkills(); await loadSkillsModal(); alert('Skill deleted.'); }
+  else { alert('Delete failed: '+(d.error||'unknown')); }
+}
+async function loadStatus(){
+  const r = await fetch('/api/status');
+  const d = await r.json();
+  renderStatus(d);
+  document.getElementById('novelTitle').textContent = d.project || '';
+  const genreText = [d.genre, d.subgenre].filter(Boolean).join(' / ');
+  document.getElementById('genreLabel').textContent = genreText ? '('+genreText+')' : '';
+  if(d.language === 'ar-eg'){ document.documentElement.setAttribute('dir','rtl'); document.documentElement.setAttribute('lang','ar'); }
+  else { document.documentElement.setAttribute('dir','ltr'); document.documentElement.setAttribute('lang','en'); }
+  loadLore();
+  loadSkills();
+  loadHints();
+  renderChars(d.characters);
+  renderState(d.state);
+  renderStructure();
+  sceneNumbers = (d.scenes || []).map(s => parseInt(s.match(/scene_(\d+)\.md/)[1]));
+  totalScenes = sceneNumbers.length;
+  const sel = document.getElementById('sceneSelect');
+  sel.innerHTML = '';
+  sceneNumbers.forEach(num => { const o = document.createElement('option'); o.value = num; o.textContent = 'Scene ' + num; sel.appendChild(o); });
+  if(totalScenes > 0){ currentScene = sceneNumbers[sceneNumbers.length - 1]; viewScene(currentScene); }
+  checkEdits();
+}
+// Wire Start New modal events
+document.getElementById('startNewForm').addEventListener('submit', submitStartNew);
+document.getElementById('snName').addEventListener('input', updateCreateBtn);
+document.getElementById('snGenre').addEventListener('change', onGenreChange);
+document.getElementById('snCancel').addEventListener('click', ()=>closeStartNewModal());
+document.getElementById('snSkip').addEventListener('click', skipDefaults);
+
+loadProjects().then(async ()=>{
+  await loadBranches();
+  await loadStatus();
+  if(!location.hash){
+    location.hash = '#/home';
+  } else {
+    route();
+  }
+});
+
+async function runImproveScene(){
+  showLoading('Improving scene...', 'This may take 1-2 minutes on free models.');
+  const opts = [];
+  document.querySelectorAll('#improveSceneModal input:checked').forEach(cb=>opts.push(cb.value));
+  const custom = document.getElementById('improveSceneCustom').value.trim();
+  const level = document.getElementById('improveSceneLevel').value;
+  if(custom) opts.push('custom');
+  const progress = document.getElementById('improveSceneProgress');
+  progress.style.display = 'block';
+  progress.textContent = 'Improving scene ' + currentScene + '... (1-2 min)';
+  try {
+    const r = await fetch('/api/improve_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, options:opts, direction:custom, level})});
     const d = await r.json();
     if(d.error){ alert('Improve failed: '+d.error); progress.style.display='none'; return; }
     // show original vs improved in recon panel
@@ -1672,54 +2177,32 @@ async function runImproveScene(){
   } catch(e){ alert('Improve failed: '+e); progress.style.display='none'; }
   finally { hideLoading(); }
 }
-async function acceptImproved(n){
-  const text = window._improvedText;
-  if(!text) return;
-  const r = await fetch('/api/save_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:n, text})});
-  const d = await r.json();
-  if(d.ok){
-    renderScene(text);
-    document.getElementById('recon').classList.add('hidden');
-    alert('Scene ' + n + ' replaced with improved version.');
-    if(d.dirty) await checkEdits();
-  } else { alert('Save failed: '+(d.error||'unknown')); }
-}
-async function loadStatus(){
-  const r = await fetch('/api/status');
-  const d = await r.json();
-  renderStatus(d);
-  document.getElementById('novelTitle').textContent = d.project || '';
-  const genreText = [d.genre, d.subgenre].filter(Boolean).join(' / ');
-  document.getElementById('genreLabel').textContent = genreText ? '('+genreText+')' : '';
-  if(d.language === 'ar-eg'){ document.documentElement.setAttribute('dir','rtl'); document.documentElement.setAttribute('lang','ar'); }
-  else { document.documentElement.setAttribute('dir','ltr'); document.documentElement.setAttribute('lang','en'); }
-  loadLore();
-  renderChars(d.characters);
-  renderState(d.state);
-  renderScenes(d.scenes);
-  totalScenes = d.scene_count;
-  const sel = document.getElementById('sceneSelect');
-  sel.innerHTML = '';
-  for(let i=1;i<=totalScenes;i++){ const o=document.createElement('option'); o.value=i; o.textContent='Scene '+i; sel.appendChild(o); }
-  if(totalScenes>0){ currentScene = totalScenes; viewScene(totalScenes); }
-  checkEdits();
-}
-// Wire Start New modal events
-document.getElementById('startNewForm').addEventListener('submit', submitStartNew);
-document.getElementById('snName').addEventListener('input', updateCreateBtn);
-document.getElementById('snGenre').addEventListener('change', onGenreChange);
-document.getElementById('snCancel').addEventListener('click', ()=>closeStartNewModal());
-document.getElementById('snSkip').addEventListener('click', skipDefaults);
+</script>
 
-loadProjects().then(async ()=>{
-  await loadBranches();
-  await loadStatus();
-  if(!location.hash){
-    location.hash = (totalScenes > 0) ? '#/studio' : '#/home';
-  } else {
-    route();
+<script>
+if (typeof esc === 'undefined') {
+  var __ms = document.querySelector('script');
+  if (__ms) {
+    try {
+      eval(__ms.textContent);
+      var __fnNames = __ms.textContent.match(/function [a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/g);
+      if (__fnNames) {
+        __fnNames.forEach(function(m) {
+          var name = m.match(/function ([a-zA-Z_$][a-zA-Z0-9_$]*)/)[1];
+          try {
+            if (typeof window[name] !== 'function') {
+              var __f = eval(name);
+              if (typeof __f === 'function') window[name] = __f;
+            }
+          } catch(e) {}
+        });
+      }
+      console.log('FALLBACK: main script eval OK');
+    } catch (e) {
+      console.error('FALLBACK ERROR:', e);
+    }
   }
-});
+}
 </script>
 </body>
 </html>

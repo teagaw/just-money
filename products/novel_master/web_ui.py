@@ -29,21 +29,26 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         if _time.time() - _start > GEN_TIMEOUT:
             raise TimeoutError("Generation timed out after 5 minutes. Try a shorter direction or a different model.")
     _check_timeout()
-    lore = (studio.project_base() / "world_lore.md").read_text(encoding="utf-8")
-    chars = json.loads((studio.project_base() / "characters.json").read_text(encoding="utf-8"))
+    _lp = studio.kb_path("lore")
+    lore = _lp.read_text(encoding="utf-8") if _lp.exists() else ""
+    _cp = studio.kb_path("characters")
+    chars = json.loads(_cp.read_text(encoding="utf-8")) if _cp.exists() else []
     chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars]
     state = studio.load_state()
     n = studio.next_scene_number()
-    npc_registry = json.loads((studio.project_base() / "npc_registry.json").read_text(encoding="utf-8")) if (studio.project_base() / "npc_registry.json").exists() else {}
-    plot_threads = json.loads((studio.project_base() / "plot_threads.json").read_text(encoding="utf-8")) if (studio.project_base() / "plot_threads.json").exists() else []
-    timeline = json.loads((studio.project_base() / "timeline.json").read_text(encoding="utf-8")) if (studio.project_base() / "timeline.json").exists() else []
+    npc_registry = json.loads(studio.kb_path("npc_registry").read_text(encoding="utf-8")) if studio.kb_path("npc_registry").exists() else {}
+    plot_threads = json.loads(studio.kb_path("plot_threads").read_text(encoding="utf-8")) if studio.kb_path("plot_threads").exists() else []
+    timeline = json.loads(studio.kb_path("timeline").read_text(encoding="utf-8")) if studio.kb_path("timeline").exists() else []
     language = studio.project_language()
     genre = studio.project_genre()
     subgenre = studio.project_subgenre()
+    skills = studio.skills_prompt_block(direction + " " + brief + " " + genre)
+    feedback_constraints = studio.aggregated_feedback_constraints()
 
     history = studio.retrieve_relevant_scenes(direction, chars, 5)
     msgs = studio.showrunner_prompt(lore, chars, state, history, direction, brief, feedback,
-                                    npc_registry, plot_threads, timeline, language, genre, subgenre)
+                                    npc_registry, plot_threads, timeline, language, genre, subgenre, skills,
+                                    feedback_constraints=feedback_constraints)
 
     yield ("stage", {"message": "Calling Showrunner (writing the scene)...", "progress": 5})
     _check_timeout()
@@ -63,8 +68,12 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         audit = None
 
     yield ("stage", {"message": "Saving scene, events, and state...", "progress": 92})
-    scene_path = studio.project_base() / "scenes" / f"scene_{n:02d}.md"
+    scene_path = studio.kb_path("scenes") / f"scene_{n:02d}.md"
     studio.atomic_write(scene_path, scene)
+    # deterministic scene checks (cheap, no LLM)
+    checks = studio.deterministic_scene_checks(scene, chars, genre)
+    if checks:
+        yield ("stage", {"message": "Scene checks: " + "; ".join(checks), "progress": 93})
     studio.save_snapshot(n, scene)
     meta = {
         "scene": n,
@@ -75,7 +84,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         "events": (audit or {}).get("events", []),
         "choices": choices,
     }
-    studio.atomic_write(studio.project_base() / "scenes" / f"scene_{n:02d}_meta.json", json.dumps(meta, indent=2))
+    studio.atomic_write(studio.kb_path("scenes") / f"scene_{n:02d}_meta.json", json.dumps(meta, indent=2))
 
     scene_level_updates = (audit or {}).get("state_updates", {}) or {}
     for ev in (audit or {}).get("events", []):
@@ -85,7 +94,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         ev_record = {"event_id": studio.next_event_id(), "scene": n,
                      "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(), **ev}
         ev_record["state_updates"] = ev_su if isinstance(ev_su, dict) else {}
-        with (studio.project_base() / "events" / "event_log.jsonl").open("a", encoding="utf-8") as f:
+        with (studio.kb_path("events") / "event_log.jsonl").open("a", encoding="utf-8") as f:
             f.write(json.dumps(ev_record) + "\n")
 
     if audit:
@@ -101,15 +110,15 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
             studio.apply_state_updates(state, audit["state_updates"])
             applied_any = True
         if applied_any:
-            studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(state, indent=2))
+            studio.atomic_write(studio.kb_path("state"), json.dumps(state, indent=2))
         studio.apply_audit_extras(audit)
     studio.git_commit_scene(n, f"scene {n:02d}: accepted")
     # Phase 3: voice + knowledge + NPC checks
     v_issues = studio.voice_check(scene, chars)
-    k_path = studio.project_base() / "character_knowledge.json"
+    k_path = studio.kb_path("characters").parent / "knowledge.json"
     knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
     k_issues = studio.knowledge_check(scene, chars, knowledge)
-    npc_path = studio.project_base() / "npc_registry.json"
+    npc_path = studio.kb_path("npc_registry")
     npc_reg = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
     n_issues = studio.npc_check(scene, npc_reg)
     checks = v_issues + k_issues + n_issues
@@ -126,17 +135,18 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
 
 
 def status_payload() -> dict:
-    state = studio.load_state() if (studio.project_base() / "character_state.json").exists() else None
-    chars = json.loads((studio.project_base() / "characters.json").read_text(encoding="utf-8"))
+    state = studio.load_state() if studio.kb_path("state").exists() else None
+    _cp = studio.kb_path("characters")
+    chars = json.loads(_cp.read_text(encoding="utf-8")) if _cp.exists() else []
     chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars]
-    scenes = sorted(p for p in (studio.project_base() / "scenes").glob("scene_*.md")
+    scenes = sorted(p for p in (studio.kb_path("scenes")).glob("scene_*.md")
                     if re.match(r"scene_\d+\.md", p.name))
     scene_list = [p.name for p in scenes]
     last_scene = ""
     last_choices = []
     if scene_list:
-        last_scene = (studio.project_base() / "scenes" / scene_list[-1]).read_text(encoding="utf-8")
-        meta_path = studio.project_base() / "scenes" / (scene_list[-1].replace(".md", "_meta.json"))
+        last_scene = (studio.kb_path("scenes") / scene_list[-1]).read_text(encoding="utf-8")
+        meta_path = studio.kb_path("scenes") / (scene_list[-1].replace(".md", "_meta.json"))
         if meta_path.exists():
             try:
                 last_choices = json.loads(meta_path.read_text(encoding="utf-8")).get("choices", [])
@@ -156,9 +166,6 @@ def status_payload() -> dict:
     }
 
 
-INDEX_HTML = (BASE / "index.html").read_text(encoding="utf-8") if (BASE / "index.html").exists() else "<h1>missing index.html</h1>"
-
-
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -168,24 +175,29 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
         self.end_headers()
         self.wfile.write(data)
 
     def do_GET(self):
         path = unquote(self.path.split("?")[0])
         if path == "/" or path == "/index.html":
-            self._send(200, "text/html; charset=utf-8", INDEX_HTML)
+            index = BASE / "index.html"
+            html = index.read_text(encoding="utf-8") if index.exists() else "<h1>missing index.html</h1>"
+            self._send(200, "text/html; charset=utf-8", html)
             return
         if path == "/api/status":
             self._send(200, "application/json", json.dumps(status_payload()))
             return
         if path == "/api/lore":
-            p = studio.project_base() / "world_lore.md"
+            p = studio.kb_path("lore")
             content = p.read_text(encoding="utf-8") if p.exists() else ""
             self._send(200, "application/json", json.dumps({"content": content}))
             return
         if path == "/api/characters":
-            p = studio.project_base() / "characters.json"
+            p = studio.kb_path("characters")
             content = p.read_text(encoding="utf-8") if p.exists() else "[]"
             self._send(200, "application/json", json.dumps({"content": content}))
             return
@@ -195,9 +207,15 @@ class Handler(BaseHTTPRequestHandler):
                 "active": studio.active_project_name(),
             }))
             return
-        if path == "/api/import_novel":
-            # handled in do_POST
-            pass
+        if path == "/api/skills":
+            self._send(200, "application/json", json.dumps({"skills": studio.list_skills()}))
+            return
+        if path == "/api/hints":
+            self._send(200, "application/json", json.dumps({"hints": studio.list_hints()}))
+            return
+        if path == "/api/structure":
+            self._send(200, "application/json", json.dumps({"structure": studio.get_structure()}))
+            return
         if path == "/api/genres":
             genres = json.loads((BASE / "genres.json").read_text(encoding="utf-8")) if (BASE / "genres.json").exists() else {}
             self._send(200, "application/json", json.dumps(genres))
@@ -210,7 +228,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/api/rebuild_state":
             new_state = studio.rebuild_state_from_events()
-            studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(new_state, indent=2))
+            studio.atomic_write(studio.kb_path("state"), json.dumps(new_state, indent=2))
             self._send(200, "application/json", json.dumps({"ok": True, "state": new_state}))
             return
         if path == "/api/detect_edits":
@@ -221,13 +239,13 @@ class Handler(BaseHTTPRequestHandler):
         if m:
             num = int(m.group(1))
             name = f"scene_{num:02d}.md"
-            p = studio.project_base() / "scenes" / name
+            p = studio.kb_path("scenes") / name
             if not p.exists():
                 self._send(404, "application/json", json.dumps({"error": "not found"}))
                 return
             scene = p.read_text(encoding="utf-8")
             choices = []
-            meta_path = studio.project_base() / "scenes" / f"scene_{num:02d}_meta.json"
+            meta_path = studio.kb_path("scenes") / f"scene_{num:02d}_meta.json"
             if meta_path.exists():
                 try:
                     choices = json.loads(meta_path.read_text(encoding="utf-8")).get("choices", [])
@@ -250,6 +268,206 @@ class Handler(BaseHTTPRequestHandler):
             body = {}
         if not isinstance(body, dict):
             body = {}
+        if path == "/api/save_skill":
+            filename = body.get("filename", "")
+            name = body.get("name", "")
+            trigger = body.get("trigger", "")
+            active = body.get("active", True)
+            body_text = body.get("body", "")
+            if not isinstance(filename, str) or not filename.strip():
+                self._send(400, "application/json", json.dumps({"error": "filename required"}))
+                return
+            if not filename.endswith(".md"):
+                filename += ".md"
+            studio.save_skill(filename, name or filename.replace(".md", ""), trigger, bool(active), body_text if isinstance(body_text, str) else "")
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/create_style":
+            name = body.get("name", "")
+            samples = body.get("samples", [])
+            if not isinstance(name, str) or not name.strip():
+                self._send(400, "application/json", json.dumps({"error": "name required"}))
+                return
+            if not isinstance(samples, list):
+                samples = []
+            samples = [s for s in samples if isinstance(s, str) and s.strip()]
+            if not samples:
+                self._send(400, "application/json", json.dumps({"error": "at least one sample required"}))
+                return
+            try:
+                body_text = studio.create_style_from_samples(name.strip(), samples)
+                if not body_text:
+                    self._send(500, "application/json", json.dumps({"error": "style generation failed"}))
+                    return
+                self._send(200, "application/json", json.dumps({"ok": True, "body": body_text}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/delete_skill":
+            filename = body.get("filename", "")
+            try:
+                if not isinstance(filename, str) or not studio.delete_skill(filename):
+                    self._send(400, "application/json", json.dumps({"error": "skill not found"}))
+                    return
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/hints":
+            self._send(200, "application/json", json.dumps({"hints": studio.list_hints()}))
+            return
+        if path == "/api/save_hint":
+            hint_id = body.get("id", "")
+            surface = body.get("surface", "")
+            truth = body.get("truth", "")
+            planted_in = body.get("planted_in", 0)
+            if not isinstance(hint_id, str) or not hint_id.strip():
+                self._send(400, "application/json", json.dumps({"error": "id required"}))
+                return
+            if not isinstance(planted_in, int):
+                try:
+                    planted_in = int(planted_in)
+                except (TypeError, ValueError):
+                    planted_in = 0
+            try:
+                h = studio.save_hint(hint_id.strip(), surface if isinstance(surface, str) else "",
+                                     truth if isinstance(truth, str) else "", planted_in)
+                self._send(200, "application/json", json.dumps({"ok": True, "hint": h}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/delete_hint":
+            hint_id = body.get("id", "")
+            if not isinstance(hint_id, str) or not studio.delete_hint(hint_id):
+                self._send(400, "application/json", json.dumps({"error": "hint not found"}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/resolve_hint":
+            hint_id = body.get("id", "")
+            resolved_in = body.get("resolved_in", 0)
+            if not isinstance(hint_id, str) or not isinstance(resolved_in, int):
+                self._send(400, "application/json", json.dumps({"error": "invalid params"}))
+                return
+            if not studio.resolve_hint(hint_id, resolved_in):
+                self._send(404, "application/json", json.dumps({"error": "hint not found"}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/hint_audit":
+            self._send(200, "application/json", json.dumps({"issues": studio.hint_audit()}))
+            return
+        if path == "/api/delete_scene":
+            n = body.get("scene")
+            if not isinstance(n, int) or n < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            try:
+                if not studio.delete_scene(n):
+                    self._send(404, "application/json", json.dumps({"error": "scene not found"}))
+                    return
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+                return
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/structure":
+            self._send(200, "application/json", json.dumps({"structure": studio.get_structure()}))
+            return
+        if path == "/api/create_part":
+            name = body.get("name", "New Part")
+            if not isinstance(name, str):
+                name = str(name)
+            try:
+                pid = studio.create_part(name)
+                self._send(200, "application/json", json.dumps({"ok": True, "id": pid}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/rename_part":
+            pid = body.get("id", "")
+            name = body.get("name", "")
+            if not isinstance(pid, str) or not isinstance(name, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid params"}))
+                return
+            if studio.rename_part(pid, name):
+                self._send(200, "application/json", json.dumps({"ok": True}))
+            else:
+                self._send(404, "application/json", json.dumps({"error": "part not found"}))
+            return
+        if path == "/api/delete_part":
+            pid = body.get("id", "")
+            delete_scenes = body.get("delete_scenes", False)
+            if not isinstance(pid, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid id"}))
+                return
+            try:
+                if studio.delete_part(pid, bool(delete_scenes)):
+                    self._send(200, "application/json", json.dumps({"ok": True}))
+                else:
+                    self._send(400, "application/json", json.dumps({"error": "cannot delete (not found, has scenes, or last part)"}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/create_chapter":
+            part_id = body.get("part_id", "")
+            name = body.get("name", "New Chapter")
+            if not isinstance(part_id, str) or not isinstance(name, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid params"}))
+                return
+            cid = studio.create_chapter(part_id, name)
+            if cid:
+                self._send(200, "application/json", json.dumps({"ok": True, "id": cid}))
+            else:
+                self._send(404, "application/json", json.dumps({"error": "part not found"}))
+            return
+        if path == "/api/rename_chapter":
+            cid = body.get("id", "")
+            name = body.get("name", "")
+            if not isinstance(cid, str) or not isinstance(name, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid params"}))
+                return
+            if studio.rename_chapter(cid, name):
+                self._send(200, "application/json", json.dumps({"ok": True}))
+            else:
+                self._send(404, "application/json", json.dumps({"error": "chapter not found"}))
+            return
+        if path == "/api/delete_chapter":
+            cid = body.get("id", "")
+            delete_scenes = body.get("delete_scenes", False)
+            if not isinstance(cid, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid id"}))
+                return
+            try:
+                if studio.delete_chapter(cid, bool(delete_scenes)):
+                    self._send(200, "application/json", json.dumps({"ok": True}))
+                else:
+                    self._send(400, "application/json", json.dumps({"error": "cannot delete (not found, has scenes, or last chapter)"}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/set_active_chapter":
+            cid = body.get("id", "")
+            if not isinstance(cid, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid id"}))
+                return
+            studio.set_active_chapter(cid)
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/generate_chapter_summary":
+            cid = body.get("id", "")
+            if not isinstance(cid, str):
+                self._send(400, "application/json", json.dumps({"error": "invalid id"}))
+                return
+            try:
+                summary = studio.generate_chapter_summary(cid)
+                self._send(200, "application/json", json.dumps({"ok": True, "summary": summary}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+
+
         if path == "/api/feedback":
             try:
                 scene = int(body.get("scene"))
@@ -276,7 +494,7 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(text, str):
                 self._send(400, "application/json", json.dumps({"error": "text must be a string"}))
                 return
-            studio.atomic_write(studio.project_base() / "world_lore.md", text)
+            studio.atomic_write(studio.kb_path("lore"), text)
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
         if path == "/api/save_characters":
@@ -289,7 +507,7 @@ class Handler(BaseHTTPRequestHandler):
             except json.JSONDecodeError as e:
                 self._send(400, "application/json", json.dumps({"error": f"Invalid JSON: {e}"}))
                 return
-            studio.atomic_write(studio.project_base() / "characters.json", text)
+            studio.atomic_write(studio.kb_path("characters"), text)
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
         if path == "/api/save_scene":
@@ -302,7 +520,7 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(text, str):
                 self._send(400, "application/json", json.dumps({"error": "text must be a string"}))
                 return
-            p = studio.project_base() / "scenes" / f"scene_{scene:02d}.md"
+            p = studio.kb_path("scenes") / f"scene_{scene:02d}.md"
             if not p.exists():
                 self._send(404, "application/json", json.dumps({"error": "scene not found"}))
                 return
@@ -344,18 +562,34 @@ class Handler(BaseHTTPRequestHandler):
             premise = body.get("premise", "")
             lore = body.get("lore", "")
             characters = body.get("characters", None)
+            pov = body.get("pov", "")
+            tense = body.get("tense", "")
+            tone = body.get("tone", "")
+            samples = body.get("samples", "")
             if not isinstance(premise, str):
                 premise = "" if premise is None else str(premise)
             if not isinstance(lore, str):
                 lore = "" if lore is None else str(lore)
             if not isinstance(characters, list):
                 characters = None
+            if not isinstance(pov, str):
+                pov = ""
+            if not isinstance(tense, str):
+                tense = ""
+            if not isinstance(tone, str):
+                tone = ""
+            if not isinstance(samples, str):
+                samples = ""
             if not isinstance(name, str) or not studio.create_project(name, language if isinstance(language, str) else "en",
                                                                       genre if isinstance(genre, str) else "",
                                                                       subgenre if isinstance(subgenre, str) else "",
                                                                        premise=premise,
                                                                        characters=characters,
-                                                                       lore=lore):
+                                                                       lore=lore,
+                                                                       pov=pov,
+                                                                       tense=tense,
+                                                                       tone=tone,
+                                                                       samples=samples):
                 self._send(400, "application/json", json.dumps({"error": "invalid or duplicate project name"}))
                 return
             studio.switch_project(name.strip())
@@ -366,8 +600,12 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(name, str):
                 self._send(400, "application/json", json.dumps({"error": "name must be a string"}))
                 return
-            if not studio.delete_project(name):
-                self._send(400, "application/json", json.dumps({"error": "cannot delete (not found or last project)"}))
+            try:
+                if not studio.delete_project(name):
+                    self._send(400, "application/json", json.dumps({"error": "cannot delete (not found or last project)"}))
+                    return
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
                 return
             self._send(200, "application/json", json.dumps({"ok": True, "active": studio.active_project_name()}))
             return
@@ -377,7 +615,10 @@ class Handler(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 self._send(400, "application/json", json.dumps({"error": "scene must be an integer"}))
                 return
-            result = studio.reconcile_scene(scene)
+            level = body.get("level", "developmental")
+            if not isinstance(level, str):
+                level = "developmental"
+            result = studio.reconcile_scene(scene, critique_level=level)
             self._send(200, "application/json", json.dumps(result if result is not None else {"none": True}))
             return
         if path == "/api/apply_proposals":
@@ -431,8 +672,29 @@ class Handler(BaseHTTPRequestHandler):
             direction = body.get("direction", "")
             if not isinstance(direction, str):
                 direction = ""
-            result = import_pipeline.improve_scene(scene, options, direction)
+            level = body.get("level", "developmental")
+            if not isinstance(level, str):
+                level = "developmental"
+            result = import_pipeline.improve_scene(scene, options, direction, level=level)
             self._send(200, "application/json", json.dumps(result))
+            return
+        if path == "/api/add_scene":
+            text = body.get("text", "")
+            improve = body.get("improve", False)
+            options = body.get("options", [])
+            direction = body.get("direction", "")
+            if not isinstance(text, str) or not text.strip():
+                self._send(400, "application/json", json.dumps({"error": "text required"}))
+                return
+            if not isinstance(options, list):
+                options = []
+            if not isinstance(direction, str):
+                direction = ""
+            try:
+                result = studio.add_scene(text, improve=bool(improve), options=options, direction=direction)
+                self._send(200, "application/json", json.dumps(result))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
             return
         if path == "/api/generate":
             direction = (body.get("direction") or "").strip() or "Continue the story naturally."
@@ -470,7 +732,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     # rebuild state on startup from event log (prevents drift)
     new_state = studio.rebuild_state_from_events()
-    studio.atomic_write(studio.project_base() / "character_state.json", json.dumps(new_state, indent=2))
+    studio.atomic_write(studio.kb_path("state"), json.dumps(new_state, indent=2))
     print("State rebuilt from event log on startup.")
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     print(f"Novel Studio UI running at http://{HOST}:{PORT}")

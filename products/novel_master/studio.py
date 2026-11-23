@@ -9,7 +9,10 @@ Author authority: your edits to scene files win. (Reconciliation is Phase 1.)
 import hashlib
 import json
 import os
+import shutil
+import stat
 import re
+import threading
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -50,6 +53,39 @@ def project_base() -> Path:
     if projects:
         return projects[0]
     return BASE
+
+
+def kb_path(key: str) -> Path:
+    """Resolve a knowledge-base path, preferring kb/ layout, falling back to flat."""
+    base = project_base()
+    kb = base / "kb"
+    mapping = {
+        "lore": ("world/lore.md", "world_lore.md"),
+        "characters": ("characters/profiles.json", "characters.json"),
+        "state": ("characters/state.json", "character_state.json"),
+        "npc_registry": ("characters/npc_registry.json", "npc_registry.json"),
+        "plot_threads": ("world/plot_threads.json", "plot_threads.json"),
+        "timeline": ("timeline/chronology.json", "timeline.json"),
+        "skills": ("styles", "skills"),
+        "events": ("events", "events"),
+        "scenes": ("scenes", "scenes"),
+        "usage_log": ("usage_log.jsonl", "usage_log.jsonl"),
+        "character_knowledge": ("characters/knowledge.json", "character_knowledge.json"),
+        "last_choice": (".last_choice.txt", ".last_choice.txt"),
+    }
+    if key in mapping:
+        new_rel, old_rel = mapping[key]
+        new_p = kb / new_rel
+        old_p = base / old_rel
+        if new_p.exists():
+            return new_p
+        if old_p.exists():
+            return old_p
+        return new_p
+    return base / key
+
+
+STRUCTURE_LOCK = threading.Lock()
 
 
 def list_projects() -> list[str]:
@@ -210,7 +246,8 @@ def switch_project(name: str) -> bool:
 
 
 def create_project(name: str, language: str = "en", genre: str = "", subgenre: str = "",
-                   premise: str = "", characters=None, lore: str = "") -> bool:
+                   premise: str = "", characters=None, lore: str = "",
+                   pov: str = "", tense: str = "", tone: str = "", samples: str = "") -> bool:
     name = name.strip() if isinstance(name, str) else ""
     if not name or "/" in name or "\\" in name or ".." in name:
         return False
@@ -244,6 +281,16 @@ def create_project(name: str, language: str = "en", genre: str = "", subgenre: s
     p.mkdir(parents=True)
     (p / "scenes").mkdir()
     (p / "events").mkdir()
+    (p / "kb" / "styles").mkdir(parents=True, exist_ok=True)
+    (p / "kb" / "characters").mkdir(parents=True, exist_ok=True)
+    (p / "kb" / "world").mkdir(parents=True, exist_ok=True)
+    (p / "kb" / "timeline").mkdir(parents=True, exist_ok=True)
+    # create default structure.json
+    import json as _json
+    default_struct = {"active_part_id": "part_1", "active_chapter_id": "ch_1",
+                      "parts": [{"id": "part_1", "name": "Part 1", "chapters": [
+                          {"id": "ch_1", "name": "Chapter 1", "scenes": [], "summary": ""}]}]}
+    (p / "structure.json").write_text(_json.dumps(default_struct, indent=2), encoding="utf-8")
     # world_lore.md: premise (if any) + lore (if any); else template
     body_parts = []
     if premise.strip():
@@ -285,7 +332,18 @@ def create_project(name: str, language: str = "en", genre: str = "", subgenre: s
     (p / "npc_registry.json").write_text("{}", encoding="utf-8")
     (p / "plot_threads.json").write_text("[]", encoding="utf-8")
     (p / "timeline.json").write_text("[]", encoding="utf-8")
-    (p / "project_config.json").write_text(json.dumps({"language": language, "genre": genre, "subgenre": subgenre, "premise": premise}, indent=2), encoding="utf-8")
+    (p / "project_config.json").write_text(json.dumps({"language": language, "genre": genre, "subgenre": subgenre, "premise": premise, "pov": pov, "tense": tense, "tone": tone}, indent=2), encoding="utf-8")
+    # generate AGENTS.md
+    agents_md = f"# {name}\n\nLanguage: {language}\n"
+    if genre:
+        agents_md += f"Genre: {genre}" + (f" / {subgenre}" if subgenre else "") + "\n"
+    if pov: agents_md += f"POV: {pov}\n"
+    if tense: agents_md += f"Tense: {tense}\n"
+    if tone: agents_md += f"Tone: {tone}\n"
+    if premise: agents_md += f"\nPremise: {premise}\n"
+    (p / "AGENTS.md").write_text(agents_md, encoding="utf-8")
+    if samples and samples.strip():
+        create_style_from_samples(f"{name} voice", [samples])
     return True
 
 
@@ -428,13 +486,13 @@ def log_usage(model: str, usage: dict, scene_ref=None):
         "total_tokens": usage.get("total_tokens"),
         "cost_usd": round(cost, 6),
     }
-    with (project_base() / "usage_log.jsonl").open("a", encoding="utf-8") as f:
+    with (kb_path("usage_log")).open("a", encoding="utf-8") as f:
         f.write(json.dumps(entry) + "\n")
 
 
 def next_scene_number() -> int:
     nums = []
-    for p in (project_base() / "scenes").glob("scene_*.md"):
+    for p in (kb_path("scenes")).glob("scene_*.md"):
         m = re.match(r"scene_(\d+)\.md", p.name)
         if m and not p.name.endswith("_meta.json"):
             nums.append(int(m.group(1)))
@@ -442,13 +500,14 @@ def next_scene_number() -> int:
 
 
 def snapshot_path(n: int) -> Path:
-    return project_base() / "scenes" / f"scene_{n:02d}_snapshot.md"
+    return kb_path("scenes") / f"scene_{n:02d}_snapshot.md"
 
 
 def save_snapshot(n: int, scene_text: str):
     atomic_write(snapshot_path(n), scene_text)
 
-
+
+
 def git_commit_scene(n: int, message: str = None):
     import subprocess
     base = project_base()
@@ -465,7 +524,7 @@ def git_commit_scene(n: int, message: str = None):
 
 
 def feedback_path(n: int) -> Path:
-    return project_base() / "scenes" / f"scene_{n:02d}_feedback.json"
+    return kb_path("scenes") / f"scene_{n:02d}_feedback.json"
 
 
 def save_feedback(n: int, rating: int, text: str):
@@ -475,7 +534,7 @@ def save_feedback(n: int, rating: int, text: str):
 
 def recent_feedback(n: int = 5) -> str:
     out = []
-    for p in sorted((project_base() / "scenes").glob("scene_*_feedback.json")):
+    for p in sorted((kb_path("scenes")).glob("scene_*_feedback.json")):
         try:
             d = json.loads(p.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
@@ -486,8 +545,8 @@ def recent_feedback(n: int = 5) -> str:
 
 def detect_edit(n: int) -> bool:
     """Compare current scene file hash to stored hash. Returns True if edited (dirty)."""
-    scene_path = project_base() / "scenes" / f"scene_{n:02d}.md"
-    meta_path = project_base() / "scenes" / f"scene_{n:02d}_meta.json"
+    scene_path = kb_path("scenes") / f"scene_{n:02d}.md"
+    meta_path = kb_path("scenes") / f"scene_{n:02d}_meta.json"
     if not scene_path.exists() or not meta_path.exists():
         return False
     try:
@@ -505,11 +564,12 @@ def detect_edit(n: int) -> bool:
 
 
 def load_state() -> dict:
-    p = project_base() / "character_state.json"
+    p = kb_path("state")
     if p.exists():
         return json.loads(p.read_text(encoding="utf-8"))
     # seed from characters.json
-    chars = json.loads((project_base() / "characters.json").read_text(encoding="utf-8"))
+    cp = kb_path("characters")
+    chars = json.loads(cp.read_text(encoding="utf-8")) if cp.exists() else []
     state = {c["id"]: {"location": "unknown", "inventory": [], "relationships": {}, "status": "alive"} for c in chars}
     return state
 
@@ -663,7 +723,7 @@ def apply_audit_extras(audit: dict):
         return
     new_threads = audit.get("plot_threads") or []
     if new_threads:
-        p = project_base() / "plot_threads.json"
+        p = kb_path("plot_threads")
         existing = json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
         by_id = {t.get("id"): t for t in existing if t.get("id")}
         for t in new_threads:
@@ -673,7 +733,7 @@ def apply_audit_extras(audit: dict):
         atomic_write(p, json.dumps(merged, indent=2))
     te = audit.get("timeline_entry")
     if te:
-        p = project_base() / "timeline.json"
+        p = kb_path("timeline")
         existing = json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
         existing = [e for e in existing if e.get("scene") != te.get("scene")]
         existing.append(te)
@@ -682,7 +742,7 @@ def apply_audit_extras(audit: dict):
     # character knowledge
     ku = audit.get("knowledge_updates") or {}
     if ku:
-        p = project_base() / "character_knowledge.json"
+        p = kb_path("character_knowledge")
         existing = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
         for cid, upd in ku.items():
             if cid not in existing:
@@ -697,7 +757,7 @@ def apply_audit_extras(audit: dict):
 
     npc_updates = audit.get("npc_updates") or []
     if npc_updates:
-        p = project_base() / "npc_registry.json"
+        p = kb_path("npc_registry")
         existing = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
         for npc in npc_updates:
             name = npc.get("name")
@@ -709,7 +769,7 @@ def apply_audit_extras(audit: dict):
 def showrunner_prompt(lore: str, chars: list, state: dict, history: str, direction: str, brief: str = "",
                       feedback: str = "", npc_registry: dict = None, plot_threads: list = None,
                       timeline: list = None, language: str = "en", genre: str = "",
-                      subgenre: str = "") -> list:
+                      subgenre: str = "", skills_block: str = "", feedback_constraints: str = "") -> list:
     # Strip private fields (secrets) so character knowledge stays isolated (§7.1/§10).
     safe_chars = [{k: v for k, v in c.items() if k not in ("secrets",)} for c in chars]
     char_block = json.dumps(safe_chars, indent=2)
@@ -727,11 +787,17 @@ def showrunner_prompt(lore: str, chars: list, state: dict, history: str, directi
         lang_directive = "LANGUAGE: Write in English."
     style_rules = genre_style_rules(genre, subgenre)
     style_block = f"GENRE STYLE RULES ({genre}" + (f" / {subgenre}" if subgenre else "") + "):\n" + style_rules if style_rules else ""
+    skills_block_full = skills_block if skills_block else ""
+    feedback_block = f"FEEDBACK CONSTRAINTS (from reader ratings — address these):\n{feedback_constraints}" if feedback_constraints else ""
     system = f"""You are the Showrunner of a novel. You write ONE scene at a time.
 
 {lang_directive}
 
 {style_block}
+
+{skills_block_full}
+
+{feedback_block}
 
 WORLD LORE:
 {lore}
@@ -870,7 +936,7 @@ def split_scene_and_choices(raw: str):
 
 def retrieve_relevant_scenes(direction: str, chars: list, n: int = 5) -> str:
     # Retrieve relevant past scenes: always include last 2 (recency) + top entity-matched older scenes.
-    scenes = sorted(p for p in (project_base() / "scenes").glob("scene_*.md")
+    scenes = sorted(p for p in (kb_path("scenes")).glob("scene_*.md")
                     if re.match(r"scene_\d+\.md", p.name))
     if not scenes:
         return ""
@@ -941,7 +1007,7 @@ def apply_state_updates(state: dict, updates: dict):
 def next_event_id() -> int:
     with EVENT_LOG_LOCK:
         ids = []
-        p = project_base() / "events" / "event_log.jsonl"
+        p = kb_path("events") / "event_log.jsonl"
         if p.exists():
             for line in p.read_text(encoding="utf-8").splitlines():
                 line = line.strip()
@@ -957,7 +1023,7 @@ def next_event_id() -> int:
 def append_event(record: dict):
     """Append one record to event_log.jsonl under lock with fsync."""
     with EVENT_LOG_LOCK:
-        p = project_base() / "events" / "event_log.jsonl"
+        p = kb_path("events") / "event_log.jsonl"
         p.parent.mkdir(parents=True, exist_ok=True)
         line = json.dumps(record) + "\n"
         with p.open("a", encoding="utf-8") as f:
@@ -972,10 +1038,11 @@ def rebuild_state_from_events() -> dict:
     Seeds state from characters.json, then applies events in event_id order,
     skipping any event whose event_id is in the nullified set (retcons).
     """
-    chars = json.loads((project_base() / "characters.json").read_text(encoding="utf-8"))
+    _cp = kb_path("characters")
+    chars = json.loads(_cp.read_text(encoding="utf-8")) if _cp.exists() else []
     state = {c["id"]: {"location": "unknown", "inventory": [], "relationships": {}, "status": "alive"} for c in chars}
 
-    p = project_base() / "events" / "event_log.jsonl"
+    p = kb_path("events") / "event_log.jsonl"
     if not p.exists():
         return state
 
@@ -1021,8 +1088,10 @@ def rebuild_state_from_events() -> dict:
 
 
 def main():
-    lore = (project_base() / "world_lore.md").read_text(encoding="utf-8")
-    chars = json.loads((project_base() / "characters.json").read_text(encoding="utf-8"))
+    _lp = kb_path("lore")
+    lore = _lp.read_text(encoding="utf-8") if _lp.exists() else ""
+    _cp = kb_path("characters")
+    chars = json.loads(_cp.read_text(encoding="utf-8")) if _cp.exists() else []
     state = load_state()
 
     print("=" * 60)
@@ -1036,7 +1105,7 @@ def main():
         n = next_scene_number()
         print(f"\n--- Generating Scene {n:02d} ---")
         suggested = ""
-        lc = project_base() / ".last_choice.txt"
+        lc = kb_path("last_choice")
         if lc.exists():
             suggested = lc.read_text(encoding="utf-8").strip()
         prompt = "Director direction"
@@ -1048,9 +1117,9 @@ def main():
             direction = suggested if suggested else "Continue the story naturally from where it left off."
         brief = input("Scene brief (optional constraints, or Enter to skip): ").strip()
 
-        npc_registry = json.loads((project_base() / "npc_registry.json").read_text(encoding="utf-8")) if (project_base() / "npc_registry.json").exists() else {}
-        plot_threads = json.loads((project_base() / "plot_threads.json").read_text(encoding="utf-8")) if (project_base() / "plot_threads.json").exists() else []
-        timeline = json.loads((project_base() / "timeline.json").read_text(encoding="utf-8")) if (project_base() / "timeline.json").exists() else []
+        npc_registry = json.loads((kb_path("npc_registry")).read_text(encoding="utf-8")) if (kb_path("npc_registry")).exists() else {}
+        plot_threads = json.loads((kb_path("plot_threads")).read_text(encoding="utf-8")) if (kb_path("plot_threads")).exists() else []
+        timeline = json.loads((kb_path("timeline")).read_text(encoding="utf-8")) if (kb_path("timeline")).exists() else []
         language = project_language()
         genre = project_genre()
         subgenre = project_subgenre()
@@ -1080,7 +1149,7 @@ def main():
             print(f"Auditor failed: {e}. State not updated this scene.")
 
         # Save scene
-        scene_path = project_base() / "scenes" / f"scene_{n:02d}.md"
+        scene_path = kb_path("scenes") / f"scene_{n:02d}.md"
         atomic_write(scene_path, scene)
         save_snapshot(n, scene)
         meta = {
@@ -1092,7 +1161,7 @@ def main():
             "events": (audit or {}).get("events", []),
             "choices": choices,
         }
-        atomic_write(project_base() / "scenes" / f"scene_{n:02d}_meta.json", json.dumps(meta, indent=2))
+        atomic_write(kb_path("scenes") / f"scene_{n:02d}_meta.json", json.dumps(meta, indent=2))
 
         # Append events (with monotonic event_id; store per-event state_updates for rebuildability)
         scene_level_updates = (audit or {}).get("state_updates", {}) or {}
@@ -1118,14 +1187,14 @@ def main():
                 apply_state_updates(state, audit["state_updates"])
                 applied_any = True
             if applied_any:
-                atomic_write(project_base() / "character_state.json", json.dumps(state, indent=2))
+                atomic_write(kb_path("state"), json.dumps(state, indent=2))
             apply_audit_extras(audit)
             # Phase 3: voice + knowledge + NPC checks (rule-based, no LLM)
             v_issues = voice_check(scene, chars)
-            k_path = project_base() / "character_knowledge.json"
+            k_path = kb_path("character_knowledge")
             knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
             k_issues = knowledge_check(scene, chars, knowledge)
-            npc_path = project_base() / "npc_registry.json"
+            npc_path = kb_path("npc_registry")
             npc_reg = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
             n_issues = npc_check(scene, npc_reg)
             all_issues = v_issues + k_issues + n_issues
@@ -1152,7 +1221,7 @@ def main():
         else:
             chosen = ans if ans else "Continue the story naturally."
         # Save chosen direction as next default by appending to a scratch file (optional)
-        (project_base() / ".last_choice.txt").write_text(chosen, encoding="utf-8")
+        (kb_path("last_choice")).write_text(chosen, encoding="utf-8")
 
 
 def reconciler_prompt(original: str, edited: str, chars: list, events: list) -> list:
@@ -1170,7 +1239,7 @@ def reconciler_prompt(original: str, edited: str, chars: list, events: list) -> 
 def find_fact_support(entity: str) -> list[dict]:
     """Return event-log entries + source scenes that support a given fact/entity."""
     results = []
-    p = project_base() / "events" / "event_log.jsonl"
+    p = kb_path("events") / "event_log.jsonl"
     if not p.exists():
         return results
     for line in p.read_text(encoding="utf-8").splitlines():
@@ -1198,7 +1267,7 @@ def find_fact_support(entity: str) -> list[dict]:
 
 def _nullified_ids() -> set:
     ids = set()
-    p = project_base() / "events" / "event_log.jsonl"
+    p = kb_path("events") / "event_log.jsonl"
     if not p.exists():
         return ids
     for line in p.read_text(encoding="utf-8").splitlines():
@@ -1216,7 +1285,7 @@ def _nullified_ids() -> set:
 
 def flag_downstream(entities: list[str], after_scene: int | None = None) -> list[str]:
     result = []
-    scenes = sorted(p for p in (project_base() / "scenes").glob("scene_*.md")
+    scenes = sorted(p for p in (kb_path("scenes")).glob("scene_*.md")
                     if re.match(r"scene_\d+\.md", p.name))
     for p in scenes:
         m = re.match(r"scene_(\d+)\.md", p.name)
@@ -1227,7 +1296,7 @@ def flag_downstream(entities: list[str], after_scene: int | None = None) -> list
             continue
         text = p.read_text(encoding="utf-8").lower()
         # also check event summaries for that scene
-        meta_path = project_base() / "scenes" / f"scene_{num:02d}_meta.json"
+        meta_path = kb_path("scenes") / f"scene_{num:02d}_meta.json"
         extra = ""
         if meta_path.exists():
             try:
@@ -1244,7 +1313,7 @@ def flag_downstream(entities: list[str], after_scene: int | None = None) -> list
 
 def scan_for_edits() -> list[int]:
     dirty = []
-    for p in sorted((project_base() / "scenes").glob("scene_*_meta.json")):
+    for p in sorted((kb_path("scenes")).glob("scene_*_meta.json")):
         m = re.match(r"scene_(\d+)_meta\.json", p.name)
         if not m:
             continue
@@ -1260,9 +1329,9 @@ def reconcile_scene(n: int) -> dict | None:
     Returns a dict with summary, passages_changed, affected_events, proposals,
     downstream_entities, downstream_scenes. Returns None if no snapshot/original.
     """
-    scene_path = project_base() / "scenes" / f"scene_{n:02d}.md"
+    scene_path = kb_path("scenes") / f"scene_{n:02d}.md"
     snap = snapshot_path(n)
-    meta_path = project_base() / "scenes" / f"scene_{n:02d}_meta.json"
+    meta_path = kb_path("scenes") / f"scene_{n:02d}_meta.json"
     if not scene_path.exists() or not snap.exists() or not meta_path.exists():
         return None
     original = snap.read_text(encoding="utf-8")
@@ -1279,10 +1348,11 @@ def reconcile_scene(n: int) -> dict | None:
             pass
         return None
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    chars = json.loads((project_base() / "characters.json").read_text(encoding="utf-8"))
+    _cp = kb_path("characters")
+    chars = json.loads(_cp.read_text(encoding="utf-8")) if _cp.exists() else []
     # Prefer events from the event log (which have event_ids) over meta.events (legacy)
     events = []
-    log_path = project_base() / "events" / "event_log.jsonl"
+    log_path = kb_path("events") / "event_log.jsonl"
     if log_path.exists():
         for line in log_path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -1313,7 +1383,7 @@ def apply_proposals(proposals: list[dict]) -> int:
     """Apply accepted proposals: append retcons/new events. Returns count applied."""
     applied = 0
     valid_ids = set()
-    pp = project_base() / "events" / "event_log.jsonl"
+    pp = kb_path("events") / "event_log.jsonl"
     if pp.exists():
         for line in pp.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -1370,11 +1440,11 @@ def apply_reconciliation(proposals: list[dict], scene: int | None = None,
     accepted = [p for p in proposals if p.get("accepted", True)]
     applied = apply_proposals([{**p, "scene": scene} for p in accepted])
     new_state = rebuild_state_from_events()
-    atomic_write(project_base() / "character_state.json", json.dumps(new_state, indent=2))
+    atomic_write(kb_path("state"), json.dumps(new_state, indent=2))
     # clear dirty + update hash/snapshot for the reconciled scene
     if scene is not None:
-        sp = project_base() / "scenes" / ("scene_%02d.md" % scene)
-        mp = project_base() / "scenes" / ("scene_%02d_meta.json" % scene)
+        sp = kb_path("scenes") / ("scene_%02d.md" % scene)
+        mp = kb_path("scenes") / ("scene_%02d_meta.json" % scene)
         if sp.exists() and mp.exists():
             try:
                 meta = json.loads(mp.read_text(encoding="utf-8"))
@@ -1488,3 +1558,328 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\\nInterrupted. State saved up to last accepted scene.")
         sys.exit(0)
+# Skills system
+
+
+
+def skills_dir() -> "Path":
+
+    return project_base() / "skills"
+
+
+
+
+
+def list_skills() -> list:
+
+    sd = skills_dir()
+
+    if not sd.exists():
+
+        return []
+
+    out = []
+
+    for p in sorted(sd.glob("*.md")):
+
+        text = p.read_text(encoding="utf-8")
+
+        meta = {"name": p.stem, "trigger": "", "active": True, "body": text}
+
+        if text.startswith("---"):
+
+            parts = text.split("---", 2)
+
+            if len(parts) >= 3:
+
+                for line in parts[1].strip().splitlines():
+
+                    if ":" in line:
+
+                        k, v = line.split(":", 1)
+
+                        k = k.strip().lower()
+
+                        v = v.strip()
+
+                        if k == "name":
+
+                            meta["name"] = v
+
+                        elif k == "trigger":
+
+                            meta["trigger"] = v
+
+                        elif k == "active":
+
+                            meta["active"] = v.lower() in ("true", "1", "yes")
+
+                meta["body"] = parts[2].strip()
+
+        out.append({"file": p.name, "name": meta["name"], "trigger": meta["trigger"],
+
+                    "active": meta["active"], "body": meta["body"]})
+
+    return out
+
+
+
+
+
+def load_active_skills(context: str = "") -> list:
+
+    skills = list_skills()
+
+    active = []
+
+    for s in skills:
+
+        if not s["active"]:
+
+            continue
+
+        trigger = s["trigger"].lower()
+
+        if not trigger or trigger == "always":
+
+            active.append(s)
+
+        elif context and trigger in context.lower():
+
+            active.append(s)
+
+    return active
+
+
+
+
+
+def skills_prompt_block(context: str = "") -> str:
+
+    skills = load_active_skills(context)
+
+    if not skills:
+
+        return ""
+
+    parts = ["APPLICABLE WRITING/BRIEFING SKILLS (follow these):"]
+
+    for s in skills:
+
+        parts.append("\n--- Skill: " + s["name"] + " ---\n" + s["body"])
+
+    return "\n".join(parts)
+
+
+
+
+
+def save_skill(filename: str, name: str, trigger: str, active: bool, body: str):
+
+    sd = skills_dir()
+
+    sd.mkdir(parents=True, exist_ok=True)
+
+    path = sd / filename
+
+    content = "---\nname: " + name + "\ntrigger: " + trigger + "\nactive: " + str(active).lower() + "\n---\n\n" + body + "\n"
+
+    atomic_write(path, content)
+
+
+
+
+
+def delete_skill(filename: str) -> bool:
+
+    p = skills_dir() / filename
+
+    if p.exists():
+
+        p.unlink()
+
+        return True
+
+    return False
+
+
+# Skills system
+
+def skills_dir() -> "Path":
+    return project_base() / "skills"
+
+
+def list_skills() -> list:
+    sd = skills_dir()
+    if not sd.exists():
+        return []
+    out = []
+    for p in sorted(sd.glob("*.md")):
+        text = p.read_text(encoding="utf-8")
+        meta = {"name": p.stem, "trigger": "", "active": True, "body": text}
+        if text.startswith("---"):
+            parts = text.split("---", 2)
+            if len(parts) >= 3:
+                for line in parts[1].strip().splitlines():
+                    if ":" in line:
+                        k, v = line.split(":", 1)
+                        k = k.strip().lower()
+                        v = v.strip()
+                        if k == "name":
+                            meta["name"] = v
+                        elif k == "trigger":
+                            meta["trigger"] = v
+                        elif k == "active":
+                            meta["active"] = v.lower() in ("true", "1", "yes")
+                meta["body"] = parts[2].strip()
+        out.append({"file": p.name, "name": meta["name"], "trigger": meta["trigger"],
+                    "active": meta["active"], "body": meta["body"]})
+    return out
+
+
+def load_active_skills(context: str = "") -> list:
+    skills = list_skills()
+    active = []
+    for s in skills:
+        if not s["active"]:
+            continue
+        trigger = s["trigger"].lower()
+        if not trigger or trigger == "always":
+            active.append(s)
+        elif context and trigger in context.lower():
+            active.append(s)
+    return active
+
+
+def skills_prompt_block(context: str = "") -> str:
+    skills = load_active_skills(context)
+    if not skills:
+        return ""
+    parts = ["APPLICABLE WRITING/BRIEFING SKILLS (follow these):"]
+    for s in skills:
+        parts.append("\n--- Skill: " + s["name"] + " ---\n" + s["body"])
+    return "\n".join(parts)
+
+
+def save_skill(filename: str, name: str, trigger: str, active: bool, body: str):
+    sd = skills_dir()
+    sd.mkdir(parents=True, exist_ok=True)
+    path = sd / filename
+    content = "---\nname: " + name + "\ntrigger: " + trigger + "\nactive: " + str(active).lower() + "\n---\n\n" + body + "\n"
+    atomic_write(path, content)
+
+
+def delete_skill(filename: str) -> bool:
+    p = skills_dir() / filename
+    if p.exists():
+        p.unlink()
+        return True
+    return False
+
+# kb_path function
+def kb_path(key: str) -> "Path":
+    base = project_base()
+    kb = base / "kb"
+    mapping = {
+        "lore": ("world/lore.md", "world_lore.md"),
+        "characters": ("characters/profiles.json", "characters.json"),
+        "state": ("characters/state.json", "character_state.json"),
+        "npc_registry": ("characters/npc_registry.json", "npc_registry.json"),
+        "plot_threads": ("world/plot_threads.json", "plot_threads.json"),
+        "timeline": ("timeline/chronology.json", "timeline.json"),
+        "skills": ("styles", "skills"),
+        "events": ("events", "events"),
+        "scenes": ("scenes", "scenes"),
+        "usage_log": ("usage_log.jsonl", "usage_log.jsonl"),
+        "character_knowledge": ("characters/knowledge.json", "character_knowledge.json"),
+        "last_choice": (".last_choice.txt", ".last_choice.txt"),
+    }
+    if key in mapping:
+        new_rel, old_rel = mapping[key]
+        new_p = kb / new_rel
+        old_p = base / old_rel
+        if new_p.exists():
+            return new_p
+        if old_p.exists():
+            return old_p
+        return new_p
+    return base / key
+
+
+# delete_scene
+def delete_scene(n: int) -> bool:
+    base = (project_base() / "scenes") if not (project_base() / "kb" / "scenes").exists() else (project_base() / "kb" / "scenes")
+    # use kb_path
+    base = kb_path("scenes")
+    removed = False
+    for fn in ("scene_%02d.md" % n, "scene_%02d_meta.json" % n, "scene_%02d_snapshot.md" % n):
+        p = base / fn
+        if p.exists():
+            p.unlink()
+            removed = True
+    return removed
+
+
+# create_project with kb structure
+# (already in original, but need to ensure skills dir exists)
+def _ensure_kb_structure(p):
+    (p / "kb" / "styles").mkdir(parents=True, exist_ok=True)
+    (p / "kb" / "characters").mkdir(parents=True, exist_ok=True)
+    (p / "kb" / "world").mkdir(parents=True, exist_ok=True)
+    (p / "kb" / "timeline").mkdir(parents=True, exist_ok=True)
+
+# Add add_scene function to studio.py
+def add_scene(text: str, improve: bool = False, options: list = None, direction: str = "") -> dict:
+    """Add a new scene to the current project from draft text. Optionally improve it."""
+    if options is None:
+        options = []
+    text = text.strip()
+    if not text:
+        return {"ok": False, "error": "Empty text"}
+    n = next_scene_number()
+    base = project_base()
+    # If improve, run through showrunner
+    if improve:
+        chars = json.loads((base / "characters.json").read_text(encoding="utf-8")) if (base / "characters.json").exists() else []
+        chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars]
+        state = load_state()
+        lore = (base / "world_lore.md").read_text(encoding="utf-8") if (base / "world_lore.md").exists() else ""
+        npc_registry = json.loads((base / "npc_registry.json").read_text(encoding="utf-8")) if (base / "npc_registry.json").exists() else {}
+        plot_threads = json.loads((base / "plot_threads.json").read_text(encoding="utf-8")) if (base / "plot_threads.json").exists() else []
+        timeline = json.loads((base / "timeline.json").read_text(encoding="utf-8")) if (base / "timeline.json").exists() else []
+        language = project_language()
+        genre = project_genre()
+        subgenre = project_subgenre()
+        option_map = {
+            "add_details": "Add more sensory details, description, and atmosphere.",
+            "rewrite_dialogue": "Rewrite all dialogue to be sharper and more natural.",
+            "fix_continuity": "Fix continuity errors and contradictions.",
+            "expand": "Expand the scene. Target 800-1000 words.",
+            "tighten_pacing": "Tighten pacing. Cut filler. Target 400-600 words.",
+            "change_tone": "Adjust tone to be more dramatic and intense.",
+        }
+        instructions = [option_map.get(o, o) for o in options if o in option_map]
+        if direction:
+            instructions.append(direction)
+        improve_dir = "Improve this scene. " + " ".join(instructions) if instructions else "Improve this scene's prose quality."
+        history = retrieve_relevant_scenes(improve_dir, chars, 3)
+        msgs = showrunner_prompt(lore, chars, state, history, improve_dir, "", recent_feedback(3),
+                                 npc_registry, plot_threads, timeline, language, genre, subgenre)
+        raw = llm_call(CONFIG["showrunner_model"], msgs, CONFIG["max_tokens_showrunner"], CONFIG["temperature"])
+        text, choices = split_scene_and_choices(raw)
+    else:
+        text = text
+        choices = []
+    # Save as new scene
+    sp = base / "scenes" / ("scene_%02d.md" % n)
+    atomic_write(sp, text)
+    save_snapshot(n, text)
+    meta = {"scene": n, "hash": sha256_file(sp), "status": "accepted",
+            "characters_present": [], "location": None, "events": [], "choices": choices}
+    atomic_write(base / "scenes" / ("scene_%02d_meta.json" % n), json.dumps(meta, indent=2))
+    # Assign to active chapter
+    cid = active_chapter_id()
+    if cid:
+        assign_scene_to_chapter(n, cid)
+    git_commit_scene(n, "added scene %d" % n)
+    return {"ok": True, "scene": n, "text": text, "choices": choices}
