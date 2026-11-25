@@ -1,7 +1,7 @@
-# Novel Studio — Phase 0 (terminal walking skeleton)
+# Novel Studio
 
-A local-first, scene-by-scene AI novel co-writer. Phase 0 is a terminal loop only.
-No UI, no vector DB, no Git branches until the core loop is proven.
+A local-first, scene-by-scene AI novel co-writer with a browser UI and a terminal loop.
+Projects live under `projects/<name>/`; scene files are authoritative and author edits are canon.
 
 ## Run (web UI — recommended)
 
@@ -31,11 +31,11 @@ python studio.py
 
 ## Files
 
-- `world_lore.md` — static world rules (edit freely; author authority).
-- `characters.json` — cast + voice contracts.
-- `character_state.json` — derived, rebuildable state.
-- `events/event_log.jsonl` — append-only event log with retcons.
-- `scenes/scene_NN.md` + `_meta.json` — prose + hash + status.
+- `projects/<name>/world_lore.md` — static world rules (edit freely; author authority).
+- `projects/<name>/characters.json` — cast + voice contracts.
+- `projects/<name>/kb/characters/state.json` — derived, rebuildable state.
+- `projects/<name>/events/event_log.jsonl` — append-only event log with retcons.
+- `projects/<name>/scenes/scene_NN.md` + `_meta.json` — prose + hash + status.
 - `usage_log.jsonl` — per-call cost/token log.
 - `config.json` — model names (free-tier; rotate as needed).
 
@@ -45,7 +45,7 @@ Generate 10 scenes → edit scene 03 (delete the key paragraph) → run → veri
 detects the change, proposes removing the key from inventory, and later scenes don't
 reference the key, with a retcon entry (not a deletion) in the event log.
 
-Reconciliation (hash detection + retcon) is NOT yet implemented — that's Phase 1.
+Reconciliation (hash detection + retcon) is implemented; edited scenes are detected on load and proposed changes require author acceptance.
 
 ## Notes
 

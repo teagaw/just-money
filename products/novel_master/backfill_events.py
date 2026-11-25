@@ -13,7 +13,7 @@ BASE = Path(__file__).parent
 sys.path.insert(0, str(BASE))
 import studio
 
-LOG = BASE / "events" / "event_log.jsonl"
+LOG = studio.kb_path("events") / "event_log.jsonl"
 
 
 def main():

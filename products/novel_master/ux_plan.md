@@ -246,6 +246,6 @@ Lightweight UX specification for the novel co-writing studio. Defines user flows
 - Single HTML file with embedded CSS/JS.
 - All API calls use `fetch` with proper error handling.
 - Generation is long (1–2 min); show progress, allow cancel (abort fetch).
-- `INDEX_HTML` is read once at startup; note restart requirement for HTML changes (or re-read per request).
+- `index.html` is re-read from disk on every request; reload the page to pick up HTML changes.
 - Keyboard shortcuts must not fire when typing in inputs.
 - Use CSS custom properties for all colors (theming, RTL).

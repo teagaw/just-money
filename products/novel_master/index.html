@@ -454,6 +454,11 @@
     border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 14px;
   }
   .btn-secondary:hover { color: var(--text); border-color: var(--accent); }
+  .btn-danger {
+    padding: var(--sp-2) var(--sp-4); background: var(--danger); color: #fff;
+    border: none; border-radius: var(--r-sm); cursor: pointer; font-size: 14px;
+  }
+  .propcb { vertical-align: middle; }
   .skip-link { font-size: 13px; color: var(--accent); text-decoration: underline; cursor: pointer; margin-inline-start: auto; }
 
   /* ── Project card more menu / context menu ── */
@@ -479,28 +484,9 @@
   }
   .context-menu button:hover { background: var(--bg-page); }
 
-  .action-card {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: var(--sp-5); cursor: pointer; text-align: start; color: var(--text);
-    transition: border-color 150ms ease-out, transform 100ms ease-out, background-color 100ms ease-out;
-  }
-  .action-card:hover { border-color: var(--accent); transform: translateY(-2px); background: var(--bg-page); }
-  .action-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .project-card {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg);
-    padding: var(--sp-4); cursor: pointer; text-align: start; color: var(--text);
-    transition: border-color 100ms ease-out, background-color 100ms ease-out; position: relative;
-  }
-  .project-card:hover { border-color: var(--accent); background: var(--bg-page); }
-  .project-card .pc-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
-  .project-card .pc-genre { font-size: 11px; color: var(--accent); background: oklch(0.20 0.04 70); padding: 1px 6px; border-radius: 3px; display: inline-block; margin-bottom: var(--sp-1); }
-  .project-card .pc-meta { font-size: 12px; color: var(--text-muted); margin-bottom: var(--sp-1); font-variant-numeric: tabular-nums; }
-  .project-card .pc-preview { font-size: 12px; color: var(--text-muted); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .project-card .pc-more { position: absolute; top: var(--sp-2); right: var(--sp-2); background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; font-size: 12px; padding: 2px 6px; opacity: 0; transition: opacity 100ms; }
   .project-card:hover .pc-more { opacity: 1; }
   .project-card .pc-more:focus { opacity: 1; }
-  .project-cards.highlight { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--r-lg); }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
   .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--sp-5); max-width: 560px; width: 90vw; max-height: 80vh; overflow-y: auto; }
   .modal h2 { font-size: 18px; margin-bottom: var(--sp-4); color: var(--text); }
   .modal label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: var(--sp-1); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -512,12 +498,7 @@
   .modal .btn-secondary { background: var(--border); color: var(--text); }
   .hidden { display: none !important; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-  .sr-only {
-    position: absolute; width: 1px; height: 1px;
-    padding: 0; margin: -1px; overflow: hidden;
-    clip: rect(0,0,0,0); border: 0;
-  }
-</style>
+  </style>
 </head>
 <body>
 <a href="#main" class="sr-only">Skip to main content</a>
@@ -587,6 +568,7 @@
   <div class="modal">
     <h2>Hints (Foreshadowing Ledger)</h2>
     <div id="hintsModalList" style="margin-bottom:var(--sp-3); max-height:200px; overflow:auto;"></div>
+    <div id="hintAudit" style="font-size:12px; color:var(--warning); margin-bottom:var(--sp-3);"></div>
     <h3 style="font-size:13px; color:var(--accent); margin:var(--sp-3) 0 var(--sp-2);">Add / Edit Hint</h3>
     <label>ID</label>
     <input id="hintId" type="text" placeholder="e.g. locket-origin" />
@@ -599,6 +581,7 @@
     <div class="btn-row">
       <button class="btn-secondary" onclick="closeHintsModal()">Close</button>
       <button class="btn-danger" onclick="deleteHint()" style="background:var(--danger); color:#fff;">Delete</button>
+      <button class="btn-secondary" onclick="resolveHint()">Resolve</button>
       <button class="btn-primary" onclick="saveHint()">Save</button>
     </div>
   </div>
@@ -653,30 +636,9 @@
     <div id="improveStep2" style="display:none;">
       <h3 style="font-size:14px; color:var(--accent); margin-bottom:var(--sp-3);">Analysis Results</h3>
       <div id="analysisResults" style="font-size:13px; color:var(--text); margin-bottom:var(--sp-3); line-height:1.6;"></div>
-      <h3 style="font-size:14px; color:var(--accent); margin-bottom:var(--sp-2);">What to improve?</h3>
-      <div id="improveOptions" style="margin-bottom:var(--sp-3);">
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="add_details" checked> Add details &amp; description</label>
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="rewrite_dialogue"> Rewrite dialogue</label>
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="fix_continuity"> Fix continuity</label>
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="expand"> Expand scenes</label>
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="tighten_pacing"> Tighten pacing</label>
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="change_tone"> Change tone</label>
-        <label style="display:block; margin:4px 0;"><input type="checkbox" value="add_characters"> Add characters</label>
-      </div>
-      <div style="margin-bottom:var(--sp-3);">
-        <label style="font-size:12px; color:var(--text-muted);">Custom instruction (optional)</label>
-        <textarea id="improveCustom" rows="2" placeholder="e.g., Make it darker, add more action..." style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px;"></textarea>
-      </div>
       <div class="btn-row">
         <button class="btn-secondary" onclick="closeImproveModal()">Cancel</button>
         <button class="btn-primary" onclick="startImprovement()">Start Improvement</button>
-      </div>
-    </div>
-    <div id="improveStep3" style="display:none;">
-      <h3 style="font-size:14px; color:var(--accent); margin-bottom:var(--sp-3);">Improving Scene <span id="improveSceneNum"></span></h3>
-      <div id="improveProgress" style="font-size:13px; color:var(--text-muted); margin-bottom:var(--sp-3);">Preparing...</div>
-      <div class="btn-row">
-        <button class="btn-secondary" onclick="closeImproveModal()">Stop</button>
       </div>
     </div>
   </div>
@@ -719,7 +681,7 @@
     <span id="novelTitle" style="font-size:13px; color:var(--text-muted); margin-inline-start:var(--sp-2);"></span>
     <span id="genreLabel" style="font-size:11px; color:var(--text-muted); margin-inline-start:var(--sp-1); opacity:0.7;"></span>
     <select id="projectSelect" onchange="switchProject(this.value)" aria-label="Select novel project" class="project-select"></select>
-    <button onclick="newProject()" class="new-btn" aria-label="New project">+ New</button>
+    <button onclick="openStartNewModal()" class="new-btn" aria-label="New project">+ New</button>
     <button onclick="deleteProject()" class="new-btn" aria-label="Delete project" style="color:var(--danger); border-color:var(--danger);">Delete</button>
     <select id="branchSelect" onchange="switchBranch(this.value)" aria-label="Select branch" class="project-select" style="max-width:140px;"></select>
     <button onclick="newBranch()" class="new-btn" aria-label="New branch">Branch</button>
@@ -737,8 +699,12 @@
     <div id="loading" class="loading" role="status" aria-live="polite"></div>
     <div class="progress-wrap" id="pwrap"><div class="progress-bar" id="pbar"></div></div>
 
-    <div id="recon" class="recon hidden">
-      <h3>⚠ Reconciliation</h3>
+    <div id="analysisPanel" class="recon hidden" style="margin-top:var(--sp-4);">
+      <h3>📊 Scene Analysis</h3>
+      <div id="analysisBody"></div>
+    </div>
+    <div id="recon" class="recon hidden" style="margin-top:var(--sp-4);">
+      <h3>🔧 Reconciliation</h3>
       <div id="reconBody"></div>
       <div class="btn-row">
         <button class="apply-btn" onclick="applyProposals()">Apply accepted</button>
@@ -752,6 +718,7 @@
         <button id="saveBtn" class="save-btn" onclick="saveScene()" style="display:none;">Save</button>
         <button id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">Cancel</button>
         <button onclick="showAddSceneModal()">+ Add Scene</button>
+        <button onclick="analyzeScene()">Analyze</button>
         <button onclick="openImproveSceneModal()" style="padding:4px 10px; background:transparent; color:var(--text-muted); border:1px solid var(--border); border-radius:var(--r-sm); cursor:pointer; font-size:12px;">Improve</button>
       </div>
       <div class="scene" id="scene"></div>
@@ -818,6 +785,18 @@
     <div class="section">
       <h3>Hints <button onclick="showHintsModal()">+ Add</button></h3>
       <div id="hintsList" style="font-size:12px; color:var(--text-muted);"></div>
+    </div>
+    <div class="section">
+      <h3>Chat with AI <button onclick="toggleChat()">Toggle</button></h3>
+      <div id="chatMarkers" style="font-size:11px; color:var(--text-muted); margin-bottom:var(--sp-2);"></div>
+      <div id="chatLog" style="font-size:12px; max-height:240px; overflow:auto; margin-bottom:var(--sp-2);"></div>
+      <div id="chatActions" style="margin-bottom:var(--sp-2);"></div>
+      <div id="chatPreview" style="display:none; margin-bottom:var(--sp-2);"></div>
+      <div style="display:flex; gap:4px;">
+        <input id="chatInput" type="text" placeholder="Ask about this scene..." style="flex:1; padding:4px 8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-size:12px;" />
+        <button onclick="sendChat()" style="padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:var(--r-sm); cursor:pointer; font-size:12px; font-weight:600;">Send</button>
+      </div>
+      <div id="chatStatus" style="font-size:11px; color:var(--text-muted); margin-top:4px;"></div>
     </div>
   </aside>
 </div>
@@ -916,8 +895,10 @@ let editingScene = 0;
 let genAbort = null;
 
 /* ── Renderers ── */
+let lastKnownStatus = 'accepted';
 function renderStatus(d){
-  document.getElementById('status').textContent = `Scene ${d.scene_count}/${d.scene_count} · accepted`;
+  lastKnownStatus = d.last_status || 'accepted';
+  document.getElementById('status').textContent = `Scene ${d.current_scene||0}/${d.scene_count} · ${lastKnownStatus}`;
 }
 let rawSceneText = '';
 function renderScene(text){
@@ -1092,6 +1073,7 @@ async function renderStructure(){
       const chHeader = document.createElement('div');
       chHeader.style.cssText = 'display:flex; align-items:center; gap:4px; font-weight:500; color:var(--text); cursor:pointer; padding:2px 0;';
       chHeader.innerHTML = '<span>▼</span> ' + esc(ch.name);
+      chHeader.onclick = ()=> showChapterSummary(ch.id, ch.name);
       const chActions = document.createElement('span');
       chActions.style.cssText = 'margin-left:auto; display:flex; gap:2px;';
       const renCh = document.createElement('button');
@@ -1128,6 +1110,13 @@ async function renderStructure(){
     el.appendChild(partDiv);
   });
 }
+async function showChapterSummary(id, name){
+  try {
+    const r = await fetch('/api/generate_chapter_summary', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id})});
+    const d = await r.json();
+    alert(name + '\n\n' + (d.summary || 'No summary available.'));
+  } catch(e){ alert('Summary failed: ' + e); }
+}
 function renderChecks(checks){
   const el = document.getElementById('checks');
   if(!checks || !checks.length){ el.classList.add('hidden'); el.innerHTML=''; return; }
@@ -1158,13 +1147,119 @@ async function viewScene(n){
   if(d.error){ alert(d.error); return; }
   renderScene(d.scene);
   renderChoices(d.choices || []);
+  try {
+    const ar = await fetch('/api/analysis/' + n);
+    if(ar.ok){
+      const ad = await ar.json();
+      if(ad && ad.overall_rating != null && ad.dimensions){ renderAnalysis(ad); document.getElementById('analysisPanel').classList.remove('hidden'); }
+    }
+  } catch(e){}
   document.getElementById('sceneSelect').value = String(n);
   const idx = sceneNumbers.indexOf(n);
   document.getElementById('navLabel').textContent = `Scene ${n} of ${sceneNumbers.length}`;
+  document.getElementById('status').textContent = `Scene ${n}/${sceneNumbers.length} · ${lastKnownStatus}`;
   document.getElementById('prevBtn').disabled = (idx <= 0);
   document.getElementById('nextBtn').disabled = (idx >= sceneNumbers.length - 1);
   showFeedback(n);
+  loadChat();
 }
+async function analyzeScene(){
+  if(!currentScene){ alert('No scene selected.'); return; }
+  showLoading('Analyzing scene...', 'This may take 1-2 minutes.');
+  const progress = document.getElementById('analysisBody');
+  progress.innerHTML = '<div style="color:var(--text-muted);">Analyzing...</div>';
+  document.getElementById('analysisPanel').classList.remove('hidden');
+  try {
+    const level = prompt('Critique level: developmental, line, copyedit, proofread', 'developmental') || 'developmental';
+    const r = await fetch('/api/analyze_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, level})});
+    const d = await r.json();
+    if(d.error){ progress.innerHTML = '<div style="color:var(--danger);">Error: '+esc(d.error)+'</div>'; return; }
+    renderAnalysis(d);
+  } catch(e){ progress.innerHTML = '<div style="color:var(--danger);">Failed: '+esc(e)+'</div>'; }
+  finally { hideLoading(); }
+}
+function analysisHtml(d, withSceneButtons, planId){
+  let html = '';
+  if(d.overall_rating == null){
+    html += '<div style="color:var(--warning); font-size:13px; margin-bottom:12px;">Deep analysis unavailable'+(d.llm_error ? ': '+esc(d.llm_error) : '')+'. Showing deterministic metrics only.</div>';
+  } else {
+    const ratingColor = d.overall_rating >= 8 ? 'var(--success)' : d.overall_rating >= 5 ? 'var(--warning)' : 'var(--danger)';
+    html += '<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">';
+    html += '<div style="font-size:32px; font-weight:700; color:'+ratingColor+';">'+d.overall_rating+'</div>';
+    html += '<div style="font-size:14px; color:var(--text-muted);">/ 10 overall</div>';
+    if(d.llm_enhanced) html += '<span style="color:var(--success); font-size:12px;">(AI-enhanced)</span>';
+    html += '</div>';
+  }
+  const metrics = d.metrics || {};
+  if(metrics.word_count) html += '<div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">'+metrics.word_count+' words &middot; '+metrics.sentence_count+' sentences &middot; dialogue '+metrics.dialogue_ratio+'%</div>';
+  const dims = d.dimensions || {};
+  if(Object.keys(dims).length){
+    html += '<div style="margin-bottom:12px;">';
+    for(const [k,v] of Object.entries(dims)){
+      const pct = v * 10;
+      const color = v >= 8 ? 'var(--success)' : v >= 5 ? 'var(--warning)' : 'var(--danger)';
+      html += '<div style="margin:4px 0; font-size:12px;">';
+      html += '<div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>'+esc(k.replace(/_/g,' '))+'</span><span style="color:'+color+'; font-weight:600;">'+v+'</span></div>';
+      html += '<div style="height:6px; background:var(--border); border-radius:3px; overflow:hidden;"><div style="height:100%; width:'+pct+'%; background:'+color+'; border-radius:3px;"></div></div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  if(d.strengths && d.strengths.length){
+    html += '<div style="margin-bottom:8px;"><b style="color:var(--success);">Strengths:</b><ul style="margin:4px 0; padding-left:20px; font-size:13px;">';
+    d.strengths.forEach(s=>{ html += '<li>'+esc(s)+'</li>'; });
+    html += '</ul></div>';
+  }
+  if(d.weaknesses && d.weaknesses.length){
+    html += '<div style="margin-bottom:8px;"><b style="color:var(--danger);">Weaknesses:</b><ul style="margin:4px 0; padding-left:20px; font-size:13px;">';
+    d.weaknesses.forEach(w=>{
+      const sev = w.severity || 'minor';
+      const sevColor = sev === 'major' ? 'var(--danger)' : 'var(--warning)';
+      html += '<li><span style="color:'+sevColor+'; font-weight:600;">['+esc(sev)+']</span> '+esc(w.issue||'')+'</li>';
+    });
+    html += '</ul></div>';
+  }
+  html += '<div style="margin-top:12px;"><b style="color:var(--accent);">Improvement Plan:</b>';
+  html += '<textarea id="'+(planId||'analysisPlan')+'" rows="6" style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px; margin-top:4px; resize:vertical;">'+esc(d.improvement_plan||'')+'</textarea>';
+  if(withSceneButtons){
+    html += '<div style="display:flex; gap:8px; margin-top:8px;">';
+    html += '<button onclick="saveAnalysisPlan()" style="padding:6px 12px; background:var(--accent); color:#fff; border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Save Plan</button>';
+    html += '<button onclick="applyAnalysisPlan()" style="padding:6px 12px; background:var(--success); color:#fff; border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Apply Plan (rewrite scene)</button>';
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+function renderAnalysis(d){
+  document.getElementById('analysisBody').innerHTML = analysisHtml(d, true);
+}
+async function saveAnalysisPlan(){
+  const plan = document.getElementById('analysisPlan').value.trim();
+  if(!plan){ alert('Plan is empty.'); return; }
+  const r = await fetch('/api/save_plan', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, plan})});
+  const d = await r.json();
+  if(d.ok) alert('Plan saved.');
+  else alert('Save failed: '+(d.error||'unknown'));
+}
+async function applyAnalysisPlan(){
+  const plan = document.getElementById('analysisPlan').value.trim();
+  if(!plan){ alert('Plan is empty.'); return; }
+  if(!confirm('Apply this plan to rewrite scene '+currentScene+'?')) return;
+  showLoading('Applying plan...', 'Rewriting scene with AI...');
+  try {
+    const level = 'developmental';
+    const r = await fetch('/api/apply_plan', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, plan, level})});
+    const d = await r.json();
+    if(d.ok || d.improved){
+      if(d.improved) showImproveBanner(d);
+      else alert('Scene rewritten.');
+    } else {
+      alert('Apply failed: '+(d.error||'unknown'));
+    }
+  } catch(e){ alert('Apply failed: '+e); }
+  finally { hideLoading(); }
+}
+
 async function deleteScene(n){
   if(!confirm('Delete scene ' + n + '? This cannot be undone.')) return;
   showLoading('Deleting scene...', '');
@@ -1176,6 +1271,7 @@ async function deleteScene(n){
   } catch(e){ alert('Delete failed: '+e); }
   finally { hideLoading(); }
 }
+function prevScene(){ const idx = sceneNumbers.indexOf(currentScene); if(idx > 0) viewScene(sceneNumbers[idx-1]); }
 function nextScene(){ const idx = sceneNumbers.indexOf(currentScene); if(idx >= 0 && idx < sceneNumbers.length - 1) viewScene(sceneNumbers[idx+1]); }
 
 /* ── Edit mode ── */
@@ -1208,8 +1304,8 @@ async function saveScene(){
     if(d.ok){
       renderScene(text);
       cancelEdit();
-      if(d.dirty){ await checkEdits(); }
-      else { /* no change detected */ }
+      if(d.dirty) await checkEdits();
+      else await loadStatus();
     } else {
       alert('Save failed: '+(d.error||'unknown'));
     }
@@ -1268,20 +1364,22 @@ function showRecon(prop){
 async function applyProposals(){
   if(!currentRecon) return;
   showLoading('Applying proposals...', 'Rebuilding state from event log.');
-  const proposals = currentRecon.proposals.map((p,i)=>{
-    const cb = document.querySelector('.propcb[data-idx="'+i+'"]');
-    return Object.assign({}, p, {accepted: cb ? cb.checked : false});
-  }).filter(p=>p.accepted);
-  if(!proposals.length){ alert('No proposals selected.'); return; }
-  const r = await fetch('/api/apply_proposals', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentRecon.scene, proposals, downstream_entities: currentRecon.downstream_entities||[]})});
-  const d = await r.json();
-  let msg = 'Applied '+d.applied+' retcon(s). State rebuilt.';
-  if(d.flagged_scenes && d.flagged_scenes.length){ msg += ' May affect: '+d.flagged_scenes.join(', '); }
-  alert(msg);
-  currentRecon = null;
-  document.getElementById('recon').classList.add('hidden');
-  await loadStatus();
-  hideLoading();
+  try {
+    const proposals = currentRecon.proposals.map((p,i)=>{
+      const cb = document.querySelector('.propcb[data-idx="'+i+'"]');
+      return Object.assign({}, p, {accepted: cb ? cb.checked : false});
+    }).filter(p=>p.accepted);
+    if(!proposals.length){ alert('No proposals selected.'); return; }
+    const r = await fetch('/api/apply_proposals', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentRecon.scene, proposals, downstream_entities: currentRecon.downstream_entities||[]})});
+    const d = await r.json();
+    let msg = 'Applied '+d.applied+' retcon(s). State rebuilt.';
+    if(d.flagged_scenes && d.flagged_scenes.length){ msg += ' May affect: '+d.flagged_scenes.join(', '); }
+    alert(msg);
+    currentRecon = null;
+    document.getElementById('recon').classList.add('hidden');
+    await loadStatus();
+  } catch(e){ alert('Apply failed: '+e); }
+  finally { hideLoading(); }
 }
 function discardRecon(){
   currentRecon = null;
@@ -1299,7 +1397,7 @@ async function generate(){
   document.getElementById('choices').innerHTML = '';
   startTimer();
   genAbort = new AbortController();
-  const genTimeout = setTimeout(()=>{ if(genAbort) genAbort.abort(); }, 360000);
+  const genTimeout = setTimeout(()=>{ if(genAbort) genAbort.abort(); }, 300000);
   try {
     const res = await fetch('/api/generate', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1309,7 +1407,8 @@ async function generate(){
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    while(true){
+    let ended = false;
+    while(!ended){
       const {done, value} = await reader.read();
       if(done) break;
       buffer += decoder.decode(value, {stream:true});
@@ -1317,17 +1416,17 @@ async function generate(){
       buffer = lines.pop();
       for(const line of lines){
         if(!line.startsWith('data:')) continue;
-        let obj;
-        try { obj = JSON.parse(line.slice(5).trim()); } catch(e){ continue; }
-        if(obj.type === 'stage'){
-          document.getElementById('loading').textContent = `${obj.message} (${Math.round((Date.now()-startTime)/1000)}s elapsed)`;
-          if(obj.progress) document.getElementById('pbar').style.width = obj.progress+'%';
-        } else if(obj.type === 'done'){
-          renderScene(obj.scene);
-          renderChoices(obj.choices);
-          renderState(obj.state);
-          renderEvents(obj.events);
-          renderChecks(obj.checks);
+        let parsed;
+        try { parsed = JSON.parse(line.slice(5).trim()); } catch(e){ continue; }
+        if(parsed.type === 'stage'){
+          document.getElementById('loading').textContent = `${parsed.message} (${Math.round((Date.now()-startTime)/1000)}s elapsed)`;
+          if(parsed.progress) document.getElementById('pbar').style.width = parsed.progress+'%';
+        } else if(parsed.type === 'done'){
+          renderScene(parsed.scene);
+          renderChoices(parsed.choices);
+          renderState(parsed.state);
+          renderEvents(parsed.events);
+          renderChecks(parsed.checks);
           const st = await (await fetch('/api/status')).json();
           renderStatus(st); renderStructure();
           sceneNumbers = (st.scenes || []).map(s => parseInt(s.match(/scene_(\d+)\.md/)[1]));
@@ -1340,8 +1439,11 @@ async function generate(){
           if(lastNum){ document.getElementById('sceneSelect').value = String(lastNum); document.getElementById('navLabel').textContent = `Scene ${lastNum} of ${totalScenes}`; document.getElementById('prevBtn').disabled = (sceneNumbers.indexOf(lastNum) <= 0); document.getElementById('nextBtn').disabled = true; showFeedback(lastNum); }
           document.getElementById('direction').value = '';
           document.getElementById('brief').value = '';
-        } else if(obj.type === 'error'){
-          alert('Error: '+obj.error);
+        } else if(parsed.type === 'error'){
+          alert('Error: '+parsed.error);
+        } else if(parsed.type === 'end'){
+          ended = true;
+          break;
         }
       }
     }
@@ -1351,6 +1453,7 @@ async function generate(){
   finally {
     clearTimeout(genTimeout);
     stopTimer();
+    document.getElementById('loading').textContent = '';
     document.getElementById('genBtn').disabled = false;
     document.getElementById('genBtn').textContent = 'Generate';
     document.getElementById('cancelBtn').style.display = 'none';
@@ -1386,10 +1489,13 @@ function stopTimer(){
 /* ── Rebuild state ── */
 async function rebuildState(){
   showLoading('Rebuilding state...', 'Reading event log.');
-  const r = await fetch('/api/rebuild_state', {method:'POST'});
-  const d = await r.json();
-  if(d.ok){ renderState(d.state); alert('State rebuilt from event log.'); }
-  else { alert('Rebuild failed.'); }
+  try {
+    const r = await fetch('/api/rebuild_state', {method:'POST'});
+    const d = await r.json();
+    if(d.ok){ renderState(d.state); alert('State rebuilt from event log.'); }
+    else { alert('Rebuild failed.'); }
+  } catch(e){ alert('Rebuild failed: '+e); }
+  finally { hideLoading(); }
 }
 
 /* ── Projects ── */
@@ -1501,10 +1607,13 @@ async function deleteProjectByName(name){
     if(d.ok){
       await loadHomeProjects();
       await loadProjects();
+      await loadStatus();
+      alert('Deleted "'+name+'".');
     } else {
       alert('Delete failed: '+(d.error||'unknown'));
     }
   } catch(e){ alert('Delete failed: '+e); }
+  finally { hideLoading(); }
 }
 function showContextMenu(x, y, name){
   const menu = document.getElementById('contextMenu');
@@ -1550,48 +1659,27 @@ async function continueProject(){
       empty.classList.remove('hidden');
       const target = document.getElementById('projectCards');
       target.classList.add('highlight');
-      try { document.getElementById('recentProjects').scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
+      try { target.scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
       setTimeout(()=> target.classList.remove('highlight'), 1200);
       return;
     }
     await openProject(projects[0].name);
   } catch(e){ alert('Failed: '+e); }
 }
-async function startNewProject(){
-  const ok = await newProject();
-  if(ok) location.hash = '#/studio';
-}
-function improveStub(){ alert('Coming soon'); }
 async function switchProject(name){
   showLoading('Switching project...', '');
-  const r = await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
-  const d = await r.json();
-  if(d.ok){ await loadBranches(); await loadStatus(); }
-  else { alert('Switch failed: '+(d.error||'unknown')); await loadProjects(); }
-  hideLoading();
-}
-async function newProject(){
-  showLoading('Creating project...', '');
-  const name = prompt('New novel name:');
-  if(!name){ hideLoading(); return false; }
-  const lang = prompt('Language? (en = English, ar-eg = Arabic Egyptian dialect)', 'en');
-  if(lang === null){ hideLoading(); return false; }
-  const r = await fetch('/api/new_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, language: lang.trim()||'en'})});
-  const d = await r.json();
-  if(d.ok){ await loadProjects(); await loadStatus(); hideLoading(); return true; }
-  else { alert('Create failed: '+(d.error||'unknown')); hideLoading(); return false; }
+  try {
+    const r = await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+    const d = await r.json();
+    if(d.ok){ await loadBranches(); await loadStatus(); }
+    else { alert('Switch failed: '+(d.error||'unknown')); await loadProjects(); }
+  } catch(e){ alert('Switch failed: '+e); await loadProjects(); }
+  finally { hideLoading(); }
 }
 async function deleteProject(){
-  const sel = document.getElementById('projectSelect');
-  const name = sel.value;
+  const name = document.getElementById('projectSelect').value;
   if(!name){ alert('No project selected.'); return; }
-  if(!confirm('Delete project "'+name+'"? This cannot be undone.')){ return; }
-  showLoading('Deleting project...', '');
-  const r = await fetch('/api/delete_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
-  const d = await r.json();
-  if(d.ok){ await loadProjects(); await loadStatus(); alert('Deleted "'+name+'".'); }
-  else { alert('Delete failed: '+(d.error||'unknown')); }
-  hideLoading();
+  await deleteProjectByName(name);
 }
 async function loadBranches(){
   const r = await fetch('/api/branches');
@@ -1607,11 +1695,13 @@ async function loadBranches(){
 }
 async function switchBranch(name){
   showLoading('Switching branch...', '');
-  const r = await fetch('/api/switch_branch', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
-  const d = await r.json();
-  if(d.ok){ await loadStatus(); }
-  else { alert('Switch failed: '+(d.error||'unknown')); await loadBranches(); }
-  hideLoading();
+  try {
+    const r = await fetch('/api/switch_branch', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name})});
+    const d = await r.json();
+    if(d.ok){ await loadStatus(); }
+    else { alert('Switch failed: '+(d.error||'unknown')); await loadBranches(); }
+  } catch(e){ alert('Switch failed: '+e); await loadBranches(); }
+  finally { hideLoading(); }
 }
 async function newBranch(){
   const name = prompt('New branch name (no spaces):');
@@ -1754,64 +1844,161 @@ function route(){
   }
 }
 window.addEventListener('hashchange', route);
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && genAbort){ e.preventDefault(); cancelGen(); return; }
+  if(e.ctrlKey && e.key === 'Enter'){
+    if(document.activeElement && document.activeElement.id === 'fbText'){ e.preventDefault(); submitFeedback(); }
+    else if(location.hash === '#/studio'){ e.preventDefault(); document.getElementById('genBtn').click(); }
+  }
+});
 
 /* ── Improve modal ── */
 function openImproveModal(){ 
   document.getElementById('improveModal').classList.remove('hidden');
   document.getElementById('improveStep1').style.display = 'block';
   document.getElementById('improveStep2').style.display = 'none';
-  document.getElementById('improveStep3').style.display = 'none';
 }
 function closeImproveModal(){ document.getElementById('improveModal').classList.add('hidden'); }
 async function analyzeDraft(){
   const text = document.getElementById('improveText').value.trim();
   if(!text){ alert('Paste your draft first.'); return; }
-  const info = document.getElementById('improveInfo');
-  info.textContent = 'Analyzing... (' + text.split(/\s+/).length + ' words)';
+  const infoEl = document.getElementById('improveInfo');
+  infoEl.textContent = 'Analyzing... (' + text.split(/\s+/).length + ' words)';
   try {
     const r = await fetch('/api/analyze_novel', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
     const d = await r.json();
-    if(d.error){ alert('Analysis failed: '+d.error); info.textContent = ''; return; }
-    let html = '';
-    if(d.structure) html += '<b>Structure:</b> ' + esc(d.structure) + '<br>';
-    if(d.pacing) html += '<b>Pacing:</b> ' + esc(d.pacing) + '<br>';
-    if(d.voices) html += '<b>Voices:</b> ' + esc(d.voices) + '<br>';
-    if(d.avg_sentence_length) html += '<b>Avg sentence length:</b> ' + d.avg_sentence_length + ' words<br>';
-    if(d.dialogue_ratio_pct !== undefined) html += '<b>Dialogue ratio:</b> ' + d.dialogue_ratio_pct + '%<br>';
-    if(d.top_words && d.top_words.length) html += '<b>Top words:</b> ' + d.top_words.map(esc).join(', ') + '<br>';
-    if(d.plot_threads && d.plot_threads.length) html += '<b>Plot threads:</b> ' + (Array.isArray(d.plot_threads) ? d.plot_threads.map(esc).join('; ') : esc(d.plot_threads)) + '<br>';
-    if(d.weak_points && d.weak_points.length) html += '<b>Weak points:</b> ' + (Array.isArray(d.weak_points) ? d.weak_points.map(esc).join('; ') : esc(d.weak_points)) + '<br>';
-    if(d.strengths && d.strengths.length) html += '<b>Strengths:</b> ' + (Array.isArray(d.strengths) ? d.strengths.map(esc).join('; ') : esc(d.strengths)) + '<br>';
-    if(d.word_count) html += '<b>Word count:</b> ' + d.word_count + ' (~' + (d.estimated_scenes||'?') + ' scenes)';
-    if(d.llm_enhanced) html += ' <span style="color:var(--success);">(AI-enhanced)</span>';
-    document.getElementById('analysisResults').innerHTML = html;
+    if(d.error){ alert('Analysis failed: '+d.error); infoEl.textContent = ''; return; }
+    document.getElementById('analysisResults').innerHTML = analysisHtml(d, false, 'improvePlan');
+    infoEl.textContent = '';
     document.getElementById('improveStep1').style.display = 'none';
     document.getElementById('improveStep2').style.display = 'block';
-  } catch(e){ alert('Analysis failed: '+e); info.textContent = ''; }
+  } catch(e){ alert('Analysis failed: '+e); infoEl.textContent = ''; }
   finally { hideLoading(); }
 }
 async function startImprovement(){
   const text = document.getElementById('improveText').value.trim();
   if(!text){ alert('No draft text.'); return; }
   showLoading('Importing novel...', 'Splitting into scenes and creating project.');
-  // get selected options
-  const opts = [];
-  document.querySelectorAll('#improveOptions input:checked').forEach(cb=>opts.push(cb.value));
-  const custom = document.getElementById('improveCustom').value.trim();
-  if(custom) opts.push('custom');
-  // import the novel first
-  const name = 'improved_' + Date.now();
-  const ir = await fetch('/api/import_novel', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, name})});
-  const id = await ir.json();
-  if(!id.ok){ alert('Import failed: '+(id.error||'unknown')); return; }
-  // switch to the new project
-  await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name: id.name})});
-  await loadProjects();
-  location.hash = '#/studio';
-  await loadStatus();
-  closeImproveModal();
-  hideLoading();
-  alert('Imported "' + id.name + '" with ' + id.scene_count + ' scenes. Navigate to each scene and use "Improve scene" to refine. (Scene-by-scene improvement coming soon.)');
+  try {
+    const name = 'improved_' + Date.now();
+    const ir = await fetch('/api/import_novel', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text, name})});
+    const id = await ir.json();
+    if(!id.ok){ alert('Import failed: '+(id.error||'unknown')); return; }
+    await fetch('/api/switch_project', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name: id.name})});
+    await loadProjects();
+    location.hash = '#/studio';
+    await loadStatus();
+    closeImproveModal();
+    alert('Imported "' + id.name + '" with ' + id.scene_count + ' scenes. Use Improve on a scene to refine it, then Accept or Reject.');
+  } catch(e){ alert('Import failed: '+e); }
+  finally { hideLoading(); }
+}
+
+/* ── Chat with the AI ── */
+let chatSending = false;
+function toggleChat(){ const el = document.getElementById('chatLog'); el.style.display = el.style.display === 'none' ? 'block' : 'none'; }
+async function loadChat(){
+  if(!currentScene) return;
+  try {
+    const r = await fetch('/api/chat?scene=' + currentScene);
+    const d = await r.json();
+    renderChat(d.messages || []);
+    await loadChatMarkers();
+  } catch(e){ document.getElementById('chatLog').textContent = 'Failed to load chat.'; }
+}
+async function loadChatMarkers(){
+  const el = document.getElementById('chatMarkers');
+  if(!currentScene){ el.textContent = ''; return; }
+  try {
+    const r = await fetch('/api/analysis/' + currentScene);
+    const d = await r.json();
+    if(d && d.overall_rating != null){
+      el.textContent = 'Latest analysis: run #' + (d.analysis_run||'?') + ' — ' + d.overall_rating + '/10';
+    } else { el.textContent = 'No analysis yet. Click Analyze.'; }
+  } catch(e){ el.textContent = ''; }
+}
+function renderChat(messages){
+  const el = document.getElementById('chatLog');
+  el.innerHTML = '';
+  (messages || []).forEach(m=>{
+    const div = document.createElement('div');
+    div.style.cssText = 'margin:4px 0; padding:4px 8px; border-radius:4px; font-size:12px; ' + (m.role === 'user' ? 'background:var(--bg-input); text-align:end;' : 'background:var(--bg-card);');
+    div.innerHTML = '<div style="white-space:pre-wrap;">' + esc(m.content || '') + '</div>';
+    el.appendChild(div);
+  });
+  el.scrollTop = el.scrollHeight;
+}
+async function sendChat(){
+  if(chatSending) return;
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg || !currentScene) return;
+  chatSending = true;
+  const sendBtn = input.nextElementSibling;
+  sendBtn.disabled = true;
+  const status = document.getElementById('chatStatus');
+  status.textContent = 'Thinking...';
+  const log = document.getElementById('chatLog');
+  const userDiv = document.createElement('div');
+  userDiv.style.cssText = 'margin:4px 0; padding:4px 8px; border-radius:4px; font-size:12px; background:var(--bg-input); text-align:end;';
+  userDiv.innerHTML = '<div style="white-space:pre-wrap;">' + esc(msg) + '</div>';
+  log.appendChild(userDiv);
+  log.scrollTop = log.scrollHeight;
+  input.value = '';
+  try {
+    const includeAnalysis = true;
+    const plan = (document.getElementById('analysisPlan') ? document.getElementById('analysisPlan').value : '') || '';
+    const r = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({scene: currentScene, message: msg, plan: plan, include_analysis: includeAnalysis})});
+    const d = await r.json();
+    if(d.error){ status.textContent = 'Error: ' + d.error; return; }
+    const aiDiv = document.createElement('div');
+    aiDiv.style.cssText = 'margin:4px 0; padding:4px 8px; border-radius:4px; font-size:12px; background:var(--bg-card);';
+    aiDiv.innerHTML = '<div style="white-space:pre-wrap;">' + esc(d.reply || '') + '</div>';
+    log.appendChild(aiDiv);
+    // actions
+    const actionsEl = document.getElementById('chatActions');
+    actionsEl.innerHTML = '';
+    (d.actions || []).forEach(a => {
+      if(a.type === 'rewrite_plan' && a.args && a.args.text){
+        const btn = document.createElement('button');
+        btn.textContent = 'Preview plan rewrite';
+        btn.style.cssText = 'padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:var(--r-sm); cursor:pointer; font-size:12px; font-weight:600; margin-right:4px;';
+        btn.onclick = () => showPlanPreview(a.args.text);
+        actionsEl.appendChild(btn);
+      }
+    });
+    status.textContent = '';
+  } catch(e){ status.textContent = 'Failed: ' + e; }
+  finally {
+    chatSending = false;
+    sendBtn.disabled = false;
+    log.scrollTop = log.scrollHeight;
+  }
+}
+function showPlanPreview(proposed){
+  const el = document.getElementById('chatPreview');
+  const current = document.getElementById('analysisPlan') ? document.getElementById('analysisPlan').value : '';
+  el.style.display = 'block';
+  el.innerHTML = '<div style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Proposed plan (preview):</div>' +
+    '<textarea id="chatPreviewText" rows="6" style="width:100%; padding:8px; background:var(--bg-input); color:var(--text); border:1px solid var(--border); border-radius:var(--r-sm); font-family:inherit; font-size:13px; resize:vertical;">' + esc(proposed) + '</textarea>' +
+    '<div style="display:flex; gap:6px; margin-top:6px;">' +
+    '<button onclick="acceptPlanPreview()" style="padding:4px 10px; background:var(--success); color:#fff; border:none; border-radius:var(--r-sm); cursor:pointer; font-size:12px; font-weight:600;">Accept (fill textarea)</button>' +
+    '<button onclick="dismissPlanPreview()" style="padding:4px 10px; background:var(--border); color:var(--text); border:none; border-radius:var(--r-sm); cursor:pointer; font-size:12px;">Dismiss</button>' +
+    '</div>';
+}
+function acceptPlanPreview(){
+  const proposed = document.getElementById('chatPreviewText').value;
+  if(document.getElementById('analysisPlan')) document.getElementById('analysisPlan').value = proposed;
+  dismissPlanPreview();
+}
+function dismissPlanPreview(){ document.getElementById('chatPreview').style.display = 'none'; document.getElementById('chatPreview').innerHTML = ''; }
+async function clearChat(){
+  if(!currentScene) return;
+  if(!confirm('Clear chat history?')) return;
+  await fetch('/api/chat/clear', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene: currentScene})});
+  document.getElementById('chatLog').innerHTML = '';
+  document.getElementById('chatActions').innerHTML = '';
+  dismissPlanPreview();
 }
 
 /* ── Init ── */
@@ -1835,12 +2022,14 @@ function cancelLoreEdit(){
 }
 async function saveLore(){
   showLoading('Saving lore...', '');
-  const text = document.getElementById('loreEdit').value;
-  const r = await fetch('/api/save_lore', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
-  const d = await r.json();
-  if(d.ok){ cancelLoreEdit(); loadLore(); alert('Lore saved.'); }
-  else { alert('Save failed: '+(d.error||'unknown')); }
-  hideLoading();
+  try {
+    const text = document.getElementById('loreEdit').value;
+    const r = await fetch('/api/save_lore', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+    const d = await r.json();
+    if(d.ok){ cancelLoreEdit(); loadLore(); alert('Lore saved.'); }
+    else { alert('Save failed: '+(d.error||'unknown')); }
+  } catch(e){ alert('Save failed: '+e); }
+  finally { hideLoading(); }
 }
 async function toggleCharsEdit(){
   const view = document.getElementById('chars');
@@ -1859,16 +2048,17 @@ function cancelCharsEdit(){
 }
 async function saveChars(){
   showLoading('Saving characters...', '');
-  const text = document.getElementById('charsEdit').value;
-  const r = await fetch('/api/save_characters', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
-  const d = await r.json();
-  if(d.ok){ cancelCharsEdit(); loadStatus(); alert('Characters saved.'); }
-  else { alert('Save failed: '+(d.error||'unknown')); }
-  hideLoading();
+  try {
+    const text = document.getElementById('charsEdit').value;
+    const r = await fetch('/api/save_characters', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+    const d = await r.json();
+    if(d.ok){ cancelCharsEdit(); loadStatus(); alert('Characters saved.'); }
+    else { alert('Save failed: '+(d.error||'unknown')); }
+  } catch(e){ alert('Save failed: '+e); }
+  finally { hideLoading(); }
 }
 function openImproveSceneModal(){
   if(!currentScene){ alert('No scene selected.'); return; }
-  document.getElementById('improveSceneNum').textContent = currentScene;
   document.getElementById('improveSceneNum2').textContent = currentScene;
   document.getElementById('improveSceneModal').classList.remove('hidden');
 }
@@ -1899,6 +2089,25 @@ async function runAddScene(){
   } catch(e){ progress.textContent = 'Failed: '+e; alert('Add failed: '+e); }
   finally { hideLoading(); }
 }
+function showImproveBanner(d){
+  const existing = document.getElementById('improveBanner');
+  if(existing) existing.remove();
+  window._originalSceneText = document.getElementById('scene').innerHTML;
+  window._improvedText = d.improved;
+  window._improvedScene = d.scene;
+  renderScene(d.improved);
+  const banner = document.createElement('div');
+  banner.id = 'improveBanner';
+  banner.style.cssText = 'margin:12px 0; padding:12px; background:var(--bg-card); border:2px solid var(--accent); border-radius:var(--r-md);';
+  banner.innerHTML = '<div style="font-size:14px; font-weight:600; color:var(--accent); margin-bottom:8px;">Improved Scene ' + d.scene + '</div>' +
+    '<div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Original: ' + String(d.original||'').length + ' chars → Improved: ' + d.improved.length + ' chars' + (d.choices && d.choices.length ? ' · ' + d.choices.length + ' choices' : '') + '</div>' +
+    '<div style="display:flex; gap:8px;">' +
+    '<button onclick="acceptImproved(' + d.scene + ')" style="padding:8px 16px; background:var(--success); color:#fff; border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Accept (replace scene)</button>' +
+    '<button onclick="rejectImproved()" style="padding:8px 16px; background:var(--border); color:var(--text); border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Reject (restore original)</button>' +
+    '</div>';
+  const page = document.querySelector('.page');
+  page.parentNode.insertBefore(banner, page);
+}
 async function runImproveScene(){
   showLoading('Improving scene...', 'This may take 1-2 minutes on free models.');
   const opts = [];
@@ -1914,24 +2123,7 @@ async function runImproveScene(){
     const d = await r.json();
     if(d.error){ alert('Improve failed: '+d.error); progress.style.display='none'; return; }
     // Save original for restore
-    window._originalSceneText = document.getElementById('scene').innerHTML;
-    window._improvedText = d.improved;
-    window._improvedScene = d.scene;
-    // Show improved scene in the main page area (full scrollable)
-    renderScene(d.improved);
-    // Show accept/reject banner
-    const banner = document.createElement('div');
-    banner.id = 'improveBanner';
-    banner.style.cssText = 'margin:12px 0; padding:12px; background:var(--bg-card); border:2px solid var(--accent); border-radius:var(--r-md);';
-    banner.innerHTML = '<div style="font-size:14px; font-weight:600; color:var(--accent); margin-bottom:8px;">Improved Scene ' + d.scene + '</div>' +
-      '<div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">Original: ' + d.original.length + ' chars → Improved: ' + d.improved.length + ' chars' + (d.choices && d.choices.length ? ' · ' + d.choices.length + ' choices' : '') + '</div>' +
-      '<div style="display:flex; gap:8px;">' +
-      '<button onclick="acceptImproved(' + d.scene + ')" style="padding:8px 16px; background:var(--success); color:#fff; border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Accept (replace scene)</button>' +
-      '<button onclick="rejectImproved()" style="padding:8px 16px; background:var(--border); color:var(--text); border:none; border-radius:var(--r-md); cursor:pointer; font-weight:600;">Reject (restore original)</button>' +
-      '</div>';
-    // Insert banner before the page div
-    const page = document.querySelector('.page');
-    page.parentNode.insertBefore(banner, page);
+    showImproveBanner(d);
     progress.style.display = 'none';
     closeImproveSceneModal();
   } catch(e){ alert('Improve failed: '+e); progress.style.display='none'; }
@@ -2004,6 +2196,12 @@ async function loadHintsModal(){
   const r = await fetch('/api/hints'); const d = await r.json();
   const el = document.getElementById('hintsModalList');
   el.innerHTML = '';
+  try {
+    const ar = await fetch('/api/hint_audit'); const ad = await ar.json();
+    const issues = ad.issues || [];
+    document.getElementById('hintAudit').textContent = issues.length
+      ? 'Overdue hints: ' + issues.map(i=>i.id).join(', ') : '';
+  } catch(e){ document.getElementById('hintAudit').textContent = ''; }
   (d.hints||[]).forEach(h=>{
     const div = document.createElement('div');
     div.style.cssText = 'margin:4px 0; padding:4px; border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size:12px;';
@@ -2017,6 +2215,15 @@ function editHint(h){
   document.getElementById('hintSurface').value = h.surface || '';
   document.getElementById('hintTruth').value = h.truth || '';
   document.getElementById('hintPlanted').value = h.planted_in || 1;
+}
+async function resolveHint(){
+  const id = document.getElementById('hintId').value.trim();
+  if(!id){ alert('Select a hint first.'); return; }
+  const resolvedIn = parseInt(document.getElementById('hintPlanted').value) || currentScene || 1;
+  const r = await fetch('/api/resolve_hint', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, resolved_in:resolvedIn})});
+  const d = await r.json();
+  if(d.ok){ await loadHints(); await loadHintsModal(); alert('Hint resolved.'); }
+  else { alert('Resolve failed: '+(d.error||'unknown')); }
 }
 async function saveHint(){
   const id = document.getElementById('hintId').value.trim();
@@ -2144,65 +2351,6 @@ loadProjects().then(async ()=>{
   }
 });
 
-async function runImproveScene(){
-  showLoading('Improving scene...', 'This may take 1-2 minutes on free models.');
-  const opts = [];
-  document.querySelectorAll('#improveSceneModal input:checked').forEach(cb=>opts.push(cb.value));
-  const custom = document.getElementById('improveSceneCustom').value.trim();
-  const level = document.getElementById('improveSceneLevel').value;
-  if(custom) opts.push('custom');
-  const progress = document.getElementById('improveSceneProgress');
-  progress.style.display = 'block';
-  progress.textContent = 'Improving scene ' + currentScene + '... (1-2 min)';
-  try {
-    const r = await fetch('/api/improve_scene', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scene:currentScene, options:opts, direction:custom, level})});
-    const d = await r.json();
-    if(d.error){ alert('Improve failed: '+d.error); progress.style.display='none'; return; }
-    // show original vs improved in recon panel
-    const el = document.getElementById('reconBody');
-    let html = '<div class="summary"><b>Improved Scene ' + d.scene + '</b></div>';
-    html += '<div style="font-size:12px; color:var(--text-muted); margin:4px 0;">Original length: ' + d.original.length + ' chars → Improved: ' + d.improved.length + ' chars</div>';
-    html += '<div style="margin:8px 0; padding:8px; background:var(--bg-page); border-radius:4px; font-family:var(--font-prose); font-size:14px; white-space:pre-wrap; max-height:60vh; overflow:auto;">' + esc(d.improved) + '</div>';
-    html += '<div style="margin-top:8px; display:flex; gap:8px;">';
-    html += '<button onclick="acceptImproved(' + d.scene + ')" style="padding:6px 12px; background:var(--success); color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:600;">Accept (replace scene)</button>';
-    html += '<button onclick="closeImproveSceneModal()" style="padding:6px 12px; background:var(--border); color:var(--text); border:none; border-radius:4px; cursor:pointer;">Reject</button>';
-    html += '</div>';
-    el.innerHTML = html;
-    document.getElementById('recon').classList.remove('hidden');
-    // store improved text for acceptance
-    window._improvedText = d.improved;
-    window._improvedScene = d.scene;
-    progress.style.display = 'none';
-    closeImproveSceneModal();
-  } catch(e){ alert('Improve failed: '+e); progress.style.display='none'; }
-  finally { hideLoading(); }
-}
-</script>
-
-<script>
-if (typeof esc === 'undefined') {
-  var __ms = document.querySelector('script');
-  if (__ms) {
-    try {
-      eval(__ms.textContent);
-      var __fnNames = __ms.textContent.match(/function [a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/g);
-      if (__fnNames) {
-        __fnNames.forEach(function(m) {
-          var name = m.match(/function ([a-zA-Z_$][a-zA-Z0-9_$]*)/)[1];
-          try {
-            if (typeof window[name] !== 'function') {
-              var __f = eval(name);
-              if (typeof __f === 'function') window[name] = __f;
-            }
-          } catch(e) {}
-        });
-      }
-      console.log('FALLBACK: main script eval OK');
-    } catch (e) {
-      console.error('FALLBACK ERROR:', e);
-    }
-  }
-}
 </script>
 </body>
 </html>

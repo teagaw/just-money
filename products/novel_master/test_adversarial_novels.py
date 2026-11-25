@@ -9,7 +9,6 @@ import json
 import sys
 from pathlib import Path
 
-import pytest
 
 BASE = Path(__file__).parent
 sys.path.insert(0, str(BASE))
@@ -138,7 +137,6 @@ def test_deleted_promise_retcon(tmp_path, monkeypatch):
     edited = "Maren walked away. No promises were made."
     (tmp_path / "scenes" / "scene_01.md").write_text(edited, encoding="utf-8")
     (tmp_path / "scenes" / "scene_01_snapshot.md").write_text(original, encoding="utf-8")
-    import hashlib
     (tmp_path / "scenes" / "scene_01_meta.json").write_text(
         json.dumps({"hash": "oldhash", "status": "accepted", "events": [
             {"event_id": 5, "summary": "Maren promises to meet Tovin at the dock", "state_updates": {}}

@@ -7,7 +7,11 @@
   "temperature": 0.8,
   "scene_word_target": "600-800 words (soft target, dramatic purpose decides)",
   "pricing_per_1m_tokens": {
-    "nvidia/nemotron-3.5-lightning:free": {"input": 0.0, "output": 0.0}
+    "nvidia/nemotron-3.5-lightning:free": {
+      "input": 0.0,
+      "output": 0.0
+    }
   },
-  "key_fallbacks": []
+  "key_fallbacks": [],
+  "max_tokens_analysis": 4000
 }

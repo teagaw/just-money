@@ -51,7 +51,7 @@ A dedicated home page that replaces the top-bar project selector. Three primary 
 ### 3. Improve (import rough draft)
 - **Entry:** Click "Improve" card or button.
 - **Flow:**
-  1. **Input:** Textarea (paste) or file upload (.txt, .md). Shows character count + estimated scene count.
+  1. **Input:** Textarea (paste). Shows word count + estimated scene count.
   2. **Analyze:** AI reads the draft, identifies structure, pacing, voices, plot threads, weak points. Shows analysis summary.
   3. **Choose action:** "Improve prose" / "Add details" / "Fix continuity" / "Expand scenes" / "Rewrite dialogue" / "Change tone" (multi-select).
   4. **Review:** AI processes scene-by-scene. Each proposed change shown in the reconciliation panel (same as edit reconciliation). Author accepts/rejects.
@@ -154,7 +154,7 @@ A dedicated home page that replaces the top-bar project selector. Three primary 
 | Project delete | — | `POST /api/delete_project` |
 
 ## New API endpoints needed
-- `POST /api/import_novel` {text, filename} → creates project from imported text, returns project name
+- `POST /api/import_novel` {text, name, language, genre, subgenre} → creates project from imported text, returns project name
 - `POST /api/analyze_novel` {text} → returns analysis (structure, pacing, voices, plot threads, weak points)
 
 ## Implementation notes

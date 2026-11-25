@@ -15,6 +15,8 @@ import re
 import threading
 import sys
 import tempfile
+import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -22,6 +24,20 @@ import httpx
 from dotenv import load_dotenv
 
 BASE = Path(__file__).parent
+
+IMPROVE_OPTIONS = {
+    "add_details": "Add more sensory details, description, and atmosphere. Expand thin passages.",
+    "add_characters": "Introduce or develop minor characters. Add NPC interactions.",
+    "fix_continuity": "Fix any continuity errors, contradictions, or timeline issues.",
+    "expand": "Expand the scene. Add more content, dialogue, and action. Target 800-1000 words.",
+    "rewrite_dialogue": "Rewrite all dialogue to be sharper, more natural, and more distinct per character voice.",
+    "change_tone": "Adjust the tone to be more dramatic and intense.",
+    "tighten_pacing": "Tighten the pacing. Cut filler, make every sentence earn its place. Target 400-600 words.",
+}
+
+
+def chat_path(scene: int) -> Path:
+    return kb_path("scenes") / f"scene_{scene:02d}_chat.jsonl"
 
 
 def _projects_dir() -> Path:
@@ -53,39 +69,6 @@ def project_base() -> Path:
     if projects:
         return projects[0]
     return BASE
-
-
-def kb_path(key: str) -> Path:
-    """Resolve a knowledge-base path, preferring kb/ layout, falling back to flat."""
-    base = project_base()
-    kb = base / "kb"
-    mapping = {
-        "lore": ("world/lore.md", "world_lore.md"),
-        "characters": ("characters/profiles.json", "characters.json"),
-        "state": ("characters/state.json", "character_state.json"),
-        "npc_registry": ("characters/npc_registry.json", "npc_registry.json"),
-        "plot_threads": ("world/plot_threads.json", "plot_threads.json"),
-        "timeline": ("timeline/chronology.json", "timeline.json"),
-        "skills": ("styles", "skills"),
-        "events": ("events", "events"),
-        "scenes": ("scenes", "scenes"),
-        "usage_log": ("usage_log.jsonl", "usage_log.jsonl"),
-        "character_knowledge": ("characters/knowledge.json", "character_knowledge.json"),
-        "last_choice": (".last_choice.txt", ".last_choice.txt"),
-    }
-    if key in mapping:
-        new_rel, old_rel = mapping[key]
-        new_p = kb / new_rel
-        old_p = base / old_rel
-        if new_p.exists():
-            return new_p
-        if old_p.exists():
-            return old_p
-        return new_p
-    return base / key
-
-
-STRUCTURE_LOCK = threading.Lock()
 
 
 def list_projects() -> list[str]:
@@ -171,41 +154,27 @@ def project_summaries() -> list[dict]:
     return out
 
 
+def project_config() -> dict:
+    path = project_base() / "project_config.json"
+    if not path.exists():
+        return {}
+    try:
+        cfg = json.loads(path.read_text(encoding="utf-8"))
+        return cfg if isinstance(cfg, dict) else {}
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
 def project_language() -> str:
-    # Return the language code for the active project (default en).
-    base = project_base()
-    cfg_path = base / "project_config.json"
-    if cfg_path.exists():
-        try:
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            return cfg.get("language", "en")
-        except Exception:
-            pass
-    return "en"
+    return project_config().get("language", "en")
 
 
 def project_genre() -> str:
-    base = project_base()
-    cfg_path = base / "project_config.json"
-    if cfg_path.exists():
-        try:
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            return cfg.get("genre", "")
-        except Exception:
-            pass
-    return ""
+    return project_config().get("genre", "")
 
 
 def project_subgenre() -> str:
-    base = project_base()
-    cfg_path = base / "project_config.json"
-    if cfg_path.exists():
-        try:
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            return cfg.get("subgenre", "")
-        except Exception:
-            pass
-    return ""
+    return project_config().get("subgenre", "")
 
 
 def genre_style_rules(genre: str, subgenre: str = "") -> str:
@@ -214,7 +183,8 @@ def genre_style_rules(genre: str, subgenre: str = "") -> str:
         return ""
     try:
         genres = json.loads(genres_path.read_text(encoding="utf-8"))
-    except Exception:
+    except (json.JSONDecodeError, OSError) as exc:
+        log_failure("genre_style_rules reading genres.json", exc)
         return ""
     g = genres.get(genre)
     if not g:
@@ -285,12 +255,9 @@ def create_project(name: str, language: str = "en", genre: str = "", subgenre: s
     (p / "kb" / "characters").mkdir(parents=True, exist_ok=True)
     (p / "kb" / "world").mkdir(parents=True, exist_ok=True)
     (p / "kb" / "timeline").mkdir(parents=True, exist_ok=True)
-    # create default structure.json
-    import json as _json
-    default_struct = {"active_part_id": "part_1", "active_chapter_id": "ch_1",
-                      "parts": [{"id": "part_1", "name": "Part 1", "chapters": [
-                          {"id": "ch_1", "name": "Chapter 1", "scenes": [], "summary": ""}]}]}
-    (p / "structure.json").write_text(_json.dumps(default_struct, indent=2), encoding="utf-8")
+    default_struct = {"parts": [{"id": "p1", "name": "Part I", "chapters": [
+        {"id": "c1", "name": "Chapter 1", "scenes": []}]}], "active_chapter": "c1"}
+    (p / "structure.json").write_text(json.dumps(default_struct, indent=2), encoding="utf-8")
     # world_lore.md: premise (if any) + lore (if any); else template
     body_parts = []
     if premise.strip():
@@ -376,12 +343,15 @@ load_dotenv(BASE / ".env")
 load_dotenv(BASE.parent.parent / ".env")  # repo root
 
 # Concurrency guard for the append-only event log (Phase 1).
-import threading
 EVENT_LOG_LOCK = threading.Lock()
 
 CONFIG = json.loads((BASE / "config.json").read_text(encoding="utf-8"))
 API_KEY = os.getenv("OPENROUTER_API_KEY", "").strip()
 BASE_URL = CONFIG["openrouter_base_url"]
+
+
+def log_failure(context: str, error: Exception):
+    print(f"ERROR [{datetime.now(timezone.utc).isoformat()}] {context}: {error}", flush=True)
 
 
 def api_keys() -> list[str]:
@@ -427,8 +397,12 @@ def llm_call(model: str, messages: list, max_tokens: int, temperature: float, sc
     if not keys:
         raise RuntimeError("No API keys found. Set OPENROUTER_API_KEY or OPENROUTER_API_KEYS in .env.")
     last_err = None
+    attempt = 0
     for key in keys:
         for _ in range(2):
+            if attempt >= 3:
+                break
+            attempt += 1
             headers = {
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json",
@@ -449,26 +423,27 @@ def llm_call(model: str, messages: list, max_tokens: int, temperature: float, sc
                     r = c.post(f"{BASE_URL}/chat/completions", headers=headers, json=payload)
                     r.raise_for_status()
                     data = r.json()
-                if "choices" not in data or not data["choices"]:
+                if not data.get("choices"):
                     last_err = RuntimeError(data.get("error", {}).get("message", "no choices"))
-                    continue
-                usage = data.get("usage", {})
-                log_usage(model, usage, scene_ref=scene_ref)
-                msg = data["choices"][0]["message"]
-                content = msg.get("content")
-                if not content:
-                    content = msg.get("reasoning") or ""
-                if content and content.strip():
-                    return content
-                last_err = RuntimeError("empty content")
+                    log_failure("llm_call response with " + model, last_err)
+                else:
+                    usage = data.get("usage", {})
+                    log_usage(model, usage, scene_ref=scene_ref)
+                    msg = data["choices"][0]["message"]
+                    content = msg.get("content") or msg.get("reasoning") or ""
+                    if content.strip():
+                        return content
+                    last_err = RuntimeError("empty content")
+                    log_failure("llm_call content with " + model, last_err)
             except Exception as e:  # broad: retry on any provider/parse failure
                 last_err = e
+                log_failure("llm_call attempt with " + model, e)
                 # retryable? rotate key on 429/402/timeout
                 status = getattr(getattr(e, "response", None), "status_code", None)
                 if status in (429, 402, 408, 500, 502, 503):
                     break  # try next key
-            import time
-            time.sleep(1)
+            if attempt < 3:
+                time.sleep(2 ** (attempt - 1))
     raise last_err if last_err else RuntimeError("llm_call failed")
 
 
@@ -518,9 +493,8 @@ def git_commit_scene(n: int, message: str = None):
     try:
         subprocess.run(["git", "-C", str(base), "add", "-A"], capture_output=True, timeout=30)
         subprocess.run(["git", "-C", str(base), "commit", "-m", message], capture_output=True, timeout=30)
-    except Exception:
-        pass
-
+    except (subprocess.SubprocessError, OSError):
+        return
 
 
 def feedback_path(n: int) -> Path:
@@ -613,15 +587,6 @@ def voice_check(scene: str, chars: list) -> list[dict]:
                 issues.append({"character": name, "issue": f"sentence too long ({wc} words, contract says short)", "severity": "warn"})
             if "long" in sl and wc < 5:
                 issues.append({"character": name, "issue": f"sentence too short ({wc} words, contract says long)", "severity": "warn"})
-    # deduplicate
-    seen = set()
-    unique = []
-    for iss in issues:
-        key = (iss["character"], iss["issue"])
-        if key not in seen:
-            seen.add(key)
-            unique.append(iss)
-    return unique
     # deduplicate
     seen = set()
     unique = []
@@ -818,7 +783,7 @@ RECENT TIMELINE (last 5 entries):
 {timeline_block}
 
 RULES:
-- Write 600-800 words (soft target; dramatic purpose decides).
+- Write {CONFIG.get("scene_word_target", "600-800 words (soft target; dramatic purpose decides)")}.
 - Obey world lore and character voices. No purple prose. Short sentences.
 - Characters know ONLY what their knowledge ledger says they know. Do not leak secrets.
 - Violence has consequences. Magic drains stamina.
@@ -880,6 +845,7 @@ def parse_json_robust(text: str) -> dict:
         pass
     # brace-balancing search for the first valid JSON object containing expected keys
     best = None
+    best_score = 0
     for start in (i for i, ch in enumerate(text) if ch == "{"):
         depth = 0
         for i in range(start, len(text)):
@@ -892,15 +858,15 @@ def parse_json_robust(text: str) -> dict:
                     try:
                         obj = json.loads(candidate)
                         if isinstance(obj, dict):
-                            # prefer objects with known keys
-                            if best is None or any(k in obj for k in ("proposals", "events", "scene", "error")):
+                            # prefer objects with more known keys
+                            known_keys = ("proposals", "events", "scene", "error", "overall_rating",
+                                          "dimensions", "improvement_plan", "weaknesses", "strengths")
+                            score = sum(1 for k in known_keys if k in obj)
+                            if best is None or score > best_score:
                                 best = obj
-                                if any(k in obj for k in ("proposals", "events")):
-                                    return best
-                        break
+                                best_score = score
                     except json.JSONDecodeError:
-                        break
-                    break
+                        pass
     if best is not None:
         return best
     raise json.JSONDecodeError("No valid JSON object found", text, 0)
@@ -930,6 +896,11 @@ def split_scene_and_choices(raw: str):
         if mm:
             choices.append(mm.group(2).strip())
     scene = re.sub(r"^SCENE:\s*", "", scene, flags=re.IGNORECASE).strip()
+    lowered = scene.lower()
+    if (re.match(r"^(here'?s\s+(a\s+)?thinking process|thinking process:)", scene, re.IGNORECASE)
+            or "<prose>" in lowered or "<choice>" in lowered
+            or scene.lstrip().startswith("`")):
+        return "", choices
     return scene, choices
 
 
@@ -1067,23 +1038,7 @@ def rebuild_state_from_events() -> dict:
         # Minimal projection: apply location/status/inventory/relationship hints from summary is not
         # automatic; the State Auditor's state_updates are the source. For rebuild we re-apply
         # stored state_updates if present on the event record.
-        for cid, u in (ev.get("state_updates") or {}).items():
-            if cid not in state:
-                state[cid] = {"location": "unknown", "inventory": [], "relationships": {}, "status": "alive"}
-            if u.get("location"):
-                state[cid]["location"] = u["location"]
-            if u.get("status"):
-                state[cid]["status"] = u["status"]
-            inv = state[cid].setdefault("inventory", [])
-            for item in (u.get("inventory_add") or []):
-                if item not in inv:
-                    inv.append(item)
-            for item in (u.get("inventory_remove") or []):
-                if item in inv:
-                    inv.remove(item)
-            rels = state[cid].setdefault("relationships", {})
-            for other, val in (u.get("relationships") or {}).items():
-                rels[other] = val
+        apply_state_updates(state, ev.get("state_updates") or {})
     return state
 
 
@@ -1189,19 +1144,19 @@ def main():
             if applied_any:
                 atomic_write(kb_path("state"), json.dumps(state, indent=2))
             apply_audit_extras(audit)
-            # Phase 3: voice + knowledge + NPC checks (rule-based, no LLM)
-            v_issues = voice_check(scene, chars)
-            k_path = kb_path("character_knowledge")
-            knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
-            k_issues = knowledge_check(scene, chars, knowledge)
-            npc_path = kb_path("npc_registry")
-            npc_reg = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
-            n_issues = npc_check(scene, npc_reg)
-            all_issues = v_issues + k_issues + n_issues
-            if all_issues:
-                print("  Checks:")
-                for iss in all_issues:
-                    print(f"    [{iss['severity']}] {iss['character']}: {iss['issue']}")
+        # Phase 3: voice + knowledge + NPC checks (rule-based, no LLM)
+        v_issues = voice_check(scene, chars)
+        k_path = kb_path("character_knowledge")
+        knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
+        k_issues = knowledge_check(scene, chars, knowledge)
+        npc_path = kb_path("npc_registry")
+        npc_reg = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
+        n_issues = npc_check(scene, npc_reg)
+        all_issues = v_issues + k_issues + n_issues
+        if all_issues:
+            print("  Checks:")
+            for iss in all_issues:
+                print(f"    [{iss['severity']}] {iss['character']}: {iss['issue']}")
 
         # Print choices
         print("\nCHOICES:")
@@ -1472,7 +1427,8 @@ def list_branches() -> list[str]:
                            capture_output=True, text=True, timeout=10)
         branches = [b.strip() for b in r.stdout.splitlines() if b.strip()]
         return branches if branches else ["main"]
-    except Exception:
+    except (subprocess.SubprocessError, OSError) as exc:
+        log_failure("list_branches", exc)
         return ["main"]
 
 
@@ -1485,7 +1441,8 @@ def current_branch() -> str:
         r = subprocess.run(["git", "-C", str(base), "branch", "--show-current"],
                            capture_output=True, text=True, timeout=10)
         return r.stdout.strip() or "main"
-    except Exception:
+    except (subprocess.SubprocessError, OSError) as exc:
+        log_failure("current_branch", exc)
         return "main"
 
 
@@ -1514,7 +1471,8 @@ def create_branch(name: str, from_scene: int = None) -> bool:
         # (we just created from current, so parent is previous branch)
         atomic_write(base / "branch_meta.json", json.dumps(meta, indent=2))
         return True
-    except Exception:
+    except (subprocess.SubprocessError, OSError) as exc:
+        log_failure("create_branch", exc)
         return False
 
 
@@ -1530,183 +1488,548 @@ def switch_branch(name: str) -> bool:
         r = subprocess.run(["git", "-C", str(base), "checkout", name],
                            capture_output=True, text=True, timeout=10)
         return r.returncode == 0
-    except Exception:
+    except (subprocess.SubprocessError, OSError) as exc:
+        log_failure("switch_branch", exc)
         return False
 
 
-def delete_branch(name: str) -> bool:
-    """Delete a branch (cannot delete current branch)."""
-    import subprocess
-    base = project_base()
-    if not (base / ".git").exists():
+# ── Hint ledger ───────────────────────────────────────────────────────────────
+def list_hints() -> list:
+    p = kb_path("hints")
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
+
+
+def _write_hints(hints: list):
+    atomic_write(kb_path("hints"), json.dumps(hints, indent=2))
+
+
+def save_hint(hint_id: str, surface: str, truth: str, planted_in: int = 0) -> dict:
+    hints = list_hints()
+    entry = next((h for h in hints if h.get("id") == hint_id), None)
+    if entry is None:
+        entry = {"id": hint_id, "status": "open", "resolved_in": None}
+        hints.append(entry)
+    entry.update(surface=surface, truth=truth, planted_in=planted_in)
+    _write_hints(hints)
+    return entry
+
+
+def delete_hint(hint_id: str) -> bool:
+    hints = list_hints()
+    kept = [h for h in hints if h.get("id") != hint_id]
+    if len(kept) == len(hints):
         return False
-    if name == current_branch():
+    _write_hints(kept)
+    return True
+
+
+def resolve_hint(hint_id: str, resolved_in: int) -> bool:
+    hints = list_hints()
+    entry = next((h for h in hints if h.get("id") == hint_id), None)
+    if entry is None:
         return False
-    if name in ("main", "master"):
+    entry["status"] = "resolved"
+    entry["resolved_in"] = resolved_in
+    _write_hints(hints)
+    return True
+
+
+def hint_audit() -> list:
+    latest = next_scene_number() - 1
+    return [{"id": h.get("id", ""),
+             "issue": "unresolved since scene " + str(h.get("planted_in", 0))}
+            for h in list_hints()
+            if h.get("status") != "resolved" and latest - h.get("planted_in", 0) >= 5]
+
+
+# ── Parts / chapters index (rebuildable from scene files) ─────────────────────
+def _structure_path() -> Path:
+    return project_base() / "structure.json"
+
+
+def _scene_numbers() -> list:
+    nums = []
+    for p in kb_path("scenes").glob("scene_*.md"):
+        match = re.match(r"scene_(\d+)\.md", p.name)
+        if match:
+            nums.append(int(match.group(1)))
+    return sorted(nums)
+
+
+def _default_structure() -> dict:
+    return {"parts": [{"id": "p1", "name": "Part I", "chapters": [
+        {"id": "c1", "name": "Chapter 1", "scenes": _scene_numbers()}]}],
+        "active_chapter": "c1"}
+
+
+def get_structure() -> dict:
+    p = _structure_path()
+    structure = json.loads(p.read_text(encoding="utf-8")) if p.exists() else _default_structure()
+    listed = {n for part in structure["parts"] for chapter in part.get("chapters", [])
+              for n in chapter.get("scenes", [])}
+    missing = [n for n in _scene_numbers() if n not in listed]
+    if missing:
+        target = _find_chapter(structure, structure.get("active_chapter"))
+        if target is None:
+            target = next((c for part in structure["parts"]
+                           for c in part.get("chapters", [])), None)
+        if target is None:
+            target = {"id": "c_" + uuid.uuid4().hex[:8], "name": "Chapter 1", "scenes": []}
+            structure["parts"][0].setdefault("chapters", []).append(target)
+        target.setdefault("scenes", []).extend(missing)
+        _save_structure(structure)
+    return structure
+
+
+def _save_structure(structure: dict):
+    atomic_write(_structure_path(), json.dumps(structure, indent=2))
+
+
+def _find_part(structure: dict, part_id: str) -> dict | None:
+    return next((p for p in structure["parts"] if p.get("id") == part_id), None)
+
+
+def _find_chapter(structure: dict, chapter_id: str) -> dict | None:
+    for part in structure["parts"]:
+        for chapter in part.get("chapters", []):
+            if chapter.get("id") == chapter_id:
+                return chapter
+    return None
+
+
+def create_part(name: str) -> str:
+    structure = get_structure()
+    part_id = "p_" + uuid.uuid4().hex[:8]
+    structure["parts"].append({"id": part_id, "name": name, "chapters": []})
+    _save_structure(structure)
+    return part_id
+
+
+def rename_part(part_id: str, name: str) -> bool:
+    structure = get_structure()
+    part = _find_part(structure, part_id)
+    if part is None:
         return False
-    try:
-        r = subprocess.run(["git", "-C", str(base), "branch", "-D", name],
-                           capture_output=True, text=True, timeout=10)
-        return r.returncode == 0
-    except Exception:
+    part["name"] = name
+    _save_structure(structure)
+    return True
+
+
+def delete_part(part_id: str, delete_scenes: bool = False) -> bool:
+    structure = get_structure()
+    part = _find_part(structure, part_id)
+    if part is None or len(structure["parts"]) < 2:
         return False
+    chapters = part.get("chapters", [])
+    if chapters and not delete_scenes:
+        return False
+    if delete_scenes:
+        for chapter in chapters:
+            for n in chapter.get("scenes", []):
+                delete_scene(n)
+    structure["parts"].remove(part)
+    if structure.get("active_chapter") in {c.get("id") for c in chapters}:
+        structure["active_chapter"] = None
+    _save_structure(structure)
+    return True
 
 
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\\nInterrupted. State saved up to last accepted scene.")
-        sys.exit(0)
-# Skills system
+def create_chapter(part_id: str, name: str) -> str | None:
+    structure = get_structure()
+    part = _find_part(structure, part_id)
+    if part is None:
+        return None
+    chapter_id = "c_" + uuid.uuid4().hex[:8]
+    part.setdefault("chapters", []).append({"id": chapter_id, "name": name, "scenes": []})
+    _save_structure(structure)
+    return chapter_id
 
 
-
-def skills_dir() -> "Path":
-
-    return project_base() / "skills"
-
-
-
-
-
-def list_skills() -> list:
-
-    sd = skills_dir()
-
-    if not sd.exists():
-
-        return []
-
-    out = []
-
-    for p in sorted(sd.glob("*.md")):
-
-        text = p.read_text(encoding="utf-8")
-
-        meta = {"name": p.stem, "trigger": "", "active": True, "body": text}
-
-        if text.startswith("---"):
-
-            parts = text.split("---", 2)
-
-            if len(parts) >= 3:
-
-                for line in parts[1].strip().splitlines():
-
-                    if ":" in line:
-
-                        k, v = line.split(":", 1)
-
-                        k = k.strip().lower()
-
-                        v = v.strip()
-
-                        if k == "name":
-
-                            meta["name"] = v
-
-                        elif k == "trigger":
-
-                            meta["trigger"] = v
-
-                        elif k == "active":
-
-                            meta["active"] = v.lower() in ("true", "1", "yes")
-
-                meta["body"] = parts[2].strip()
-
-        out.append({"file": p.name, "name": meta["name"], "trigger": meta["trigger"],
-
-                    "active": meta["active"], "body": meta["body"]})
-
-    return out
+def rename_chapter(chapter_id: str, name: str) -> bool:
+    structure = get_structure()
+    chapter = _find_chapter(structure, chapter_id)
+    if chapter is None:
+        return False
+    chapter["name"] = name
+    _save_structure(structure)
+    return True
 
 
+def delete_chapter(chapter_id: str, delete_scenes: bool = False) -> bool:
+    structure = get_structure()
+    chapter = _find_chapter(structure, chapter_id)
+    if chapter is None:
+        return False
+    owner = next(p for p in structure["parts"] if chapter in p.get("chapters", []))
+    if chapter.get("scenes") and not delete_scenes:
+        return False
+    if delete_scenes:
+        for n in chapter.get("scenes", []):
+            delete_scene(n)
+    owner["chapters"].remove(chapter)
+    if structure.get("active_chapter") == chapter_id:
+        structure["active_chapter"] = None
+    _save_structure(structure)
+    return True
 
 
-
-def load_active_skills(context: str = "") -> list:
-
-    skills = list_skills()
-
-    active = []
-
-    for s in skills:
-
-        if not s["active"]:
-
-            continue
-
-        trigger = s["trigger"].lower()
-
-        if not trigger or trigger == "always":
-
-            active.append(s)
-
-        elif context and trigger in context.lower():
-
-            active.append(s)
-
-    return active
+def set_active_chapter(chapter_id: str) -> bool:
+    structure = get_structure()
+    if _find_chapter(structure, chapter_id) is None:
+        return False
+    structure["active_chapter"] = chapter_id
+    _save_structure(structure)
+    return True
 
 
-
-
-
-def skills_prompt_block(context: str = "") -> str:
-
-    skills = load_active_skills(context)
-
-    if not skills:
-
+def generate_chapter_summary(chapter_id: str) -> str:
+    chapter = _find_chapter(get_structure(), chapter_id)
+    if chapter is None:
         return ""
-
-    parts = ["APPLICABLE WRITING/BRIEFING SKILLS (follow these):"]
-
-    for s in skills:
-
-        parts.append("\n--- Skill: " + s["name"] + " ---\n" + s["body"])
-
-    return "\n".join(parts)
-
-
-
-
-
-def save_skill(filename: str, name: str, trigger: str, active: bool, body: str):
-
-    sd = skills_dir()
-
-    sd.mkdir(parents=True, exist_ok=True)
-
-    path = sd / filename
-
-    content = "---\nname: " + name + "\ntrigger: " + trigger + "\nactive: " + str(active).lower() + "\n---\n\n" + body + "\n"
-
-    atomic_write(path, content)
+    scene_numbers = chapter.get("scenes", [])
+    lines = [chapter.get("name", "Chapter") + ": scenes " +
+             (", ".join(str(n) for n in scene_numbers) or "none")]
+    for n in scene_numbers:
+        p = kb_path("scenes") / ("scene_%02d.md" % n)
+        if p.exists():
+            first = next((line.strip() for line in p.read_text(encoding="utf-8").splitlines()
+                          if line.strip()), "")
+            lines.append("Scene " + str(n) + ": " + first[:120])
+    return "\n".join(lines)
 
 
+# ── Feedback-driven generation constraints ───────────────────────────────────
+def aggregated_feedback_constraints() -> str:
+    return recent_feedback(5)
+
+
+def deterministic_scene_checks(scene_text: str, chars: list, genre: str = "") -> list:
+    checks = []
+    if len(scene_text.split()) < 100:
+        checks.append("short scene (under 100 words)")
+    if any(len(s.split()) > 45 for s in re.split(r"[.!?]+", scene_text)):
+        checks.append("very long sentence (over 45 words)")
+    if not any(mark in scene_text for mark in ('"', "\u201c", "\u00ab")):
+        checks.append("no dialogue detected")
+    words = scene_text.lower().split()
+    repeats = sum(1 for a, b in zip(words, words[1:]) if a == b and len(a) > 2)
+    if repeats >= 3:
+        checks.append("repeated consecutive words")
+    return checks
+
+
+def create_style_from_samples(name: str, samples: list) -> str:
+    text = "\n\n".join(samples)
+    words = text.split()
+    sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
+    avg = round(len(words) / len(sentences), 1) if sentences else 0
+    lines = [line for line in text.splitlines() if line.strip()]
+    dialogue_lines = sum(1 for line in lines
+                         if any(m in line for m in ('"', "\u201c", "\u00ab")))
+    ratio = round(dialogue_lines / len(lines) * 100, 1) if lines else 0
+    body = "\n".join([
+        "Write in the author's own style, derived from the supplied samples.",
+        "Sentence length: average " + str(avg) + " words; vary rhythm deliberately.",
+        "Dialogue: about " + str(ratio) + "% of lines carry dialogue; keep it natural.",
+        "Match the samples' tone, imagery density, and point of view.",
+        "Do not imitate named authors; preserve only these measurable habits.",
+    ])
+    filename = re.sub(r"[^\w\-]", "_", name).strip("_") + ".md"
+    save_skill(filename, name, "always", True, body)
+    return body
 
 
 
-def delete_skill(filename: str) -> bool:
+# Analysis / Critique system
 
-    p = skills_dir() / filename
+def analysis_prompt(scene_text: str, chars: list, level: str = "developmental",
+                    language: str = "en", lore: str = "", state: dict = None,
+                    events: list = None, metrics: dict = None) -> list:
+    safe_chars = [{k: v for k, v in c.items() if k not in ("secrets",)} for c in (chars or [])]
+    purity = (" Do not mix languages. Keep every word in the requested language, except short direct "
+              "quotations copied verbatim from the source text.")
+    if language == "ar-eg":
+        lang_directive = "LANGUAGE: Write your analysis and improvement plan in Egyptian Arabic dialect." + purity
+    else:
+        lang_directive = "LANGUAGE: Write your analysis and improvement plan in English." + purity
+    level_focus = {
+        "developmental": "Focus on structure, pacing, character arcs, and plot logic.",
+        "line": "Focus on prose quality, voice consistency, rhythm, and word choice.",
+        "copyedit": "Focus on grammar, consistency, formatting, and continuity errors.",
+        "proofread": "Focus on typos, punctuation, and surface-level errors only.",
+    }.get(level, "Focus on all aspects.")
+    events_str = json.dumps((events or [])[:10])[:800]
+    lore_short = (lore or "")[:600]
+    state_str = json.dumps(state or {}, indent=2)[:600]
+    system = (
+        "You are a JSON-only API. Analyze the provided scene. Output ONLY a valid JSON object. "
+        "No thinking, no explanation, no markdown. Just JSON.\n\n"
+        "EXAMPLE (shape only — the quoted values are placeholders, never copy them):\n"
+        "{\"overall_rating\":7,\"dimensions\":{\"prose_quality\":8,\"dialogue\":6,\"pacing\":7,\"character_voice\":8,\"continuity\":9,\"immersion\":7},"
+        "\"strengths\":[\"<quote the exact phrase that works and why>\"],"
+        "\"weaknesses\":[{\"issue\":\"<quote the exact phrase that fails and why>\",\"severity\":\"major\"}],"
+        "\"improvement_plan\":\"<numbered, concrete changes for THIS text>\","
+        "\"level\":\"developmental\"}\n\n"
+        "NOW ANALYZE THIS SCENE. Output JSON only. No thinking. Just JSON.\n"
+        "Schema: {\"overall_rating\":1-10,\"dimensions\":{\"prose_quality\":1-10,\"dialogue\":1-10,\"pacing\":1-10,\"character_voice\":1-10,\"continuity\":1-10,\"immersion\":1-10,\"motivation\":1-10,\"power_balance\":1-10},"
+        "\"strengths\":[\"<exact quote from THIS text>\"],"
+        "\"weaknesses\":[{\"issue\":\"<exact quote from THIS text>\",\"severity\":\"major|minor\"}],"
+        "\"improvement_plan\":\"<1. concrete change for THIS text>\\n2. <another change>\","
+        "\"level\":\"developmental\"}\n"
+        "Rules: overall_rating = unweighted mean of dimensions. Never reuse the placeholder example text. "
+        "Strengths and weaknesses must quote words that actually appear in THIS scene. No generic praise. "
+        "Weaknesses cite specific text and explain WHY. improvement_plan REQUIRED, never empty. "
+        "Default to finding 3-5 issues. If fewer, include coverage_note. "
+        "Check: motivations, power balance, unmotivated decisions, emotional arc. "
+        "If Arabic: check grammar, spelling, dialect naturalness. "
+        f"Critique level: {level}. {level_focus}. "
+        + ("Ground in provided lore, characters, events. Do not invent canon. "
+           if (lore or chars or state or events) else
+           "No external canon is supplied. Treat the text as self-contained: judge only its own internal "
+           "consistency, characters, and rules. Do not compare it to any other world, book, or character. ")
+        + lang_directive + " "
+        "Output JSON now. No thinking. Just JSON."
+    )
 
-    if p.exists():
+    metrics_str = json.dumps(metrics or {}, indent=2)[:400]
+    user = (
+        f"LORE: {lore_short}\n\n"
+        f"CHARACTERS: {json.dumps(safe_chars)}\n\n"
+        f"STATE: {state_str}\n\n"
+        f"EVENTS: {events_str}\n\n"
+        f"METRICS (computed): {metrics_str}\n\n"
+        f"SCENE:\n{scene_text[:12000]}\n\n"
+        "Output JSON now."
+    )
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
-        p.unlink()
 
+def deterministic_analysis_metrics(scene_text: str, chars: list) -> dict:
+    """Compute deterministic metrics for a scene. No LLM needed."""
+    words = scene_text.split()
+    wc = len(words)
+    sentences = [s.strip() for s in scene_text.replace("!", ".").replace("?", ".").split(".") if s.strip()]
+    sc = len(sentences)
+    avg_sl = round(wc / sc, 1) if sc > 0 else 0
+    # dialogue ratio
+    quotes = scene_text.count('"') + scene_text.count('\u00ab') + scene_text.count('\u201c')
+    dialogue_chars = 0
+    in_quote = False
+    for ch in scene_text:
+        if ch in ('"', '\u00ab', '\u201c'):
+            in_quote = not in_quote
+        elif in_quote:
+            dialogue_chars += 1
+    dialogue_ratio = round(dialogue_chars / len(scene_text) * 100, 1) if scene_text else 0
+    # top words (excluding stop words)
+    stop_words = {"the", "a", "an", "is", "was", "were", "are", "be", "been", "being",
+                  "have", "has", "had", "do", "does", "did", "will", "would", "could",
+                  "should", "may", "might", "can", "shall", "to", "of", "in", "for",
+                  "on", "with", "at", "by", "from", "as", "into", "through", "during",
+                  "before", "after", "above", "below", "between", "under", "again",
+                  "further", "then", "once", "here", "there", "when", "where", "why",
+                  "how", "all", "each", "few", "more", "most", "other", "some", "such",
+                  "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very",
+                  "just", "and", "but", "or", "if", "because", "while", "although",
+                  "the", "that", "this", "these", "those", "it", "its", "he", "she",
+                  "they", "them", "their", "we", "us", "our", "you", "your", "i", "me",
+                  "my", "him", "her", "his", "hers", "was", "were", "had", "did",
+                  "the", "and", "of", "to", "in", "a", "that", "it", "for", "on",
+                  "with", "as", "by", "at", "from", "this", "an", "be", "or", "which",
+                  "but", "not", "are", "was", "were", "has", "have", "had", "will",
+                  "would", "could", "should", "may", "might", "can", "shall", "do",
+                  "does", "did", "if", "then", "than", "so", "such", "no", "nor",
+                  "not", "only", "own", "same", "too", "very", "just", "now", "here",
+                  "there", "when", "where", "why", "how", "all", "each", "few", "more",
+                  "most", "other", "some", "up", "out", "about", "into", "over", "after",
+                  "before", "between", "under", "above", "below", "to", "from", "off",
+                  "further", "once", "he", "she", "it", "they", "we", "you", "i", "me",
+                  "him", "her", "us", "my", "your", "his", "her", "its", "our", "their",
+                  # Arabic stop words
+                  "في", "من", "إلى", "على", "عن", "مع", "هذا", "هذه", "ذلك", "تلك",
+                  "هو", "هي", "هم", "هن", "أنا", "نحن", "أنت", "أنتم", "التي", "الذي",
+                  "الذين", "اللذين", "اللتين", "اللواتي", "كانت", "كان", "يكون", "تكون",
+                  "قد", "لم", "لن", "لا", "ما", "مما", "إذ", "إذا", "إن", "أن", "لكن",
+                  "لكي", "كي", "حتى", "أو", "أم", "بل", "ثم", "أيضا", "فقط", "حول",
+                  "حده", "حول", "عند", "عندما", "حيث", "هنا", "هناك", "كل", "بعض",
+                  "غير", "أي", "أيا", "من", "لقد", "لما", "لئلا", "لعل", "لئن", "أجل",
+                  "بسبب", "بفضل", "بلا", "بدون", "ضمن", "خلال", "بين", "أمام", "خلف",
+                  "فوق", "تحت", "داخل", "خارج", "أمام", "وراء", "بجوار", "بجانب",
+                  }
+    _strip_chars = '.,!?;:"' + "'()[]{}"
+    from collections import Counter
+    word_counts = Counter(w.lower().strip(_strip_chars) for w in words if w.lower().strip(_strip_chars) not in stop_words and len(w) > 2)
+    top_words = [w for w, _ in word_counts.most_common(10)]
+    # Character mentions
+    char_mentions = {}
+    for c in chars:
+        name = c.get("name", "")
+        if name:
+            char_mentions[name] = scene_text.lower().count(name.lower())
+    return {
+        "word_count": wc,
+        "sentence_count": sc,
+        "avg_sentence_length": avg_sl,
+        "dialogue_ratio": dialogue_ratio,
+        "top_words": top_words,
+        "character_mentions": char_mentions,
+    }
+
+
+def canon_context() -> tuple:
+    lore_path = kb_path("lore")
+    lore = lore_path.read_text(encoding="utf-8") if lore_path.exists() else ""
+    chars_path = kb_path("characters")
+    try:
+        chars = json.loads(chars_path.read_text(encoding="utf-8")) if chars_path.exists() else []
+    except (json.JSONDecodeError, OSError):
+        chars = []
+    chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars]
+    state = load_state() if kb_path("state").exists() else None
+    events = []
+    log_path = kb_path("events") / "event_log.jsonl"
+    if log_path.exists():
+        for line in log_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                events.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return lore, chars, state, events
+
+
+ANALYSIS_PLACEHOLDERS = {
+    "specific strength citing exact text",
+    "specific issue citing exact text",
+    "numbered list of concrete changes",
+    "major or minor",
+    "major|minor",
+}
+
+
+def _is_analysis_placeholder(value) -> bool:
+    if not isinstance(value, str):
         return True
+    text = value.strip()
+    return (not text or text in ANALYSIS_PLACEHOLDERS
+            or (text.startswith("<") and text.endswith(">")))
 
-    return False
+
+def normalize_analysis(data: dict, metrics: dict) -> dict:
+    dims = data.get("dimensions") if isinstance(data.get("dimensions"), dict) else {}
+    for key in list(dims):
+        try:
+            dims[key] = max(1, min(10, int(dims[key])))
+        except (TypeError, ValueError):
+            dims[key] = 5
+    data["dimensions"] = dims
+    if dims:
+        data["overall_rating"] = round(sum(dims.values()) / len(dims))
+    elif data.get("overall_rating") is None:
+        data["overall_rating"] = None
+        data["llm_error"] = data.get("llm_error") or "Model returned no dimension ratings"
+    if data["overall_rating"] is not None:
+        try:
+            data["overall_rating"] = max(1, min(10, int(data["overall_rating"])))
+        except (TypeError, ValueError):
+            data["overall_rating"] = None
+    if not isinstance(data.get("strengths"), list):
+        data["strengths"] = []
+    if not isinstance(data.get("weaknesses"), list):
+        data["weaknesses"] = []
+    if not data["weaknesses"] and data.get("issue"):
+        data["weaknesses"] = [{"issue": data["issue"], "severity": data.get("severity", "minor")}]
+    data["strengths"] = [s for s in data["strengths"] if not _is_analysis_placeholder(s)]
+    data["weaknesses"] = [w for w in data["weaknesses"]
+                          if isinstance(w, dict) and not _is_analysis_placeholder(w.get("issue"))]
+    for weakness in data["weaknesses"]:
+        if _is_analysis_placeholder(weakness.get("severity")):
+            weakness["severity"] = "minor"
+    plan = data.get("improvement_plan")
+    if _is_analysis_placeholder(plan):
+        data["improvement_plan"] = ""
+    if not isinstance(data.get("improvement_plan"), str) or not data["improvement_plan"].strip():
+        issues = [w.get("issue", "") for w in data["weaknesses"]
+                  if isinstance(w, dict) and w.get("issue")]
+        data["improvement_plan"] = ("\n".join(f"{i+1}. Address: {iss}" for i, iss in enumerate(issues))
+                                    if issues else
+                                    "1. Review and refine prose quality.\n2. Check character voice consistency.")
+    data["metrics"] = metrics
+    return data
+
+
+def analyze_scene(n: int, level: str = "developmental") -> dict | None:
+    scene_path = kb_path("scenes") / f"scene_{n:02d}.md"
+    if not scene_path.exists():
+        return None
+    scene_text = scene_path.read_text(encoding="utf-8")
+    meta_path = kb_path("scenes") / f"scene_{n:02d}_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+    current_hash = sha256_file(scene_path)
+    cached = meta.get("analysis")
+    if cached and cached.get("scene_hash") == current_hash:
+        return cached
+    lore, chars, state, all_events = canon_context()
+    events = [ev for ev in all_events if ev.get("scene") == n]
+    metrics = deterministic_analysis_metrics(scene_text, chars)
+    language = project_language()
+    msgs = analysis_prompt(scene_text, chars, level, language, lore, state, events, metrics)
+    try:
+        raw = llm_call(CONFIG["auditor_model"], msgs, CONFIG.get("max_tokens_analysis", 4000), 0.2, json_mode=True)
+        data = parse_json_robust(raw)
+    except Exception as e:
+        return {"error": str(e), "scene": n}
+    data = normalize_analysis(data, metrics)
+    run = int(meta.get("chat_run_counter", 0)) + 1
+    meta["chat_run_counter"] = run
+    data["scene"] = n
+    data["level"] = level
+    data["scene_hash"] = current_hash
+    data["analysis_run"] = run
+    if data.get("overall_rating") is not None:
+        meta["analysis"] = data
+        atomic_write(meta_path, json.dumps(meta, indent=2))
+    return data
+
+
+def save_analysis_plan(n: int, plan: str) -> bool:
+    meta_path = kb_path("scenes") / f"scene_{n:02d}_meta.json"
+    if not meta_path.exists():
+        return False
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+    if "analysis" not in meta:
+        meta["analysis"] = {}
+    meta["analysis"]["improvement_plan"] = plan
+    meta["analysis"]["plan_edited"] = True
+    atomic_write(meta_path, json.dumps(meta, indent=2))
+    return True
+
+
+def load_analysis(n: int) -> dict | None:
+    meta_path = kb_path("scenes") / f"scene_{n:02d}_meta.json"
+    if not meta_path.exists():
+        return None
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    return meta.get("analysis")
 
 
 # Skills system
 
+
+
 def skills_dir() -> "Path":
-    return project_base() / "skills"
+    return kb_path("skills")
+
+
+
 
 
 def list_skills() -> list:
@@ -1793,6 +2116,7 @@ def kb_path(key: str) -> "Path":
         "usage_log": ("usage_log.jsonl", "usage_log.jsonl"),
         "character_knowledge": ("characters/knowledge.json", "character_knowledge.json"),
         "last_choice": (".last_choice.txt", ".last_choice.txt"),
+        "hints": ("hints.json", "hints.json"),
     }
     if key in mapping:
         new_rel, old_rel = mapping[key]
@@ -1806,10 +2130,7 @@ def kb_path(key: str) -> "Path":
     return base / key
 
 
-# delete_scene
 def delete_scene(n: int) -> bool:
-    base = (project_base() / "scenes") if not (project_base() / "kb" / "scenes").exists() else (project_base() / "kb" / "scenes")
-    # use kb_path
     base = kb_path("scenes")
     removed = False
     for fn in ("scene_%02d.md" % n, "scene_%02d_meta.json" % n, "scene_%02d_snapshot.md" % n):
@@ -1817,16 +2138,17 @@ def delete_scene(n: int) -> bool:
         if p.exists():
             p.unlink()
             removed = True
+    if removed:
+        path = _structure_path()
+        if path.exists():
+            structure = json.loads(path.read_text(encoding="utf-8"))
+            for part in structure["parts"]:
+                for chapter in part.get("chapters", []):
+                    if n in chapter.get("scenes", []):
+                        chapter["scenes"].remove(n)
+            _save_structure(structure)
     return removed
 
-
-# create_project with kb structure
-# (already in original, but need to ensure skills dir exists)
-def _ensure_kb_structure(p):
-    (p / "kb" / "styles").mkdir(parents=True, exist_ok=True)
-    (p / "kb" / "characters").mkdir(parents=True, exist_ok=True)
-    (p / "kb" / "world").mkdir(parents=True, exist_ok=True)
-    (p / "kb" / "timeline").mkdir(parents=True, exist_ok=True)
 
 # Add add_scene function to studio.py
 def add_scene(text: str, improve: bool = False, options: list = None, direction: str = "") -> dict:
@@ -1840,25 +2162,22 @@ def add_scene(text: str, improve: bool = False, options: list = None, direction:
     base = project_base()
     # If improve, run through showrunner
     if improve:
-        chars = json.loads((base / "characters.json").read_text(encoding="utf-8")) if (base / "characters.json").exists() else []
+        chars_path = kb_path("characters")
+        chars = json.loads(chars_path.read_text(encoding="utf-8")) if chars_path.exists() else []
         chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars]
         state = load_state()
-        lore = (base / "world_lore.md").read_text(encoding="utf-8") if (base / "world_lore.md").exists() else ""
-        npc_registry = json.loads((base / "npc_registry.json").read_text(encoding="utf-8")) if (base / "npc_registry.json").exists() else {}
-        plot_threads = json.loads((base / "plot_threads.json").read_text(encoding="utf-8")) if (base / "plot_threads.json").exists() else []
-        timeline = json.loads((base / "timeline.json").read_text(encoding="utf-8")) if (base / "timeline.json").exists() else []
+        lore_path = kb_path("lore")
+        lore = lore_path.read_text(encoding="utf-8") if lore_path.exists() else ""
+        npc_path = kb_path("npc_registry")
+        npc_registry = json.loads(npc_path.read_text(encoding="utf-8")) if npc_path.exists() else {}
+        threads_path = kb_path("plot_threads")
+        plot_threads = json.loads(threads_path.read_text(encoding="utf-8")) if threads_path.exists() else []
+        timeline_path = kb_path("timeline")
+        timeline = json.loads(timeline_path.read_text(encoding="utf-8")) if timeline_path.exists() else []
         language = project_language()
         genre = project_genre()
         subgenre = project_subgenre()
-        option_map = {
-            "add_details": "Add more sensory details, description, and atmosphere.",
-            "rewrite_dialogue": "Rewrite all dialogue to be sharper and more natural.",
-            "fix_continuity": "Fix continuity errors and contradictions.",
-            "expand": "Expand the scene. Target 800-1000 words.",
-            "tighten_pacing": "Tighten pacing. Cut filler. Target 400-600 words.",
-            "change_tone": "Adjust tone to be more dramatic and intense.",
-        }
-        instructions = [option_map.get(o, o) for o in options if o in option_map]
+        instructions = [IMPROVE_OPTIONS.get(o, o) for o in options if o in IMPROVE_OPTIONS]
         if direction:
             instructions.append(direction)
         improve_dir = "Improve this scene. " + " ".join(instructions) if instructions else "Improve this scene's prose quality."
@@ -1868,18 +2187,242 @@ def add_scene(text: str, improve: bool = False, options: list = None, direction:
         raw = llm_call(CONFIG["showrunner_model"], msgs, CONFIG["max_tokens_showrunner"], CONFIG["temperature"])
         text, choices = split_scene_and_choices(raw)
     else:
-        text = text
         choices = []
-    # Save as new scene
-    sp = base / "scenes" / ("scene_%02d.md" % n)
+    sp = kb_path("scenes") / ("scene_%02d.md" % n)
     atomic_write(sp, text)
     save_snapshot(n, text)
     meta = {"scene": n, "hash": sha256_file(sp), "status": "accepted",
             "characters_present": [], "location": None, "events": [], "choices": choices}
-    atomic_write(base / "scenes" / ("scene_%02d_meta.json" % n), json.dumps(meta, indent=2))
-    # Assign to active chapter
-    cid = active_chapter_id()
-    if cid:
-        assign_scene_to_chapter(n, cid)
+    atomic_write(kb_path("scenes") / ("scene_%02d_meta.json" % n), json.dumps(meta, indent=2))
     git_commit_scene(n, "added scene %d" % n)
     return {"ok": True, "scene": n, "text": text, "choices": choices}
+
+
+# ── Chat with the AI ───────────────────────────────────────────────────────────
+CHAT_ACTIONS = {"rewrite_plan"}
+
+
+def load_chat(scene: int) -> list:
+    p = chat_path(scene)
+    if not p.exists():
+        return []
+    out = []
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def append_chat(scene: int, messages: list):
+    p = chat_path(scene)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with EVENT_LOG_LOCK:
+        with p.open("a", encoding="utf-8") as f:
+            for m in messages:
+                f.write(json.dumps(m, ensure_ascii=False) + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+
+
+def clear_chat(scene: int) -> bool:
+    p = chat_path(scene)
+    if p.exists():
+        p.unlink()
+        return True
+    return False
+
+
+def _validate_action(action: dict) -> dict | None:
+    if not isinstance(action, dict):
+        return None
+    kind = action.get("type")
+    if kind not in CHAT_ACTIONS:
+        return None
+    args = action.get("args")
+    if not isinstance(args, dict):
+        args = {}
+    if kind == "rewrite_plan":
+        text = args.get("text")
+        if not isinstance(text, str) or not text.strip():
+            return None
+        if len(text) > 4000:
+            return None
+        return {"type": "rewrite_plan", "args": {"text": text}}
+    return None
+
+
+def split_chat_reply(raw: str) -> tuple:
+    if not raw:
+        return "", []
+    first_line = raw.strip().splitlines()[0].lower() if raw.strip() else ""
+    reasoning_markers = ("here's a thinking process", "thinking process:", "analyze user input",
+                         "analyze the request", "let's outline", "let's write", "i need to",
+                         "the user is asking", "step 1:", "1. **")
+    if any(first_line.startswith(m) for m in reasoning_markers):
+        return "The model returned reasoning instead of a reply. Try again.", []
+    actions = []
+    text = raw
+    matches = list(re.finditer(r"```(?:json)?\s*(\{.*?\})\s*```", raw, re.DOTALL | re.IGNORECASE))
+    if matches:
+        last = matches[-1]
+        try:
+            obj = json.loads(last.group(1))
+            if isinstance(obj, dict) and isinstance(obj.get("actions"), list):
+                actions = [a for a in (_validate_action(x) for x in obj["actions"]) if a]
+                text = raw[:last.start()].strip()
+        except (json.JSONDecodeError, ValueError):
+            pass
+    else:
+        m = re.search(r"\{[^{}]*\"actions\"\s*:\s*\[.*\]\s*\}\s*$", raw, re.DOTALL)
+        if m:
+            try:
+                obj = json.loads(m.group(0))
+                if isinstance(obj, dict) and isinstance(obj.get("actions"), list):
+                    actions = [a for a in (_validate_action(x) for x in obj["actions"]) if a]
+                    text = raw[:m.start()].strip()
+            except (json.JSONDecodeError, ValueError):
+                pass
+    return text, actions
+
+
+def _detect_language(text: str) -> str:
+    if any("\u0600" <= c <= "\u06ff" for c in text):
+        return "ar-eg"
+    return "en"
+
+
+def chat_context(scene: int, include_analysis: bool = True, plan: str = "") -> dict:
+    scene_path = kb_path("scenes") / f"scene_{scene:02d}.md"
+    scene_text = (scene_path.read_text(encoding="utf-8") if scene_path.exists() else "")[:4000]
+    lore_path = kb_path("lore")
+    lore = lore_path.read_text(encoding="utf-8") if lore_path.exists() else ""
+    chars_path = kb_path("characters")
+    try:
+        chars = json.loads(chars_path.read_text(encoding="utf-8")) if chars_path.exists() else []
+    except (json.JSONDecodeError, OSError):
+        chars = []
+    chars = [{k: v for k, v in c.items() if k != "secrets"} for c in chars if isinstance(c, dict)]
+    state = load_state() if kb_path("state").exists() else None
+    meta_path = kb_path("scenes") / f"scene_{scene:02d}_meta.json"
+    meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
+    analysis = meta.get("analysis") if include_analysis else None
+    if not isinstance(analysis, dict):
+        analysis = None
+    if not plan.strip():
+        plan = (analysis or {}).get("improvement_plan", "") if isinstance(analysis, dict) else ""
+    markers = meta.get("chat_markers") if isinstance(meta.get("chat_markers"), list) else []
+    scene_hash = meta.get("analysis", {}).get("scene_hash") if isinstance(meta.get("analysis"), dict) else None
+    analysis_run = meta.get("chat_run_counter", 0) if isinstance(meta.get("chat_run_counter"), int) else 0
+    if not analysis_run and isinstance(analysis, dict):
+        analysis_run = analysis.get("analysis_run", 0)
+    language = project_language()
+    if any("\u0600" <= c <= "\u06ff" for c in scene_text):
+        language = "ar-eg"
+    skills = skills_prompt_block("chat " + scene_text[:200])
+    return {
+        "scene": scene,
+        "scene_text": scene_text,
+        "lore": lore,
+        "chars": chars,
+        "state": state,
+        "analysis": analysis,
+        "plan": plan,
+        "skills": skills,
+        "language": language,
+        "scene_hash": scene_hash,
+        "analysis_run": analysis_run,
+        "markers": markers,
+    }
+
+
+def chat_prompt(ctx: dict, history: list, message: str) -> list:
+    scene_text = ctx["scene_text"]
+    total = len(scene_text)
+    scene_slice = scene_text[:4000]
+    lore_slice = (ctx["lore"] or "")[:1500]
+    chars_slice = json.dumps(ctx["chars"] or [])[:2000]
+    skills_slice = (ctx["skills"] or "")[:2000]
+    analysis_slice = json.dumps(ctx["analysis"], ensure_ascii=False)[:2000] if ctx["analysis"] else ""
+    plan_slice = (ctx["plan"] or "")[:1500]
+    lang = ctx["language"]
+    lang_directive = ("Egyptian Arabic dialect" if lang == "ar-eg" else "English")
+    markers_note = ""
+    if ctx.get("markers"):
+        markers_note = "Recent analysis context:\n" + "\n".join(
+            f"- run {m.get('run')}: rating {m.get('rating')}, hash {m.get('hash')}" for m in ctx["markers"]
+        ) + "\n\n"
+    stale_note = ""
+    if ctx.get("analysis") and ctx.get("scene_hash"):
+        current_hash = sha256_file(kb_path("scenes") / f"scene_{ctx['scene']:02d}.md") if (kb_path("scenes") / f"scene_{ctx['scene']:02d}.md").exists() else None
+        if current_hash and current_hash != ctx["scene_hash"]:
+            stale_note = "WARNING: the scene text changed after this analysis; scores may refer to prose that no longer exists.\n\n"
+    system = (
+        "You are a candid co-writer discussing a scene with its author. "
+        "Explain scores, defend them when asked, and revise the improvement plan when the author "
+        "gives context. Hold your assessment unless the author gives new information about the text; "
+        "say plainly when you are conceding. Chat never alters stored scores — only the improvement "
+        "plan. If you mention score changes, it is just text; the stored rating is never modified. "
+        "Discuss in " + lang_directive + ". Do not mix languages except direct quotations from the "
+        "source text. The scene text provided is the first " + str(len(scene_slice)) + " of " + str(total) +
+        " characters; say so when the relevant passage is beyond what is visible. "
+        "Do not output a thinking process, plan, or reasoning transcript. "
+        "If you want to propose an app action, append a single trailing fenced ```json block of the "
+        "form {\"actions\":[{\"type\":\"...\",\"args\":{...}}]}. Never claim an action was executed; "
+        "always propose. "
+        "Never modify prose, lore, or state. "
+        "Actions available: rewrite_plan {text: non-empty string, max 4000 chars}."
+    )
+    parts = []
+    if markers_note:
+        parts.append(markers_note)
+    if stale_note:
+        parts.append(stale_note)
+    if scene_slice:
+        parts.append("SCENE (first " + str(len(scene_slice)) + " of " + str(total) + " chars):\n" + scene_slice)
+    if analysis_slice:
+        parts.append("ANALYSIS:\n" + analysis_slice)
+    if plan_slice:
+        parts.append("IMPROVEMENT PLAN:\n" + plan_slice)
+    if lore_slice:
+        parts.append("LORE:\n" + lore_slice)
+    if chars_slice and chars_slice != "[]":
+        parts.append("CHARACTERS:\n" + chars_slice)
+    if skills_slice:
+        parts.append(skills_slice)
+    context = "\n\n".join(parts)
+    messages = [{"role": "system", "content": system}]
+    # Keep the latest action-bearing message whole; reduce older ones to a note.
+    latest_action_idx = -1
+    for i in range(len(history) - 1, -1, -1):
+        if isinstance(history[i], dict) and history[i].get("actions"):
+            latest_action_idx = i
+            break
+    for i, m in enumerate(history):
+        if not isinstance(m, dict):
+            continue
+        role = m.get("role", "user")
+        if role not in ("user", "assistant"):
+            role = "user"
+        content = m.get("content", "")
+        if i != latest_action_idx and m.get("actions"):
+            content = "[proposed a plan rewrite]"
+        if role == "user":
+            content = content[:1500]
+        else:
+            content = content[:500]
+        messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": context + "\n\nAUTHOR MESSAGE:\n" + message})
+    return messages
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nInterrupted. State saved up to last accepted scene.")
+        sys.exit(0)

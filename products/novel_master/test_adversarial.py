@@ -13,7 +13,6 @@ import json
 import sys
 from pathlib import Path
 
-import pytest
 
 BASE = Path(__file__).parent
 sys.path.insert(0, str(BASE))
@@ -124,7 +123,6 @@ def test_deleted_event_retcon(tmp_path, monkeypatch):
     edited = "Maren walked on. No key."
     (tmp_path / "scenes" / "scene_01.md").write_text(edited, encoding="utf-8")
     (tmp_path / "scenes" / "scene_01_snapshot.md").write_text(original, encoding="utf-8")
-    import hashlib
     (tmp_path / "scenes" / "scene_01_meta.json").write_text(
         json.dumps({"hash": "oldhash", "status": "accepted", "events": [
             {"event_id": 8, "summary": "Maren finds the key", "state_updates": {"c1": {"inventory_add": ["key"]}}}

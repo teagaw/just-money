@@ -41,7 +41,7 @@ A `retcon` event does not mutate the original; the projector skips nullified eve
   "scene": 5,
   "op": "nullify",
   "target_event_id": 104,
-  "source_passage": "the paragraph where the protagonist picks up a key",
+  "passages_changed": ["the paragraph where the protagonist picks up a key"],
   "reason": "author_edit",
   "confidence": 0.9,
   "auto_safe": false,
@@ -54,7 +54,7 @@ Fields:
 - `scene` (int) — edited scene.
 - `op` (enum): `add | modify | remove | nullify`.
 - `target_event_id` (int or null) — event affected (null for `add`).
-- `source_passage` (string) — quoted/paraphrased passage from the edited scene.
+- `passages_changed` (array of strings) — quoted/paraphrased passages from the edited scene.
 - `reason` (string) — `author_edit | wording | redundant`.
 - `confidence` (0..1) — auditor's confidence.
 - `auto_safe` (bool) — true only for clearly non-semantic changes (e.g. typo fix). Safe-auto-accept allowlist: spelling/grammar rewording with no entity/inventory/relationship/timeline change.
@@ -93,7 +93,7 @@ Status enum (v1, 4 states): `draft | accepted | dirty | reconciled`. `dirty` = m
 
 ## 5. Edit detection
 
-`detect_edit(scene_path)` compares the current sha256 of the file to `scene_meta.hash`. If they differ, set `status = dirty` and trigger reconciliation. Idempotent: safe to call repeatedly; if already dirty, do nothing.
+`detect_edit(scene_number)` compares the current sha256 of the file to `scene_meta.hash`. If they differ, set `status = dirty` and trigger reconciliation. Idempotent: safe to call repeatedly; if already dirty, do nothing.
 
 ## 6. Safe-auto-accept allowlist (v1)
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Minimal local web UI for the Novel Studio (Phase 0)."""
 import json
-import os
 import re
+import socket
 import sys
 import threading
 import datetime
@@ -55,6 +55,9 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
     raw = studio.llm_call(studio.CONFIG["showrunner_model"], msgs,
                           studio.CONFIG["max_tokens_showrunner"], studio.CONFIG["temperature"], scene_ref=n)
     scene, choices = studio.split_scene_and_choices(raw)
+    if not scene:
+        yield ("error", {"error": "The model returned reasoning instead of prose. Regenerate with a shorter direction."})
+        return
 
     yield ("stage", {"message": "Running State Auditor (extracting events)...", "progress": 60})
     _check_timeout()
@@ -64,8 +67,10 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
                                 studio.auditor_prompt(scene, chars, language),
                                 studio.CONFIG["max_tokens_auditor"], 0.2, scene_ref=n, json_mode=True)
         audit = studio.parse_json_robust(a_raw)
-    except Exception:  # broad: auditor/parse failure -> skip state update
+    except Exception as exc:
         audit = None
+        yield ("stage", {"message": "Auditor unavailable, skipping state update: " + str(exc),
+                         "progress": 65})
 
     yield ("stage", {"message": "Saving scene, events, and state...", "progress": 92})
     scene_path = studio.kb_path("scenes") / f"scene_{n:02d}.md"
@@ -94,8 +99,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
         ev_record = {"event_id": studio.next_event_id(), "scene": n,
                      "ts": datetime.datetime.now(datetime.timezone.utc).isoformat(), **ev}
         ev_record["state_updates"] = ev_su if isinstance(ev_su, dict) else {}
-        with (studio.kb_path("events") / "event_log.jsonl").open("a", encoding="utf-8") as f:
-            f.write(json.dumps(ev_record) + "\n")
+        studio.append_event(ev_record)
 
     if audit:
         applied_any = False
@@ -115,7 +119,7 @@ def generate_one_stream(direction: str, brief: str = "", feedback: str = ""):
     studio.git_commit_scene(n, f"scene {n:02d}: accepted")
     # Phase 3: voice + knowledge + NPC checks
     v_issues = studio.voice_check(scene, chars)
-    k_path = studio.kb_path("characters").parent / "knowledge.json"
+    k_path = studio.kb_path("character_knowledge")
     knowledge = json.loads(k_path.read_text(encoding="utf-8")) if k_path.exists() else {}
     k_issues = studio.knowledge_check(scene, chars, knowledge)
     npc_path = studio.kb_path("npc_registry")
@@ -142,23 +146,24 @@ def status_payload() -> dict:
     scenes = sorted(p for p in (studio.kb_path("scenes")).glob("scene_*.md")
                     if re.match(r"scene_\d+\.md", p.name))
     scene_list = [p.name for p in scenes]
-    last_scene = ""
-    last_choices = []
+    last_status = "accepted"
+    current_scene = 0
     if scene_list:
-        last_scene = (studio.kb_path("scenes") / scene_list[-1]).read_text(encoding="utf-8")
         meta_path = studio.kb_path("scenes") / (scene_list[-1].replace(".md", "_meta.json"))
         if meta_path.exists():
             try:
-                last_choices = json.loads(meta_path.read_text(encoding="utf-8")).get("choices", [])
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                last_status = meta.get("status", "accepted")
             except (json.JSONDecodeError, OSError):
-                last_choices = []
+                pass
+        current_scene = int(scene_list[-1].replace("scene_", "").replace(".md", ""))
     return {
         "scene_count": len(scene_list),
+        "current_scene": current_scene,
+        "last_status": last_status,
         "scenes": scene_list,
         "characters": chars,
         "state": state,
-        "last_scene": last_scene,
-        "last_choices": last_choices,
         "project": studio.active_project_name(),
         "language": studio.project_language(),
         "genre": studio.project_genre(),
@@ -216,6 +221,28 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/structure":
             self._send(200, "application/json", json.dumps({"structure": studio.get_structure()}))
             return
+        if path == "/api/chat":
+            from urllib.parse import parse_qs
+            qs = parse_qs(self.path.split("?", 1)[1] if "?" in self.path else "")
+            try:
+                scene = int(qs.get("scene", ["0"])[0])
+            except (TypeError, ValueError):
+                scene = 0
+            if scene < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            self._send(200, "application/json", json.dumps({"messages": studio.load_chat(scene)}))
+            return
+        if path == "/api/hint_audit":
+            self._send(200, "application/json", json.dumps({"issues": studio.hint_audit()}))
+            return
+        m = re.match(r"^/api/analysis/(\d+)$", path)
+        if m:
+            n = int(m.group(1))
+            result = studio.load_analysis(n)
+            self._send(200, "application/json",
+                       json.dumps(result if result is not None else {"ok": False}))
+            return
         if path == "/api/genres":
             genres = json.loads((BASE / "genres.json").read_text(encoding="utf-8")) if (BASE / "genres.json").exists() else {}
             self._send(200, "application/json", json.dumps(genres))
@@ -225,11 +252,6 @@ class Handler(BaseHTTPRequestHandler):
                 "branches": studio.list_branches(),
                 "current": studio.current_branch(),
             }))
-            return
-        if path == "/api/rebuild_state":
-            new_state = studio.rebuild_state_from_events()
-            studio.atomic_write(studio.kb_path("state"), json.dumps(new_state, indent=2))
-            self._send(200, "application/json", json.dumps({"ok": True, "state": new_state}))
             return
         if path == "/api/detect_edits":
             dirty = studio.scan_for_edits()
@@ -314,9 +336,6 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
-        if path == "/api/hints":
-            self._send(200, "application/json", json.dumps({"hints": studio.list_hints()}))
-            return
         if path == "/api/save_hint":
             hint_id = body.get("id", "")
             surface = body.get("surface", "")
@@ -355,9 +374,6 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
-        if path == "/api/hint_audit":
-            self._send(200, "application/json", json.dumps({"issues": studio.hint_audit()}))
-            return
         if path == "/api/delete_scene":
             n = body.get("scene")
             if not isinstance(n, int) or n < 1:
@@ -372,8 +388,98 @@ class Handler(BaseHTTPRequestHandler):
                 return
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
-        if path == "/api/structure":
-            self._send(200, "application/json", json.dumps({"structure": studio.get_structure()}))
+        if path == "/api/analyze_scene":
+            n = body.get("scene")
+            if not isinstance(n, int) or n < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            level = body.get("level", "developmental")
+            if not isinstance(level, str):
+                level = "developmental"
+            try:
+                result = studio.analyze_scene(n, level=level)
+                if result is None:
+                    self._send(404, "application/json", json.dumps({"error": "scene not found"}))
+                    return
+                self._send(200, "application/json", json.dumps(result))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/chat":
+            scene = body.get("scene")
+            message = body.get("message", "")
+            if not isinstance(scene, int) or scene < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            if not isinstance(message, str) or not message.strip():
+                self._send(400, "application/json", json.dumps({"error": "message is required"}))
+                return
+            if len(message) > 4000:
+                self._send(400, "application/json", json.dumps({"error": "message too long"}))
+                return
+            plan = body.get("plan", "")
+            if not isinstance(plan, str):
+                plan = ""
+            if len(plan) > 4000:
+                plan = plan[:4000]
+            include_analysis = body.get("include_analysis", True)
+            if not isinstance(include_analysis, bool):
+                include_analysis = True
+            try:
+                ctx = studio.chat_context(scene, include_analysis, plan)
+                history = studio.load_chat(scene)
+                msgs = studio.chat_prompt(ctx, history, message)
+                raw = studio.llm_call(studio.CONFIG["auditor_model"], msgs,
+                                      studio.CONFIG.get("max_tokens_analysis", 1500), 0.7, json_mode=False)
+                reply, actions = studio.split_chat_reply(raw)
+                studio.append_chat(scene, [
+                    {"ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                     "role": "user", "content": message, "analysis_run": ctx.get("analysis_run"),
+                     "actions": []},
+                    {"ts": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                     "role": "assistant", "content": reply, "actions": actions},
+                ])
+                self._send(200, "application/json", json.dumps({"reply": reply, "actions": actions, "scene": scene}))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
+            return
+        if path == "/api/chat/clear":
+            scene = body.get("scene")
+            if not isinstance(scene, int) or scene < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            studio.clear_chat(scene)
+            self._send(200, "application/json", json.dumps({"ok": True}))
+            return
+        if path == "/api/save_plan":
+            n = body.get("scene")
+            plan = body.get("plan", "")
+            if not isinstance(n, int) or n < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            if not isinstance(plan, str):
+                self._send(400, "application/json", json.dumps({"error": "plan must be a string"}))
+                return
+            if studio.save_analysis_plan(n, plan):
+                self._send(200, "application/json", json.dumps({"ok": True}))
+            else:
+                self._send(404, "application/json", json.dumps({"error": "scene not found"}))
+            return
+        if path == "/api/apply_plan":
+            n = body.get("scene")
+            plan = body.get("plan", "")
+            level = body.get("level", "developmental")
+            if not isinstance(n, int) or n < 1:
+                self._send(400, "application/json", json.dumps({"error": "invalid scene number"}))
+                return
+            if not isinstance(plan, str) or not plan.strip():
+                self._send(400, "application/json", json.dumps({"error": "plan required"}))
+                return
+            try:
+                result = import_pipeline.improve_scene(n, [], plan, level=level if isinstance(level, str) else "developmental")
+                self._send(200, "application/json", json.dumps(result))
+            except Exception as e:
+                self._send(500, "application/json", json.dumps({"error": str(e)}))
             return
         if path == "/api/create_part":
             name = body.get("name", "New Part")
@@ -510,6 +616,11 @@ class Handler(BaseHTTPRequestHandler):
             studio.atomic_write(studio.kb_path("characters"), text)
             self._send(200, "application/json", json.dumps({"ok": True}))
             return
+        if path == "/api/rebuild_state":
+            new_state = studio.rebuild_state_from_events()
+            studio.atomic_write(studio.kb_path("state"), json.dumps(new_state, indent=2))
+            self._send(200, "application/json", json.dumps({"ok": True, "state": new_state}))
+            return
         if path == "/api/save_scene":
             try:
                 scene = int(body.get("scene"))
@@ -615,10 +726,7 @@ class Handler(BaseHTTPRequestHandler):
             except (TypeError, ValueError):
                 self._send(400, "application/json", json.dumps({"error": "scene must be an integer"}))
                 return
-            level = body.get("level", "developmental")
-            if not isinstance(level, str):
-                level = "developmental"
-            result = studio.reconcile_scene(scene, critique_level=level)
+            result = studio.reconcile_scene(scene)
             self._send(200, "application/json", json.dumps(result if result is not None else {"none": True}))
             return
         if path == "/api/apply_proposals":
@@ -712,8 +820,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")
-            self.send_header("Connection", "keep-alive")
+            self.send_header("Connection", "close")
             self.end_headers()
+            self.close_connection = True
 
             def emit(obj):
                 self.wfile.write(f"data: {json.dumps(obj)}\n\n".encode("utf-8"))
@@ -725,12 +834,19 @@ class Handler(BaseHTTPRequestHandler):
                         emit({"type": etype, **payload})
                 except Exception as e:  # broad: stream error to client
                     emit({"type": "error", "error": str(e)})
+            emit({"type": "end"})
             return
         self._send(404, "text/plain", "not found")
 
 
 def main():
-    # rebuild state on startup from event log (prevents drift)
+    with socket.socket() as probe:
+        probe.settimeout(1)
+        if probe.connect_ex((HOST, PORT)) == 0:
+            print(f"Novel Studio is already running at http://{HOST}:{PORT}")
+            return
+    # the port probe above prevents a duplicate launch from rewriting state, so
+    # rebuild before binding: readiness then implies consistent state
     new_state = studio.rebuild_state_from_events()
     studio.atomic_write(studio.kb_path("state"), json.dumps(new_state, indent=2))
     print("State rebuilt from event log on startup.")

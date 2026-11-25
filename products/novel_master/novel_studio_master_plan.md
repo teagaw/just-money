@@ -73,22 +73,22 @@ Phase 0 and Phase 1 are built and tested. This section is the source of truth fo
 - Scene feedback: rating (1–10) + text after each scene, stored in `scene_NN_feedback.json`, last 5 injected into Showrunner prompt. `POST /api/feedback` endpoint.
 
 **Tests (`test_studio.py`, pytest):**
-- 26 fast unit/integration tests — all PASSING (2.47s).
+- 47 fast tests across test_studio.py, test_adversarial.py, test_adversarial_novels.py — all PASSING.
 - 1 slow integration test — PASSING in 80.58s (generate_one_stream end-to-end).
 - pytest.ini registers `slow` marker.
 - Phase 1 tests: detect_edit, scan_for_edits, rebuild (retcon respected), flag_downstream, apply_proposals (validation), reconcile_scene (mocked LLM), phase1_exit_flow (full integration).
 
-**Models (free tier):** Showrunner = `baidu/ernie-5.5-flash-preview:free`; Auditor = `inclusionai/ling-3.2-flash:free`. High max_tokens (8000/4000). Slugs rotate — swap in `config.json` or use `OPENROUTER_API_KEYS`.
+**Models (free tier):** see `config.json` for the current Showrunner/Auditor slugs and token limits — it is the source of truth. Slugs rotate — swap there or use `OPENROUTER_API_KEYS`.
 
-**Generated so far:** 4 scenes (scene_01–04) with choices, state, events, snapshots. Scene 01 reconciled (retcon applied).
+**Generated so far:** 28 scenes in `projects/default/scenes/` with choices, state, events, snapshots.
 
 **Known limitations / will change:**
 - UI is functional but minimal; will be redesigned (see `ui_plan.md` + `ux_plan.md`). EGM review found 10 blockers + 36 majors to resolve before full redesign.
-- No vector DB, Git branching, or TTS yet.
+- No vector DB or TTS yet; Git branching is available per project.
 - Free models flaky; generation takes 1–2 minutes.
 - Legacy events lack per-event state_updates (fallback works).
 - No concurrency file lock (threading lock covers single-process web server).
-- `rebuild_state_from_events()` on load not automatic (endpoint exists).
+- `rebuild_state_from_events()` runs automatically when the web server starts.
 
 **Next step:** Phase 3+ (specialists only if justified). Future: Scene Brief UI polish, skills system (§24.8), TTS (§24.3), multi-language (§24.1), feedback learning (§24.4), publishing export, UI redesign (ui_plan.md + ux_plan.md).
 
